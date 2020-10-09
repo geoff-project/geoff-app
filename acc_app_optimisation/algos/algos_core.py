@@ -9,9 +9,9 @@ class BobyQaAlgo(AlgoSingleBase):
     def __init__(self,env:gym.Env):
         super(AlgoSingleBase, self).__init__()
         self.env = env
-        x_0 = env.action_space.sample()
-        bounds_0 = (np.ones(env.action_space.shape[-1])*(-1.),np.ones(env.action_space.shape[-1])*1.)
-        self.opt_params ={"x0":x_0,"bounds":bounds_0,"rhobeg":1.,"seek_global_minimum":False,"maxfun":100, "rhoend":0.5,"objfun_has_noise":False}
+        x_0 = env.get_initial_params()
+        bounds_0 = (np.ones(env.optimization_space.shape[-1])*(-1.),np.ones(env.optimization_space.shape[-1])*1.)
+        self.opt_params ={"x0":x_0,"bounds":bounds_0,"rhobeg":1.,"seek_global_minimum":False,"maxfun":100, "rhoend":0.1,"objfun_has_noise":True}
         self.opt_callback = pybobyqa.solve
 
 all_single_algos_dict = {"BOBYQA":BobyQaAlgo}

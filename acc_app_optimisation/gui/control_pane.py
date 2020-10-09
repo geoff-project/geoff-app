@@ -11,6 +11,7 @@ from acc_app_optimisation.algos.test_env import TestEnv
 class DecoratedControlPane(object):
     def __init__(self,mainwindow):
         self.mainwindow = mainwindow
+        self.allEnvs = None
         self.controlPane = self.mainwindow.controlPane
         algoConfigPane = QWidget()
         mainwindow.plotTabWidget.addTab(algoConfigPane, "Algo config")
@@ -43,6 +44,9 @@ class DecoratedControlPane(object):
 
 
 
+
+
+
         self.threadpool = QThreadPool()
         self.algo_selected = self.mainwindow.algoCombo.currentText()
         self.algo = AlgoSingleBase()
@@ -58,9 +62,18 @@ class DecoratedControlPane(object):
     def setPlotPane(self,plotPane):
         self.plotPane = plotPane
 
+    def setAllEnvs(self,allEnvs):
+        self.allEnvs = allEnvs
+        for env in self.allEnvs.getAllEnvsForAccelerator():
+            self.mainwindow.environmentCombo.addItem(env)
+
+    def set_japc(self,japc):
+        self.japc = japc
+
+
     def launch_opt(self):
         self.mainwindow.launchButton.setEnabled(False)
-        env = TestEnv()
+        env = self.allEnvs.getSelectedEnv(self.mainwindow.environmentCombo.currentText(),self.japc)
         self.algo = algos.all_single_algos_dict[self.algo_selected](env)
         self.threadpool.start(self.algo)
 

@@ -12,3 +12,12 @@ class IncaAccelerators(enum.Enum):
     PSB = "PSB","psb"
     PS = 'PS','ps'
     LEIR = 'LEIR','leir'
+    AWAKE = 'AWAKE','awake'
+
+
+def getAcceleratorFromAcceleratorName(name):
+    for acc in IncaAccelerators:
+        if(acc.acc_name == name or acc.lsa_name == name):
+            return acc
+
+    return None

@@ -21,10 +21,10 @@ class AlgoSingleBase(QRunnable):
     def _env_callback(self,a):
         self.iteration_counter+=1
         self.iterations.append(self.iteration_counter)
-        _,reward,_,_ = self.env.step(a)
-        self.objectives.append(np.squeeze(reward))
+        loss = self.env.compute_single_objective(a)
+        self.objectives.append(np.squeeze(loss))
         self.signals.objetive_updated.emit(np.array(self.iterations),np.array(self.objectives))
-        return reward
+        return loss
 
     def solve(self):
         self.iteration_counter = 0
