@@ -1,0 +1,11 @@
+PyQt5 == 5.15.0
+pyjapc ==  2.2.0
+pjlsa == 0.2.2
+qt-lsa-selector == 0.0.1.dev0
+gym == 0.17.2
+numpy == 1.19.0
+Py-BOBYQA == 1.2
+cernml-coi == 0.3.0
+cern-awake-env == 0.10.0
+pyqtgraph == 0.11.0
+accwidgets == 0.4
