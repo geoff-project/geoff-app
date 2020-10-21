@@ -9,29 +9,26 @@ from acc_app_optimisation.algos.test_env import TestEnv
 
 
 class DecoratedControlPane(object):
-    def __init__(self,mainwindow):
+    def __init__(self, mainwindow):
         self.mainwindow = mainwindow
         self.allEnvs = None
         self.controlPane = self.mainwindow.controlPane
         algoConfigPane = QWidget()
         mainwindow.plotTabWidget.addTab(algoConfigPane, "Algo config")
 
-        self.mainwindow.machinePaneLabel.setFont(QFont('Arial', 12,QFont.Bold))
-        self.mainwindow.environmentLabel.setFont(QFont('Arial', 12, QFont.Bold))
-        self.mainwindow.algoSelectionLabel.setFont(QFont('Arial', 12, QFont.Bold))
+        self.mainwindow.machinePaneLabel.setFont(QFont("Arial", 12, QFont.Bold))
+        self.mainwindow.environmentLabel.setFont(QFont("Arial", 12, QFont.Bold))
+        self.mainwindow.algoSelectionLabel.setFont(QFont("Arial", 12, QFont.Bold))
 
         self.mainwindow.setting_tab_widget.setTabText(0, "CONFIG")
         self.mainwindow.setting_tab_widget.removeTab(1)
 
-
-
         self.machineCombo = self.mainwindow.machineCombo
-        font = QFont('Arial', 13)
+        font = QFont("Arial", 13)
         self.machineCombo.setFont(font)
 
         for val in IncaAccelerators:
             self.machineCombo.addItem(val.lsa_name)
-
 
         layout = QGridLayout()
         self.controlPane.setLayout(layout)
@@ -42,16 +39,13 @@ class DecoratedControlPane(object):
         for algo in algos.all_single_algos_dict.keys():
             self.mainwindow.algoCombo.addItem(algo)
 
-
-
-
-
-
         self.threadpool = QThreadPool()
         self.algo_selected = self.mainwindow.algoCombo.currentText()
         self.algo = AlgoSingleBase()
-        self.algo.signals.objetive_updated.connect(lambda x, y: self.plotPane.curve.setData(x, y))
-        self.algo.signals.optimisation_finished.connect(lambda : self.finish())
+        self.algo.signals.objetive_updated.connect(
+            lambda x, y: self.plotPane.curve.setData(x, y)
+        )
+        self.algo.signals.optimisation_finished.connect(lambda: self.finish())
         self.mainwindow.algoCombo.highlighted.connect(lambda x: self.set_algo(x))
         self.mainwindow.algoCombo.currentTextChanged.connect(lambda x: self.set_algo(x))
 
@@ -59,27 +53,27 @@ class DecoratedControlPane(object):
         self.mainwindow.stopButton.clicked.connect(lambda: self.stop_opt())
         self.mainwindow.resetButton.clicked.connect(lambda: self.reset_opt())
 
-    def setPlotPane(self,plotPane):
+    def setPlotPane(self, plotPane):
         self.plotPane = plotPane
 
-    def setAllEnvs(self,allEnvs):
+    def setAllEnvs(self, allEnvs):
         self.allEnvs = allEnvs
         for env in self.allEnvs.getAllEnvsForAccelerator():
             self.mainwindow.environmentCombo.addItem(env)
 
-    def set_japc(self,japc):
+    def set_japc(self, japc):
         self.japc = japc
-
 
     def launch_opt(self):
         self.mainwindow.launchButton.setEnabled(False)
-        env = self.allEnvs.getSelectedEnv(self.mainwindow.environmentCombo.currentText(),self.japc)
+        env = self.allEnvs.getSelectedEnv(
+            self.mainwindow.environmentCombo.currentText(), self.japc
+        )
         self.algo = algos.all_single_algos_dict[self.algo_selected](env)
         self.threadpool.start(self.algo)
 
     def reset_opt(self):
         pass
-
 
     def stop_opt(self):
         pass
@@ -87,9 +81,8 @@ class DecoratedControlPane(object):
     def finish(self):
         self.mainwindow.launchButton.setEnabled(True)
 
-
-    def set_algo(self,algo_name):
-        if (isinstance(algo_name,str)):
+    def set_algo(self, algo_name):
+        if isinstance(algo_name, str):
             self.algo_selected = algo_name
         else:
-            self.algo_selected=self.mainwindow.algoCombo.currentText()
+            self.algo_selected = self.mainwindow.algoCombo.currentText()

@@ -8,25 +8,25 @@ from acc_app_optimisation.gui.generated_main_window import Ui_MainWindow
 from qt_lsa_selector.widget.lsa_view import LsaSelectorWidget
 from acc_app_optimisation.utils.utilities import IncaAccelerators
 import acc_app_optimisation.utils.utilities as utilities
-import acc_app_optimisation.gui.control_pane  as gui_control_core
+import acc_app_optimisation.gui.control_pane as gui_control_core
 import acc_app_optimisation.gui.plot_pane as plotting
 from acc_app_optimisation.envs.envs_prep import AllEnvs
 
 
 class CentralWindow(QMainWindow):
-
-    def __init__(self,*args,**kargs):
-        super(QMainWindow,self).__init__(*args,**kargs)
+    def __init__(self, *args, **kargs):
+        super(QMainWindow, self).__init__(*args, **kargs)
 
         self.mainwindow = Ui_MainWindow()
         self.mainwindow.setupUi(self)
 
         self.accelerator = IncaAccelerators.SPS
 
+        self.japc = pyjapc.PyJapc("", noSet=False, incaAcceleratorName="AWAKE")
 
-        self.japc = pyjapc.PyJapc('', noSet=False, incaAcceleratorName="AWAKE")
-
-        self.decoratedControlPane = gui_control_core.DecoratedControlPane(self.mainwindow)
+        self.decoratedControlPane = gui_control_core.DecoratedControlPane(
+            self.mainwindow
+        )
         self.decoratedControlPane.set_japc(self.japc)
 
         self.plotPane = plotting.PlotPane(self.mainwindow)
@@ -36,47 +36,48 @@ class CentralWindow(QMainWindow):
         self.allEnvs.setAccelerator(self.accelerator)
         self.decoratedControlPane.setAllEnvs(self.allEnvs)
 
-        self.lsa = pjlsa.LSAClient('gpn')
-        self.lsaSelectorWidget = LsaSelectorWidget(self, self.lsa, self.japc, accelerator='sps', as_dock=False)
+        self.lsa = pjlsa.LSAClient("gpn")
+        self.lsaSelectorWidget = LsaSelectorWidget(
+            self, self.lsa, self.japc, accelerator="sps", as_dock=False
+        )
         self.mainwindow.controlPane.layout().addWidget(self.lsaSelectorWidget)
-
 
         self.lsaSelectorWidget.selectionChanged.connect(
             lambda x: self.set_selector(self.lsaSelectorWidget.getUser())
         )
 
-        self.mainwindow.machineCombo.currentTextChanged.connect(lambda x: self.set_accelerator(x))
-
-
-
+        self.mainwindow.machineCombo.currentTextChanged.connect(
+            lambda x: self.set_accelerator(x)
+        )
 
     def set_selector(self, selector):
         pass
 
-    def set_accelerator(self,acceleratorname):
+    def set_accelerator(self, acceleratorname):
         self.accelerator = utilities.getAcceleratorFromAcceleratorName(acceleratorname)
         self.allEnvs.setAccelerator(self.accelerator)
         self.decoratedControlPane.setAllEnvs(self.allEnvs)
         self.mainwindow.controlPane.layout().removeWidget(self.lsaSelectorWidget)
-        self.japc = pyjapc.PyJapc('', noSet=False, incaAcceleratorName=self.accelerator.acc_name)
+        self.japc = pyjapc.PyJapc(
+            "", noSet=False, incaAcceleratorName=self.accelerator.acc_name
+        )
         self.decoratedControlPane.set_japc(self.japc)
         try:
-            self.lsaSelectorWidget= LsaSelectorWidget(self, self.lsa, self.japc, accelerator=acceleratorname, as_dock=False)
+            self.lsaSelectorWidget = LsaSelectorWidget(
+                self, self.lsa, self.japc, accelerator=acceleratorname, as_dock=False
+            )
         except KeyError as exc:
-            if exc.args == ('awake',):
-                self.lsaSelectorWidget = QLabel('AWAKE cycles are not implemented')
+            if exc.args == ("awake",):
+                self.lsaSelectorWidget = QLabel("AWAKE cycles are not implemented")
             else:
                 raise
         self.mainwindow.controlPane.layout().addWidget(self.lsaSelectorWidget)
 
 
-
-
-if __name__== '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     window = CentralWindow()
     window.show()
-
 
     sys.exit(app.exec_())
