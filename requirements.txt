@@ -9,3 +9,4 @@ cernml-coi == 0.3.0
 cern-awake-env == 0.10.0
 pyqtgraph == 0.11.0
 accwidgets == 0.4
+awake-self-matching == 0.0.11.dev0
