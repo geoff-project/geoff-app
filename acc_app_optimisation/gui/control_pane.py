@@ -49,7 +49,7 @@ class DecoratedControlPane(object):
         self.selected_algo_name = self.mainwindow.algoCombo.currentText()
         self.threadpool = QThreadPool()
         self.opt_runner = OptimizerRunner()
-        self.opt_runner.signals.objetive_updated.connect(
+        self.opt_runner.signals.objective_updated.connect(
             lambda x, y: self.plotPane.curve.setData(x, y)
         )
         self.opt_runner.signals.optimisation_finished.connect(lambda: self.finish())

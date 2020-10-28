@@ -18,17 +18,16 @@ class AbstractSingleObjectiveOptimizer:
 
 class OptimizerRunner(QRunnable):
     class Signals(QObject):
-        objetive_updated = pyqtSignal(np.ndarray, np.ndarray)
+        actors_updated = pyqtSignal(np.ndarray, np.ndarray)
+        objective_updated = pyqtSignal(np.ndarray, np.ndarray)
         optimisation_finished = pyqtSignal(bool)
-
-    iteration_counter = 0
-    iterations = []
-    objectives = []
-    signals = Signals()
 
     def __init__(self):
         super().__init__()
         self.optimizer = None
+        objectives = []
+        actors = []
+        signals = Signals()
 
     def setOptimizer(self, optimizer: AbstractSingleObjectiveOptimizer):
         self.optimizer = optimizer
@@ -37,13 +36,12 @@ class OptimizerRunner(QRunnable):
         return self.optimizer
 
     def _env_callback(self, a):
-        self.iteration_counter += 1
-        self.iterations.append(self.iteration_counter)
-        loss = self.optimizer.env.compute_single_objective(a.copy())
         self.objectives.append(np.squeeze(loss))
-        self.signals.objetive_updated.emit(
-            np.array(self.iterations), np.array(self.objectives)
-        )
+        self.actors.append(np.squeeze(a.copy()))
+        iterations = np.arange(len(self.objectives))
+        loss = self.optimizer.env.compute_single_objective(a.copy())
+        self.signals.objective_updated.emit(iterations, np.array(self.objectives))
+        self.signals.actors_updated.emit(iterations, np.array(self.actors))
         return loss
 
     def solve(self):
