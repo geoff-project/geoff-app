@@ -2,6 +2,7 @@ from acc_app_optimisation.algos.algo_base import AlgoSingleBase
 import gym
 import numpy as np
 import pybobyqa
+from scipy.optimize import fmin_cobyla
 
 
 class BobyQaAlgo(AlgoSingleBase):
@@ -19,10 +20,32 @@ class BobyQaAlgo(AlgoSingleBase):
             "rhobeg": 1.0,
             "seek_global_minimum": False,
             "maxfun": 100,
-            "rhoend": 0.1,
+            "rhoend": 0.05,
             "objfun_has_noise": False,
         }
-        self.opt_callback = pybobyqa.solve
+        self.opt_callback = lambda *args, **kwargs: pybobyqa.solve(*args, **kwargs).x
 
 
-all_single_algos_dict = {"BOBYQA": BobyQaAlgo}
+class CobylaAlgo(AlgoSingleBase):
+    def constr1(self, x):
+        return 1.0 - np.abs(x)
+
+    def __init__(self, env: gym.Env):
+        super(AlgoSingleBase, self).__init__()
+        self.env = env
+        x_0 = env.get_initial_params()
+        bounds_0 = (
+            np.ones(env.optimization_space.shape[-1]) * (-1.0),
+            np.ones(env.optimization_space.shape[-1]) * 1.0,
+        )
+        self.opt_params = {
+            "x0": x_0,
+            "cons": [self.constr1],
+            "rhobeg": 1.0,
+            "maxfun": 100,
+            "rhoend": 0.05,
+        }
+        self.opt_callback = fmin_cobyla
+
+
+all_single_algos_dict = {"BOBYQA": BobyQaAlgo, "COBYLA": CobylaAlgo}

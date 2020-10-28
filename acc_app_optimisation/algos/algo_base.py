@@ -22,7 +22,7 @@ class AlgoSingleBase(QRunnable):
     def _env_callback(self, a):
         self.iteration_counter += 1
         self.iterations.append(self.iteration_counter)
-        loss = self.env.compute_single_objective(a)
+        loss = self.env.compute_single_objective(a.copy())
         self.objectives.append(np.squeeze(loss))
         self.signals.objetive_updated.emit(
             np.array(self.iterations), np.array(self.objectives)
@@ -33,7 +33,8 @@ class AlgoSingleBase(QRunnable):
         self.iteration_counter = 0
         self.iterations = []
         self.objectives = []
-        self.opt_callback(self._env_callback, **self.opt_params)
+        optimum = self.opt_callback(self._env_callback, **self.opt_params)
+        self._env_callback(optimum)
         self.signals.optimisation_finished.emit(True)
 
     def update_opt_param(self, keyword, value):
