@@ -1,9 +1,14 @@
-from PyQt5.QtWidgets import *
+from PyQt5.QtWidgets import (
+    QWidget,
+    QScrollArea,
+    QGridLayout,
+)
 from PyQt5.QtGui import *
-from acc_app_optimisation.utils.utilities import IncaAccelerators
 from PyQt5.QtCore import QThreadPool
 
-from acc_app_optimisation.algos.single_opt import (
+from .param_widget import ParamsForm
+from ..utils.utilities import IncaAccelerators
+from ..algos.single_opt import (
     OptimizerRunner,
     all_single_algos_dict,
 )
@@ -12,10 +17,12 @@ from acc_app_optimisation.algos.single_opt import (
 class DecoratedControlPane(object):
     def __init__(self, mainwindow):
         self.mainwindow = mainwindow
+        self.selected_env = None
+        self.selected_algo = None
         self.allEnvs = None
         self.controlPane = self.mainwindow.controlPane
-        algoConfigPane = QWidget()
-        mainwindow.plotTabWidget.addTab(algoConfigPane, "Algo config")
+        self.algoConfigPane = QScrollArea()
+        mainwindow.plotTabWidget.addTab(self.algoConfigPane, "Algo config")
 
         self.mainwindow.machinePaneLabel.setFont(QFont("Arial", 12, QFont.Bold))
         self.mainwindow.environmentLabel.setFont(QFont("Arial", 12, QFont.Bold))
@@ -39,16 +46,17 @@ class DecoratedControlPane(object):
 
         for algo in all_single_algos_dict:
             self.mainwindow.algoCombo.addItem(algo)
-
+        self.selected_algo_name = self.mainwindow.algoCombo.currentText()
         self.threadpool = QThreadPool()
-        self.algo_selected = self.mainwindow.algoCombo.currentText()
         self.opt_runner = OptimizerRunner()
         self.opt_runner.signals.objetive_updated.connect(
             lambda x, y: self.plotPane.curve.setData(x, y)
         )
         self.opt_runner.signals.optimisation_finished.connect(lambda: self.finish())
-        self.mainwindow.algoCombo.highlighted.connect(lambda x: self.set_algo(x))
         self.mainwindow.algoCombo.currentTextChanged.connect(lambda x: self.set_algo(x))
+        self.mainwindow.environmentCombo.currentTextChanged.connect(
+            self.on_env_selected
+        )
 
         self.mainwindow.launchButton.clicked.connect(lambda: self.launch_opt())
         self.mainwindow.stopButton.clicked.connect(lambda: self.stop_opt())
@@ -68,12 +76,8 @@ class DecoratedControlPane(object):
 
     def launch_opt(self):
         self.mainwindow.launchButton.setEnabled(False)
-        env = self.allEnvs.getSelectedEnv(
-            self.mainwindow.environmentCombo.currentText(), self.japc
-        )
-        algo = all_single_algos_dict[self.algo_selected](env)
         self.opt_runner = OptimizerRunner()
-        self.opt_runner.setOptimizer(algo)
+        self.opt_runner.setOptimizer(self.selected_algo)
         self.threadpool.start(self.opt_runner)
 
     def reset_opt(self):
@@ -82,11 +86,36 @@ class DecoratedControlPane(object):
     def stop_opt(self):
         pass
 
+    def on_env_selected(self, env_name):
+        if env_name:
+            self.selected_env = self.allEnvs.getSelectedEnv(env_name, self.japc)
+            algo_class = all_single_algos_dict[self.selected_algo_name]
+            self.selected_algo = algo_class(self.selected_env)
+        else:
+            self.selected_env = None
+            self.selected_algo = None
+        self.update_algo_params_gui()
+
     def finish(self):
         self.mainwindow.launchButton.setEnabled(True)
 
     def set_algo(self, algo_name):
-        if isinstance(algo_name, str):
-            self.algo_selected = algo_name
+        if self.selected_env is None:
+            return
+        self.selected_algo_name = algo_name
+        if algo_name:
+            algo_class = all_single_algos_dict[self.selected_algo_name]
+            self.selected_algo = algo_class(self.selected_env)
         else:
-            self.algo_selected = self.mainwindow.algoCombo.currentText()
+            self.selected_algo = None
+        self.update_algo_params_gui()
+
+    def update_algo_params_gui(self):
+        # clear parameters widget
+        if self.selected_algo is None:
+            self.algoConfigPane.setWidget(None)
+            return
+        params = self.selected_algo.opt_params
+        params_widget = ParamsForm(params)
+        self.algoConfigPane.setWidget(params_widget)
+        # fill parameters widget

@@ -54,10 +54,6 @@ class OptimizerRunner(QRunnable):
         self._env_callback(optimum)
         self.signals.optimisation_finished.emit(True)
 
-    def update_opt_param(self, keyword, value):
-        if keyword in self.optimizer.opt_params:
-            self.optimizer.opt_params[keyword] = value
-
     @pyqtSlot()
     def run(self):
         self.solve()
