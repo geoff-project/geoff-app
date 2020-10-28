@@ -22,7 +22,7 @@ class CentralWindow(QMainWindow):
 
         self.accelerator = IncaAccelerators.SPS
 
-        self.japc = pyjapc.PyJapc("", noSet=False, incaAcceleratorName="AWAKE")
+        self.japc = pyjapc.PyJapc("", noSet=False, incaAcceleratorName="AD")
 
         self.decoratedControlPane = DecoratedControlPane(self.mainwindow)
         self.decoratedControlPane.set_japc(self.japc)
@@ -47,24 +47,23 @@ class CentralWindow(QMainWindow):
         self.mainwindow.machineCombo.currentTextChanged.connect(self.set_accelerator)
 
     def set_selector(self, selector):
-        pass
+        self.japc.setSelector(selector)
 
     def set_accelerator(self, acceleratorname):
         self.accelerator = utilities.getAcceleratorFromAcceleratorName(acceleratorname)
         self.allEnvs.setAccelerator(self.accelerator)
         self.decoratedControlPane.setAllEnvs(self.allEnvs)
         self.mainwindow.controlPane.layout().removeWidget(self.lsaSelectorWidget)
-        self.japc = pyjapc.PyJapc(
-            "", noSet=False, incaAcceleratorName=self.accelerator.acc_name
-        )
+        self.japc = pyjapc.PyJapc("", noSet=False, incaAcceleratorName="AD")
         self.decoratedControlPane.set_japc(self.japc)
         try:
             self.lsaSelectorWidget = LsaSelectorWidget(
                 self, self.lsa, self.japc, accelerator=acceleratorname, as_dock=False
             )
         except KeyError as exc:
-            if exc.args == ("awake",):
-                self.lsaSelectorWidget = QLabel("AWAKE cycles are not implemented")
+            (accelerator,) = exc.args
+            if accelerator in ("awake", "leir"):
+                self.lsaSelectorWidget = QLabel("AWAKE/LEIR cycles are not implemented")
             else:
                 raise
         self.mainwindow.controlPane.layout().addWidget(self.lsaSelectorWidget)
