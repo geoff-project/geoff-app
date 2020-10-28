@@ -1,0 +1,43 @@
+include:
+ - project: acc-co/devops/python/acc-py-devtools
+   file: acc_py_devtools/templates/gitlab-ci/python.yml
+
+variables:
+  project_name: acc_app_optimisation
+
+
+# A full installation of the project, tested with pytest.
+test_install:
+  extends: .acc_py_full_test
+
+
+# A development installation of the project tested with pytest.
+test_dev:
+  extends: .acc_py_dev_test
+  script:
+   # Run the unit-tests with coverage output.
+   - cd ${project_root}
+   - python -m pytest ./${project_name} --cov=${project_name} --junitxml=report.xml
+
+# Ensure that PyLint runs without warnings.
+test_lint:
+  extends: .acc_py_base
+  stage: test
+  before_script:
+   - python -m pip install -e .[test]
+   - python -m pip install pylint
+  script:
+   - python -m pylint ${project_name}
+
+# Ensure that code style is being upheld.
+test_style:
+  extends: .acc_py_base
+  stage: test
+  before_script:
+   - pip install black
+  script:
+   - python -m black --check .
+
+# A push of the source distribution to the acc-py PyPI, only on git tag.
+release_sdist_on_tag:
+  extends: .acc_py_release_sdist
