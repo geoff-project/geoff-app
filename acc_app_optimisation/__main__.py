@@ -8,14 +8,14 @@ from acc_app_optimisation.gui.generated_main_window import Ui_MainWindow
 from qt_lsa_selector.widget.lsa_view import LsaSelectorWidget
 from acc_app_optimisation.utils.utilities import IncaAccelerators
 import acc_app_optimisation.utils.utilities as utilities
-import acc_app_optimisation.gui.control_pane as gui_control_core
+from .gui.control_pane import DecoratedControlPane
 import acc_app_optimisation.gui.plot_pane as plotting
 from acc_app_optimisation.envs.envs_prep import AllEnvs
 
 
 class CentralWindow(QMainWindow):
     def __init__(self, *args, **kargs):
-        super(QMainWindow, self).__init__(*args, **kargs)
+        super().__init__(*args, **kargs)
 
         self.mainwindow = Ui_MainWindow()
         self.mainwindow.setupUi(self)
@@ -24,9 +24,7 @@ class CentralWindow(QMainWindow):
 
         self.japc = pyjapc.PyJapc("", noSet=False, incaAcceleratorName="AWAKE")
 
-        self.decoratedControlPane = gui_control_core.DecoratedControlPane(
-            self.mainwindow
-        )
+        self.decoratedControlPane = DecoratedControlPane(self.mainwindow)
         self.decoratedControlPane.set_japc(self.japc)
 
         self.plotPane = plotting.PlotPane(self.mainwindow)
@@ -46,9 +44,7 @@ class CentralWindow(QMainWindow):
             lambda x: self.set_selector(self.lsaSelectorWidget.getUser())
         )
 
-        self.mainwindow.machineCombo.currentTextChanged.connect(
-            lambda x: self.set_accelerator(x)
-        )
+        self.mainwindow.machineCombo.currentTextChanged.connect(self.set_accelerator)
 
     def set_selector(self, selector):
         pass
