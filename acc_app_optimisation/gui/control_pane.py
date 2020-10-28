@@ -4,7 +4,7 @@ from acc_app_optimisation.utils.utilities import IncaAccelerators
 from PyQt5.QtCore import QThreadPool
 
 from acc_app_optimisation.algos.single_opt import (
-    AlgoSingleBase,
+    OptimizerRunner,
     all_single_algos_dict,
 )
 
@@ -37,16 +37,16 @@ class DecoratedControlPane(object):
 
         self.controlPane.layout().setSpacing(0)
 
-        for algo in all_single_algos_dict.keys():
+        for algo in all_single_algos_dict:
             self.mainwindow.algoCombo.addItem(algo)
 
         self.threadpool = QThreadPool()
         self.algo_selected = self.mainwindow.algoCombo.currentText()
-        self.algo = AlgoSingleBase()
-        self.algo.signals.objetive_updated.connect(
+        self.opt_runner = OptimizerRunner()
+        self.opt_runner.signals.objetive_updated.connect(
             lambda x, y: self.plotPane.curve.setData(x, y)
         )
-        self.algo.signals.optimisation_finished.connect(lambda: self.finish())
+        self.opt_runner.signals.optimisation_finished.connect(lambda: self.finish())
         self.mainwindow.algoCombo.highlighted.connect(lambda x: self.set_algo(x))
         self.mainwindow.algoCombo.currentTextChanged.connect(lambda x: self.set_algo(x))
 
@@ -71,8 +71,10 @@ class DecoratedControlPane(object):
         env = self.allEnvs.getSelectedEnv(
             self.mainwindow.environmentCombo.currentText(), self.japc
         )
-        self.algo = all_single_algos_dict[self.algo_selected](env)
-        self.threadpool.start(self.algo)
+        algo = all_single_algos_dict[self.algo_selected](env)
+        self.opt_runner = OptimizerRunner()
+        self.opt_runner.setOptimizer(algo)
+        self.threadpool.start(self.opt_runner)
 
     def reset_opt(self):
         pass
