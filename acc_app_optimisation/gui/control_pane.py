@@ -3,9 +3,10 @@ from PyQt5.QtGui import *
 from acc_app_optimisation.utils.utilities import IncaAccelerators
 from PyQt5.QtCore import QThreadPool
 
-import acc_app_optimisation.algos.algos_core as algos
-from acc_app_optimisation.algos.algo_base import AlgoSingleBase
-from acc_app_optimisation.algos.test_env import TestEnv
+from acc_app_optimisation.algos.single_opt import (
+    AlgoSingleBase,
+    all_single_algos_dict,
+)
 
 
 class DecoratedControlPane(object):
@@ -36,7 +37,7 @@ class DecoratedControlPane(object):
 
         self.controlPane.layout().setSpacing(0)
 
-        for algo in algos.all_single_algos_dict.keys():
+        for algo in all_single_algos_dict.keys():
             self.mainwindow.algoCombo.addItem(algo)
 
         self.threadpool = QThreadPool()
@@ -70,7 +71,7 @@ class DecoratedControlPane(object):
         env = self.allEnvs.getSelectedEnv(
             self.mainwindow.environmentCombo.currentText(), self.japc
         )
-        self.algo = algos.all_single_algos_dict[self.algo_selected](env)
+        self.algo = all_single_algos_dict[self.algo_selected](env)
         self.threadpool.start(self.algo)
 
     def reset_opt(self):
