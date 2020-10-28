@@ -5,8 +5,8 @@ import awake_self_matching.environment
 
 
 class AllEnvs:
-
-    accelerator = None
+    def __init__(self):
+        self.accelerator = None
 
     def setAccelerator(self, accelerator):
         self.accelerator = accelerator
