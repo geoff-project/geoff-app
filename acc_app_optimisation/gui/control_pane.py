@@ -58,6 +58,7 @@ class DecoratedControlPane(object):
 
     def setAllEnvs(self, allEnvs):
         self.allEnvs = allEnvs
+        self.mainwindow.environmentCombo.clear()
         for env in self.allEnvs.getAllEnvsForAccelerator():
             self.mainwindow.environmentCombo.addItem(env)
 
