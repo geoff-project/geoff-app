@@ -48,7 +48,7 @@ class DecoratedControlPane(object):
             self.mainwindow.algoCombo.addItem(algo)
         self.selected_algo_name = self.mainwindow.algoCombo.currentText()
         self.threadpool = QThreadPool()
-        self.opt_runner = OptimizerRunner()
+        self.opt_runner = OptimizerRunner(None)
         self.opt_runner.signals.objective_updated.connect(
             lambda x, y: self.plotPane.curve.setData(x, y)
         )
@@ -76,8 +76,7 @@ class DecoratedControlPane(object):
 
     def launch_opt(self):
         self.mainwindow.launchButton.setEnabled(False)
-        self.opt_runner = OptimizerRunner()
-        self.opt_runner.setOptimizer(self.selected_algo)
+        self.opt_runner = OptimizerRunner(self.selected_algo)
         self.threadpool.start(self.opt_runner)
 
     def reset_opt(self):
