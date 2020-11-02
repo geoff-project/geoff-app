@@ -130,6 +130,13 @@
              </widget>
             </item>
             <item>
+             <widget class="QPushButton" name="configEnvButton">
+              <property name="text">
+               <string>Configure</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QLabel" name="algoSelectionLabel">
               <property name="maximumSize">
                <size>

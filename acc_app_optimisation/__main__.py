@@ -8,7 +8,7 @@ from acc_app_optimisation.gui.generated_main_window import Ui_MainWindow
 from qt_lsa_selector.widget.lsa_view import LsaSelectorWidget
 from acc_app_optimisation.utils.utilities import IncaAccelerators
 import acc_app_optimisation.utils.utilities as utilities
-from .gui.control_pane import DecoratedControlPane
+from acc_app_optimisation.gui.control_pane import DecoratedControlPane
 import acc_app_optimisation.gui.plot_pane as plotting
 from acc_app_optimisation.envs.envs_prep import AllEnvs
 

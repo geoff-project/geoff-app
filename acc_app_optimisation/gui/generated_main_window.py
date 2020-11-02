@@ -19,9 +19,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.controlArea = QtWidgets.QWidget(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.controlArea.sizePolicy().hasHeightForWidth())
@@ -44,9 +42,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.addWidget(self.machineCombo)
         self.verticalLayout.addWidget(self.machineSelectionPane)
         self.controlPane = QtWidgets.QWidget(self.controlArea)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.controlPane.sizePolicy().hasHeightForWidth())
@@ -74,6 +70,9 @@ class Ui_MainWindow(object):
         self.environmentCombo.setMinimumSize(QtCore.QSize(0, 40))
         self.environmentCombo.setObjectName("environmentCombo")
         self.verticalLayout_3.addWidget(self.environmentCombo)
+        self.configEnvButton = QtWidgets.QPushButton(self.settingPane)
+        self.configEnvButton.setObjectName("configEnvButton")
+        self.verticalLayout_3.addWidget(self.configEnvButton)
         self.algoSelectionLabel = QtWidgets.QLabel(self.settingPane)
         self.algoSelectionLabel.setMaximumSize(QtCore.QSize(16777215, 30))
         self.algoSelectionLabel.setObjectName("algoSelectionLabel")
@@ -88,9 +87,7 @@ class Ui_MainWindow(object):
         self.line.setObjectName("line")
         self.verticalLayout_3.addWidget(self.line)
         self.buttonPane = QtWidgets.QWidget(self.settingPane)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.buttonPane.sizePolicy().hasHeightForWidth())
@@ -100,9 +97,7 @@ class Ui_MainWindow(object):
         self.gridLayout = QtWidgets.QGridLayout(self.buttonPane)
         self.gridLayout.setObjectName("gridLayout")
         self.launchButton = QtWidgets.QPushButton(self.buttonPane)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.launchButton.sizePolicy().hasHeightForWidth())
@@ -112,9 +107,7 @@ class Ui_MainWindow(object):
         self.launchButton.setObjectName("launchButton")
         self.gridLayout.addWidget(self.launchButton, 0, 0, 1, 1)
         self.stopButton = QtWidgets.QPushButton(self.buttonPane)
-        sizePolicy = QtWidgets.QSizePolicy(
-            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed
-        )
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.stopButton.sizePolicy().hasHeightForWidth())
@@ -178,26 +171,14 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "acc optimisation"))
         self.machinePaneLabel.setText(_translate("MainWindow", "Machine: "))
         self.environmentLabel.setText(_translate("MainWindow", "Environment:"))
-        self.algoSelectionLabel.setText(
-            _translate("MainWindow", "Numerical optimisation algo: ")
-        )
+        self.configEnvButton.setText(_translate("MainWindow", "Configure"))
+        self.algoSelectionLabel.setText(_translate("MainWindow", "Numerical optimisation algo: "))
         self.launchButton.setText(_translate("MainWindow", "Launch"))
         self.stopButton.setText(_translate("MainWindow", "Stop"))
         self.resetButton.setText(_translate("MainWindow", "Reset"))
-        self.setting_tab_widget.setTabText(
-            self.setting_tab_widget.indexOf(self.setting_tab),
-            _translate("MainWindow", "Tab 1"),
-        )
-        self.setting_tab_widget.setTabText(
-            self.setting_tab_widget.indexOf(self.correction_tab),
-            _translate("MainWindow", "Tab 2"),
-        )
-        self.plotTabWidget.setTabText(
-            self.plotTabWidget.indexOf(self.plotPane), _translate("MainWindow", "Tab 1")
-        )
-        self.plotTabWidget.setTabText(
-            self.plotTabWidget.indexOf(self.networkfityPane),
-            _translate("MainWindow", "Tab 2"),
-        )
+        self.setting_tab_widget.setTabText(self.setting_tab_widget.indexOf(self.setting_tab), _translate("MainWindow", "Tab 1"))
+        self.setting_tab_widget.setTabText(self.setting_tab_widget.indexOf(self.correction_tab), _translate("MainWindow", "Tab 2"))
+        self.plotTabWidget.setTabText(self.plotTabWidget.indexOf(self.plotPane), _translate("MainWindow", "Tab 1"))
+        self.plotTabWidget.setTabText(self.plotTabWidget.indexOf(self.networkfityPane), _translate("MainWindow", "Tab 2"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.actionClose.setText(_translate("MainWindow", "Close"))
