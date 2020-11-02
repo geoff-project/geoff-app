@@ -1,3 +1,4 @@
+from cernml import coi
 from PyQt5.QtWidgets import (
     QWidget,
     QPushButton,
@@ -26,13 +27,7 @@ class DecoratedControlPane(object):
         self.controlPane = self.mainwindow.controlPane
         self.algoConfigPane = QScrollArea()
         mainwindow.plotTabWidget.addTab(self.algoConfigPane, "Algo config")
-        self.envConfigPane = QScrollArea()
-        mainwindow.plotTabWidget.addTab(self.envConfigPane, "Env config")
-        layout = QHBoxLayout()
-        self.envConfigPane.setLayout(layout)
-        config_env_button = QPushButton("Configure ...")
-        layout.addWidget(config_env_button)
-        config_env_button.clicked.connect(self.on_config_env)
+        self.mainwindow.configEnvButton.clicked.connect(self.on_config_env)
 
         self.mainwindow.machinePaneLabel.setFont(QFont("Arial", 12, QFont.Bold))
         self.mainwindow.environmentLabel.setFont(QFont("Arial", 12, QFont.Bold))
