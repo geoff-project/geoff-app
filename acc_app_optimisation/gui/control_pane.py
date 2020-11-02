@@ -1,12 +1,15 @@
 from PyQt5.QtWidgets import (
     QWidget,
+    QPushButton,
     QScrollArea,
     QGridLayout,
+    QHBoxLayout,
 )
 from PyQt5.QtGui import *
 from PyQt5.QtCore import QThreadPool
 
 from .param_widget import ParamsForm
+from .config_widget import ConfigureDialog
 from ..utils.utilities import IncaAccelerators
 from ..algos.single_opt import (
     OptimizerRunner,
@@ -23,6 +26,13 @@ class DecoratedControlPane(object):
         self.controlPane = self.mainwindow.controlPane
         self.algoConfigPane = QScrollArea()
         mainwindow.plotTabWidget.addTab(self.algoConfigPane, "Algo config")
+        self.envConfigPane = QScrollArea()
+        mainwindow.plotTabWidget.addTab(self.envConfigPane, "Env config")
+        layout = QHBoxLayout()
+        self.envConfigPane.setLayout(layout)
+        config_env_button = QPushButton("Configure ...")
+        layout.addWidget(config_env_button)
+        config_env_button.clicked.connect(self.on_config_env)
 
         self.mainwindow.machinePaneLabel.setFont(QFont("Arial", 12, QFont.Bold))
         self.mainwindow.environmentLabel.setFont(QFont("Arial", 12, QFont.Bold))
@@ -110,11 +120,13 @@ class DecoratedControlPane(object):
         self.update_algo_params_gui()
 
     def update_algo_params_gui(self):
-        # clear parameters widget
         if self.selected_algo is None:
             self.algoConfigPane.setWidget(None)
             return
         params = self.selected_algo.opt_params
         params_widget = ParamsForm(params)
         self.algoConfigPane.setWidget(params_widget)
-        # fill parameters widget
+
+    def on_config_env(self):
+        dialog = ConfigureDialog(self.selected_env)
+        dialog.open()

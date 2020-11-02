@@ -1,7 +1,6 @@
 from cernml import coi
 import cern_awake_env.simulation
 import cern_awake_env.machine
-import awake_self_matching.environment
 
 
 class AllEnvs:
