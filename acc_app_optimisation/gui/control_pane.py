@@ -54,8 +54,13 @@ class DecoratedControlPane(object):
         self.selected_algo_name = self.mainwindow.algoCombo.currentText()
         self.threadpool = QThreadPool()
         self.opt_runner = OptimizerRunner(None)
+        # Lambda instead of direct binding because `self.plotPane` only is set
+        # at a later point.
         self.opt_runner.signals.objective_updated.connect(
             lambda x, y: self.plotPane.curve.setData(x, y)
+        )
+        self.opt_runner.signals.actors_updated.connect(
+            lambda x, y: self.plotPane.setActorsCurveData(x, y)
         )
         self.opt_runner.signals.optimisation_finished.connect(lambda: self.finish())
         self.mainwindow.algoCombo.currentTextChanged.connect(lambda x: self.set_algo(x))
@@ -95,6 +100,8 @@ class DecoratedControlPane(object):
             self.selected_env = self.allEnvs.getSelectedEnv(env_name, self.japc)
             algo_class = all_single_algos_dict[self.selected_algo_name]
             self.selected_algo = algo_class(self.selected_env)
+            (dimension,) = self.selected_env.optimization_space.shape
+            self.plotPane.setActorCount(dimension)
         else:
             self.selected_env = None
             self.selected_algo = None
