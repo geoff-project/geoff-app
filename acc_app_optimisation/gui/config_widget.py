@@ -48,6 +48,8 @@ class ConfigureDialog(QDialog):
         for field in self.config.fields():
             label = QLabel(field.label)
             widget = self._make_field_widget(field)
+            if field.help is not None:
+                widget.setToolTip(field.help)
             params_layout.addRow(label, widget)
         controls = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
