@@ -131,4 +131,6 @@ class DecoratedControlPane(object):
 
     def on_config_env(self):
         dialog = ConfigureDialog(self.selected_env, self.mainwindow.centralwidget)
+        name = type(self.selected_env.unwrapped).__name__
+        dialog.setWindowTitle(f"Configure {name} ...")
         dialog.open()
