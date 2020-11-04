@@ -130,5 +130,5 @@ class DecoratedControlPane(object):
         self.algoConfigPane.setWidget(params_widget)
 
     def on_config_env(self):
-        dialog = ConfigureDialog(self.selected_env)
+        dialog = ConfigureDialog(self.selected_env, self.mainwindow.centralwidget)
         dialog.open()
