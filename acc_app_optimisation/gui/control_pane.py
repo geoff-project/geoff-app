@@ -28,6 +28,7 @@ class DecoratedControlPane(object):
         self.algoConfigPane = QScrollArea()
         mainwindow.plotTabWidget.addTab(self.algoConfigPane, "Algo config")
         self.mainwindow.configEnvButton.clicked.connect(self.on_config_env)
+        self.mainwindow.configEnvButton.setEnabled(False)
 
         self.mainwindow.machinePaneLabel.setFont(QFont("Arial", 12, QFont.Bold))
         self.mainwindow.environmentLabel.setFont(QFont("Arial", 12, QFont.Bold))
@@ -102,9 +103,13 @@ class DecoratedControlPane(object):
             self.selected_algo = algo_class(self.selected_env)
             (dimension,) = self.selected_env.optimization_space.shape
             self.plotPane.setActorCount(dimension)
+            self.mainwindow.configEnvButton.setEnabled(
+                isinstance(self.selected_env.unwrapped, coi.Configurable)
+            )
         else:
             self.selected_env = None
             self.selected_algo = None
+            self.mainwindow.configEnvButton.setEnabled(False)
         self.update_algo_params_gui()
 
     def finish(self):
