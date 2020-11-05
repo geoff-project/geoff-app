@@ -11,6 +11,8 @@ class IncaAccelerators(enum.Enum):
     PS = "PS", "ps"
     LEIR = "LEIR", "leir"
     AWAKE = "AWAKE", "awake"
+    LINAC3 = "Linac3", "linac3"
+    LINAC4 = "Linac4", "linac4"
 
 
 def getAcceleratorFromAcceleratorName(name):

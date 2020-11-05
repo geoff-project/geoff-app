@@ -50,6 +50,10 @@ class CentralWindow(QMainWindow):
         self.japc.setSelector(selector)
 
     def set_accelerator(self, acceleratorname):
+        if acceleratorname == "linac3":
+            acceleratorname = "leir"
+        if acceleratorname == "linac4":
+            acceleratorname = "psb"
         self.accelerator = utilities.getAcceleratorFromAcceleratorName(acceleratorname)
         self.allEnvs.setAccelerator(self.accelerator)
         self.decoratedControlPane.setAllEnvs(self.allEnvs)
@@ -62,8 +66,8 @@ class CentralWindow(QMainWindow):
             )
         except KeyError as exc:
             (accelerator,) = exc.args
-            if accelerator in ("awake", "leir"):
-                self.lsaSelectorWidget = QLabel("AWAKE/LEIR cycles are not implemented")
+            if accelerator in ["leir", "awake"]:
+                self.lsaSelectorWidget = QLabel("")
             else:
                 raise
         self.mainwindow.controlPane.layout().addWidget(self.lsaSelectorWidget)
