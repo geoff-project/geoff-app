@@ -69,9 +69,10 @@ class DecoratedControlPane(object):
             self.on_env_selected
         )
 
-        self.mainwindow.launchButton.clicked.connect(lambda: self.launch_opt())
-        self.mainwindow.stopButton.clicked.connect(lambda: self.stop_opt())
-        self.mainwindow.resetButton.clicked.connect(lambda: self.reset_opt())
+        self.mainwindow.launchButton.clicked.connect(self.launch_opt)
+        self.mainwindow.stopButton.clicked.connect(self.stop_opt)
+        self.mainwindow.resetButton.clicked.connect(self.reset_opt)
+        self.mainwindow.stopButton.setEnabled(False)
 
     def setPlotPane(self, plotPane):
         self.plotPane = plotPane
@@ -87,14 +88,21 @@ class DecoratedControlPane(object):
 
     def launch_opt(self):
         self.mainwindow.launchButton.setEnabled(False)
+        self.mainwindow.resetButton.setEnabled(False)
+        self.mainwindow.stopButton.setEnabled(True)
         self.opt_runner = OptimizerRunner(self.selected_algo)
         self.threadpool.start(self.opt_runner)
 
     def reset_opt(self):
-        pass
+        if self.selected_env is None:
+            return
+        if self.selected_algo is None:
+            return
+        self.selected_env.compute_single_objective(self.selected_algo.x_0)
 
     def stop_opt(self):
-        pass
+        self.mainwindow.stopButton.setEnabled(False)
+        self.opt_runner.cancel()
 
     def on_env_selected(self, env_name):
         if env_name:
@@ -114,6 +122,8 @@ class DecoratedControlPane(object):
 
     def finish(self):
         self.mainwindow.launchButton.setEnabled(True)
+        self.mainwindow.resetButton.setEnabled(True)
+        self.mainwindow.stopButton.setEnabled(False)
 
     def set_algo(self, algo_name):
         if self.selected_env is None:

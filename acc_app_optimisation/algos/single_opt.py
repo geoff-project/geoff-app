@@ -7,9 +7,14 @@ from scipy.optimize import fmin_cobyla
 from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, pyqtSlot
 
 
+class OptimizationCancelled(Exception):
+    """The user clicked the Stop button to cancel optimization."""
+
+
 class AbstractSingleObjectiveOptimizer:
-    def __init__(self, env, opt_params):
+    def __init__(self, env: SingleOptimizable, opt_params):
         self.env = env
+        self.x_0 = env.get_initial_params()
         self.opt_params = opt_params
 
     def solve(self, func, **kwargs):
@@ -29,8 +34,14 @@ class OptimizerRunner(QRunnable):
         self.optimizer = optimizer
         self.objectives = []
         self.actors = []
+        self._is_cancelled = False
+
+    def cancel(self):
+        self._is_cancelled = True
 
     def _env_callback(self, a):
+        if self._is_cancelled:
+            raise OptimizationCancelled()
         loss = self.optimizer.env.compute_single_objective(a.copy())
         self.objectives.append(np.squeeze(loss))
         self.actors.append(np.squeeze(a.copy()))
@@ -40,8 +51,13 @@ class OptimizerRunner(QRunnable):
         return loss
 
     def solve(self):
-        optimum = self.optimizer.solve(self._env_callback, **self.optimizer.opt_params)
-        self._env_callback(optimum)
+        try:
+            optimum = self.optimizer.solve(
+                self._env_callback, **self.optimizer.opt_params
+            )
+            self._env_callback(optimum)
+        except OptimizationCancelled:
+            pass
         self.signals.optimisation_finished.emit(True)
 
     @pyqtSlot()
@@ -51,12 +67,7 @@ class OptimizerRunner(QRunnable):
 
 class BobyQaAlgo(AbstractSingleObjectiveOptimizer):
     def __init__(self, env: SingleOptimizable):
-        x_0 = env.get_initial_params()
-        bounds = (-np.ones(x_0.shape), np.ones(x_0.shape))
         opt_params = {
-            "x0": x_0,
-            "bounds": bounds,
-            "rhobeg": 1.0,
             "seek_global_minimum": False,
             "maxfun": 100,
             "rhoend": 0.05,
@@ -65,24 +76,34 @@ class BobyQaAlgo(AbstractSingleObjectiveOptimizer):
         super().__init__(env, opt_params)
 
     def solve(self, func, **kwargs):
-        opt_result = pybobyqa.solve(func, **kwargs)
+        bounds = (
+            -np.ones(self.x_0.shape),
+            np.ones(self.x_0.shape),
+        )
+        opt_result = pybobyqa.solve(
+            func, x0=self.x_0, rhobeg=1.0, bounds=bounds, **kwargs
+        )
         return opt_result.x
 
 
 class CobylaAlgo(AbstractSingleObjectiveOptimizer):
     def __init__(self, env: SingleOptimizable):
-        x_0 = env.get_initial_params()
         opt_params = {
-            "x0": x_0,
-            "cons": [lambda x: 1.0 - np.abs(x)],
-            "rhobeg": 1.0,
             "maxfun": 100,
             "rhoend": 0.05,
         }
         super().__init__(env, opt_params)
 
     def solve(self, func, **kwargs):
-        return fmin_cobyla(func, **kwargs)
+        constraints = list(self.env.constraints)
+        constraints.append(lambda x: 1.0 - np.abs(x))
+        return fmin_cobyla(
+            func,
+            x0=self.x_0,
+            rhobeg=1.0,
+            cons=constraints,
+            **kwargs,
+        )
 
 
 all_single_algos_dict = {"BOBYQA": BobyQaAlgo, "COBYLA": CobylaAlgo}
