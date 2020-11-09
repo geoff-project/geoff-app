@@ -34,6 +34,9 @@ class DecoratedControlPane(object):
         self.mainwindow.environmentLabel.setFont(QFont("Arial", 12, QFont.Bold))
         self.mainwindow.algoSelectionLabel.setFont(QFont("Arial", 12, QFont.Bold))
 
+        self.envRenderPane = QScrollArea()
+        mainwindow.plotTabWidget.addTab(self.envRenderPane, "Render output")
+
         self.mainwindow.setting_tab_widget.setTabText(0, "CONFIG")
         self.mainwindow.setting_tab_widget.removeTab(1)
 
