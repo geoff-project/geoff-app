@@ -14,7 +14,6 @@ class OptimizationCancelled(Exception):
 class AbstractSingleObjectiveOptimizer:
     def __init__(self, env: SingleOptimizable, opt_params):
         self.env = env
-        self.x_0 = env.get_initial_params()
         self.opt_params = opt_params
 
     def solve(self, func, **kwargs):
@@ -39,15 +38,31 @@ class OptimizerRunner(QRunnable):
     def cancel(self):
         self._is_cancelled = True
 
-    def _env_callback(self, a):
+    def _env_callback(self, action):
         if self._is_cancelled:
             raise OptimizationCancelled()
-        loss = self.optimizer.env.compute_single_objective(a.copy())
+        # Clip parameters into the valid range – COBYLA might otherwise go
+        # out-of-bounds.
+        env = self.optimizer.env
+        action = np.clip(
+            action,
+            env.optimization_space.low,
+            env.optimization_space.high,
+        )
+        # Calculate loss function.
+        loss = env.compute_single_objective(action.copy())
+        # Log inputs and outputs.
+        self.actors.append(np.squeeze(action))
         self.objectives.append(np.squeeze(loss))
-        self.actors.append(np.squeeze(a.copy()))
         iterations = np.arange(len(self.objectives))
-        self.signals.objective_updated.emit(iterations, np.array(self.objectives))
-        self.signals.actors_updated.emit(iterations, np.array(self.actors))
+        self.signals.objective_updated.emit(
+            iterations,
+            np.array(self.objectives),
+        )
+        self.signals.actors_updated.emit(
+            iterations,
+            np.array(self.actors),
+        )
         return loss
 
     def solve(self):
@@ -76,13 +91,9 @@ class BobyQaAlgo(AbstractSingleObjectiveOptimizer):
         super().__init__(env, opt_params)
 
     def solve(self, func, **kwargs):
-        bounds = (
-            -np.ones(self.x_0.shape),
-            np.ones(self.x_0.shape),
-        )
-        opt_result = pybobyqa.solve(
-            func, x0=self.x_0, rhobeg=1.0, bounds=bounds, **kwargs
-        )
+        x_0 = self.env.get_initial_params()
+        bounds = (-np.ones(x_0.shape), np.ones(x_0.shape))
+        opt_result = pybobyqa.solve(func, x0=x_0, rhobeg=1.0, bounds=bounds, **kwargs)
         return opt_result.x
 
 
@@ -95,15 +106,10 @@ class CobylaAlgo(AbstractSingleObjectiveOptimizer):
         super().__init__(env, opt_params)
 
     def solve(self, func, **kwargs):
+        x_0 = self.env.get_initial_params()
         constraints = list(self.env.constraints)
         constraints.append(lambda x: 1.0 - np.abs(x))
-        return fmin_cobyla(
-            func,
-            x0=self.x_0,
-            rhobeg=1.0,
-            cons=constraints,
-            **kwargs,
-        )
+        return fmin_cobyla(func, x0=x_0, rhobeg=1.0, cons=constraints, **kwargs)
 
 
 all_single_algos_dict = {"BOBYQA": BobyQaAlgo, "COBYLA": CobylaAlgo}
