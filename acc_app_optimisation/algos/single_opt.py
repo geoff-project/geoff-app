@@ -5,8 +5,8 @@ import sys
 import numpy as np
 import pybobyqa
 from cernml.coi import SingleOptimizable
-from scipy.optimize import fmin_cobyla
-from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, pyqtSlot
+from scipy.optimize import fmin_cobyla, minimize, NonlinearConstraint
+from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThread, pyqtSlot
 
 
 class OptimizationCancelled(Exception):
@@ -105,16 +105,26 @@ class BobyQaAlgo(AbstractSingleObjectiveOptimizer):
 class CobylaAlgo(AbstractSingleObjectiveOptimizer):
     def __init__(self, env: SingleOptimizable):
         opt_params = {
-            "maxfun": 100,
-            "rhoend": 0.05,
+            "maxiter": 100,
+            "tol": 0.05,
         }
         super().__init__(env, opt_params)
 
     def solve(self, func, **kwargs):
         x_0 = self.env.get_initial_params()
         constraints = list(self.env.constraints)
-        constraints.append(lambda x: 1.0 - np.abs(x))
-        return fmin_cobyla(func, x0=x_0, rhobeg=1.0, cons=constraints, **kwargs)
+        constraints.append(NonlinearConstraint(lambda x: np.abs(x), 0.0, 1.0))
+        result = minimize(
+            func,
+            method="COBYLA",
+            x0=x_0,
+            constraints=constraints,
+            options=dict(kwargs, rhobeg=1.0),
+        )
+        return result.x
 
 
-all_single_algos_dict = {"BOBYQA": BobyQaAlgo, "COBYLA": CobylaAlgo}
+all_single_algos_dict = {
+    "BOBYQA": BobyQaAlgo,
+    "COBYLA": CobylaAlgo,
+}
