@@ -1,24 +1,24 @@
 """Module containing single-objective optimizers."""
 
 import sys
+from types import SimpleNamespace
 
 import numpy as np
 import pybobyqa
-from cernml.coi import SingleOptimizable
-from scipy.optimize import fmin_cobyla, minimize, NonlinearConstraint
+from cernml import coi
 from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThread, pyqtSlot
+import scipy.optimize
 
 
 class OptimizationCancelled(Exception):
     """The user clicked the Stop button to cancel optimization."""
 
 
-class AbstractSingleObjectiveOptimizer:
-    def __init__(self, env: SingleOptimizable, opt_params):
+class AbstractSingleObjectiveOptimizer(coi.Configurable):
+    def __init__(self, env: coi.SingleOptimizable):
         self.env = env
-        self.opt_params = opt_params
 
-    def solve(self, func, **kwargs):
+    def solve(self, func):
         raise NotImplementedError()
 
 
@@ -82,9 +82,7 @@ class OptimizerRunner(QRunnable):
 
     def solve(self):
         try:
-            optimum = self.optimizer.solve(
-                self._env_callback, **self.optimizer.opt_params
-            )
+            optimum = self.optimizer.solve(self._env_callback)
             self._env_callback(optimum)
         except OptimizationCancelled:
             pass
@@ -99,40 +97,97 @@ class OptimizerRunner(QRunnable):
 
 
 class BobyQaAlgo(AbstractSingleObjectiveOptimizer):
-    def __init__(self, env: SingleOptimizable):
-        opt_params = {
-            "seek_global_minimum": False,
-            "maxfun": 100,
-            "rhoend": 0.05,
-            "objfun_has_noise": False,
-        }
-        super().__init__(env, opt_params)
+    def __init__(self, env: coi.SingleOptimizable):
+        self.maxfun = 100
+        self.rhoend = 0.05
+        self.seek_global_minimum = False
+        self.objfun_has_noise = False
+        super().__init__(env)
 
-    def solve(self, func, **kwargs):
+    def get_config(self) -> coi.Config:
+        config = coi.Config()
+        config.add(
+            "maxfun",
+            self.maxfun,
+            range=(0, np.inf),
+            help="Maximum number of function evaluations",
+        )
+        config.add(
+            "rhoend",
+            self.rhoend,
+            range=(0.0, 1.0),
+            help="Step size below which the optimization is considered converged",
+        )
+        config.add(
+            "seek_global_minimum",
+            self.seek_global_minimum,
+            help="Enable additional logic to avoid local minima",
+        )
+        config.add(
+            "objfun_has_noise",
+            self.objfun_has_noise,
+            help="Enable additional logic to handle non-deterministic environments",
+        )
+        return config
+
+    def apply_config(self, values: SimpleNamespace) -> None:
+        self.maxfun = values.maxfun
+        self.rhoend = values.rhoend
+        self.seek_global_minimum = values.seek_global_minimum
+        self.objfun_has_noise = values.objfun_has_noise
+
+    def solve(self, func):
         x_0 = self.env.get_initial_params()
         bounds = (-np.ones(x_0.shape), np.ones(x_0.shape))
-        opt_result = pybobyqa.solve(func, x0=x_0, rhobeg=1.0, bounds=bounds, **kwargs)
+        opt_result = pybobyqa.solve(
+            func,
+            x0=x_0,
+            bounds=bounds,
+            rhobeg=1.0,
+            rhoend=self.rhoend,
+            maxfun=self.maxfun,
+            seek_global_minimum=self.seek_global_minimum,
+            objfun_has_noise=self.objfun_has_noise,
+        )
         return opt_result.x
 
 
 class CobylaAlgo(AbstractSingleObjectiveOptimizer):
-    def __init__(self, env: SingleOptimizable):
-        opt_params = {
-            "maxiter": 100,
-            "tol": 0.05,
-        }
-        super().__init__(env, opt_params)
+    def __init__(self, env: coi.SingleOptimizable):
+        self.maxfun = 100
+        self.rhoend = 0.05
+        super().__init__(env)
 
-    def solve(self, func, **kwargs):
+    def get_config(self) -> coi.Config:
+        config = coi.Config()
+        config.add(
+            "maxfun",
+            self.maxfun,
+            range=(0, np.inf),
+            help="Maximum number of function evaluations",
+        )
+        config.add(
+            "rhoend",
+            self.rhoend,
+            range=(0.0, 1.0),
+            help="Step size below which the optimization is considered converged",
+        )
+        return config
+
+    def apply_config(self, values: SimpleNamespace) -> None:
+        self.maxfun = values.maxfun
+        self.rhoend = values.rhoend
+
+    def solve(self, func):
         x_0 = self.env.get_initial_params()
         constraints = list(self.env.constraints)
-        constraints.append(NonlinearConstraint(lambda x: np.abs(x), 0.0, 1.0))
-        result = minimize(
+        constraints.append(scipy.optimize.NonlinearConstraint(np.abs, 0.0, 1.0))
+        result = scipy.optimize.minimize(
             func,
             method="COBYLA",
             x0=x_0,
             constraints=constraints,
-            options=dict(kwargs, rhobeg=1.0),
+            options=dict(maxiter=self.maxfun, tol=self.rhoend, rhobeg=1.0),
         )
         return result.x
 

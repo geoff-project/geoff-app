@@ -26,10 +26,10 @@ class DecoratedControlPane(object):
         self.selected_algo = None
         self.allEnvs = None
         self.controlPane = self.mainwindow.controlPane
-        self.algoConfigPane = QScrollArea()
-        mainwindow.plotTabWidget.addTab(self.algoConfigPane, "Algo config")
         self.mainwindow.configEnvButton.clicked.connect(self.on_config_env)
         self.mainwindow.configEnvButton.setEnabled(False)
+        self.mainwindow.configOptButton.clicked.connect(self.on_config_opt)
+        self.mainwindow.configOptButton.setEnabled(True)
 
         self.mainwindow.machinePaneLabel.setFont(QFont("Arial", 12, QFont.Bold))
         self.mainwindow.environmentLabel.setFont(QFont("Arial", 12, QFont.Bold))
@@ -119,11 +119,12 @@ class DecoratedControlPane(object):
             self.mainwindow.configEnvButton.setEnabled(
                 isinstance(self.selected_env.unwrapped, coi.Configurable)
             )
+            self.mainwindow.configOptButton.setEnabled(True)
         else:
             self.selected_env = None
             self.selected_algo = None
             self.mainwindow.configEnvButton.setEnabled(False)
-        self.update_algo_params_gui()
+            self.mainwindow.configOptButton.setEnabled(False)
 
     def finish(self):
         self.mainwindow.launchButton.setEnabled(True)
@@ -137,17 +138,10 @@ class DecoratedControlPane(object):
         if algo_name:
             algo_class = all_single_algos_dict[self.selected_algo_name]
             self.selected_algo = algo_class(self.selected_env)
+            self.mainwindow.configOptButton.setEnabled(True)
         else:
             self.selected_algo = None
-        self.update_algo_params_gui()
-
-    def update_algo_params_gui(self):
-        if self.selected_algo is None:
-            self.algoConfigPane.setWidget(None)
-            return
-        params = self.selected_algo.opt_params
-        params_widget = ParamsForm(params)
-        self.algoConfigPane.setWidget(params_widget)
+            self.mainwindow.configOptButton.setEnabled(False)
 
     def on_config_env(self):
         dialog = ConfigureDialog(self.selected_env, self.mainwindow.centralwidget)
@@ -162,3 +156,9 @@ class DecoratedControlPane(object):
             self.envRenderPane.setFigures(figures)
         else:
             self.envRenderPane.clear()
+
+    def on_config_opt(self):
+        dialog = ConfigureDialog(self.selected_algo, self.mainwindow.centralwidget)
+        name = type(self.selected_algo).__name__
+        dialog.setWindowTitle(f"Configure {name} ...")
+        dialog.open()
