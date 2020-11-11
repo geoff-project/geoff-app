@@ -1,5 +1,7 @@
 """Module containing single-objective optimizers."""
 
+import sys
+
 import numpy as np
 import pybobyqa
 from cernml.coi import SingleOptimizable
@@ -73,6 +75,9 @@ class OptimizerRunner(QRunnable):
             self._env_callback(optimum)
         except OptimizationCancelled:
             pass
+        except:
+            sys.excepthook(*sys.exc_info())
+            print("Aborted optimization due to the above exception", file=sys.stderr)
         self.signals.optimisation_finished.emit(True)
 
     @pyqtSlot()
