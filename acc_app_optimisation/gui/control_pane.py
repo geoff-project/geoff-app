@@ -11,6 +11,7 @@ from PyQt5.QtCore import QThreadPool
 
 from .param_widget import ParamsForm
 from .config_widget import ConfigureDialog
+from .figures_view import FiguresView
 from ..utils.utilities import IncaAccelerators
 from ..algos.single_opt import (
     OptimizerRunner,
@@ -34,7 +35,7 @@ class DecoratedControlPane(object):
         self.mainwindow.environmentLabel.setFont(QFont("Arial", 12, QFont.Bold))
         self.mainwindow.algoSelectionLabel.setFont(QFont("Arial", 12, QFont.Bold))
 
-        self.envRenderPane = QScrollArea()
+        self.envRenderPane = FiguresView()
         mainwindow.plotTabWidget.addTab(self.envRenderPane, "Render output")
 
         self.mainwindow.setting_tab_widget.setTabText(0, "CONFIG")
@@ -93,6 +94,7 @@ class DecoratedControlPane(object):
         self.mainwindow.launchButton.setEnabled(False)
         self.mainwindow.resetButton.setEnabled(False)
         self.mainwindow.stopButton.setEnabled(True)
+        self._add_render_output()
         self.opt_runner = OptimizerRunner(self.selected_algo)
         self.threadpool.start(self.opt_runner)
 
@@ -152,3 +154,11 @@ class DecoratedControlPane(object):
         name = type(self.selected_env.unwrapped).__name__
         dialog.setWindowTitle(f"Configure {name} ...")
         dialog.open()
+
+    def _add_render_output(self):
+        env = self.selected_env
+        if "matplotlib_figures" in env.metadata.get("render.modes", []):
+            figures = env.render(mode="matplotlib_figures")
+            self.envRenderPane.setFigures(figures)
+        else:
+            self.envRenderPane.clear()

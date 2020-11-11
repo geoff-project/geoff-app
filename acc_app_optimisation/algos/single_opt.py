@@ -43,6 +43,7 @@ class OptimizerRunner(QRunnable):
     def _env_callback(self, action):
         if self._is_cancelled:
             raise OptimizationCancelled()
+        QThread.msleep(50)
         # Clip parameters into the valid range – COBYLA might otherwise go
         # out-of-bounds.
         env = self.optimizer.env
@@ -54,6 +55,11 @@ class OptimizerRunner(QRunnable):
         # Calculate loss function.
         loss = env.compute_single_objective(action.copy())
         # Log inputs and outputs.
+        self._log_inputs_outputs(action, loss)
+        self._render_env()
+        return loss
+
+    def _log_inputs_outputs(self, action, loss):
         self.actors.append(np.squeeze(action))
         self.objectives.append(np.squeeze(loss))
         iterations = np.arange(len(self.objectives))
@@ -65,7 +71,14 @@ class OptimizerRunner(QRunnable):
             iterations,
             np.array(self.actors),
         )
-        return loss
+
+    def _render_env(self):
+        env = self.optimizer.env
+        if "matplotlib_figures" not in env.metadata.get("render.modes", []):
+            return
+        figures = env.render(mode="matplotlib_figures")
+        for figure in figures:
+            figure.canvas.draw_idle()
 
     def solve(self):
         try:
