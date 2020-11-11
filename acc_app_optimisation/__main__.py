@@ -49,12 +49,14 @@ class CentralWindow(QMainWindow):
     def set_selector(self, selector):
         self.japc.setSelector(selector)
 
-    def set_accelerator(self, acceleratorname):
-        if acceleratorname == "linac3":
-            acceleratorname = "leir"
-        if acceleratorname == "linac4":
-            acceleratorname = "psb"
-        self.accelerator = utilities.getAcceleratorFromAcceleratorName(acceleratorname)
+    def set_accelerator(self, acc_name):
+        if acc_name == "linac3":
+            lsa_acc_name = "leir"
+        elif acc_name == "linac4":
+            lsa_acc_name = "psb"
+        else:
+            lsa_acc_name = acc_name
+        self.accelerator = utilities.getAcceleratorFromAcceleratorName(acc_name)
         self.allEnvs.setAccelerator(self.accelerator)
         self.decoratedControlPane.setAllEnvs(self.allEnvs)
         self.mainwindow.controlPane.layout().removeWidget(self.lsaSelectorWidget)
@@ -62,7 +64,11 @@ class CentralWindow(QMainWindow):
         self.decoratedControlPane.set_japc(self.japc)
         try:
             self.lsaSelectorWidget = LsaSelectorWidget(
-                self, self.lsa, self.japc, accelerator=acceleratorname, as_dock=False
+                self,
+                self.lsa,
+                self.japc,
+                accelerator=lsa_acc_name,
+                as_dock=False,
             )
         except KeyError as exc:
             (accelerator,) = exc.args
