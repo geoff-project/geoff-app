@@ -21,7 +21,7 @@ class AllEnvs:
 
     def getSelectedEnv(self, name, japc):
         spec = coi.registry.spec(name)
-        needs_japc = spec.entry_point.metadata["cern.japc"]
+        needs_japc = spec.entry_point.metadata.get("cern.japc", False)
         if needs_japc:
             env = coi.make(name, japc=japc)
         else:
