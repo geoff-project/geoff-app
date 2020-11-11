@@ -84,7 +84,7 @@ class ConfigureDialog(QDialog):
             return _combobox(field, self.current_values)
         if field.range is not None:
             low, high = field.range
-            if _is_float(field.value) and abs(high) / abs(low) > 1000.0:
+            if _is_float(field.value) and _is_range_huge(low, high):
                 widget = _maybe_lineedit(field, self.current_values)
                 assert widget is not None
                 return widget
@@ -133,18 +133,21 @@ def _maybe_lineedit(
 
 def _spinbox(field: coi.Config.Field, values: t.Dict[str, str]) -> QWidget:
     """Create either an integer or a floating-point spin box."""
+    low, high = field.range
     if _is_int(field.value):
         widget = QSpinBox()
+        # Ensure that the range limits are valid integers.
+        low = np.clip(np.floor(low), -(2 << 30), (2 << 30) - 1)
+        high = np.clip(np.ceil(high), -(2 << 30), (2 << 30) - 1)
     elif _is_float(field.value):
         widget = QDoubleSpinBox()
+        decimals = _guess_decimals(low, high)
+        widget.setDecimals(decimals)
     else:
         raise KeyError(type(field.value))
     widget.setValue(field.value)
     widget.setStepType(widget.AdaptiveDecimalStepType)
     widget.setGroupSeparatorShown(True)
-    low, high = field.range
-    decimals = 1 + max(2, np.ceil(-np.log10(low)), np.ceil(-np.log10(high)))
-    widget.setDecimals(decimals)
     widget.setRange(low, high)
     widget.valueChanged.connect(_make_setter(field, values))
     return widget
@@ -172,6 +175,24 @@ def _make_setter(
             values[field.dest] = map_value(value)
 
     return _setter
+
+
+def _guess_decimals(low: float, high: float) -> int:
+    """Guess how many decimals to show in a double spin box."""
+    absmax = max(abs(high), abs(low))
+    absmin = min(abs(high), abs(low))
+    mindigits = np.ceil(-np.log10(absmin)) if absmin else 0
+    maxdigits = np.ceil(-np.log10(absmax)) if absmax else 0
+    return 1 + int(max(2, maxdigits, mindigits))
+
+
+def _is_range_huge(low: float, high: float) -> bool:
+    """Return True if the range covers several orders of magnitude."""
+    absmax = max(abs(high), abs(low))
+    absmin = min(abs(high), abs(low))
+    if absmin == 0.0:
+        absmax, absmin = (absmax, 1.0) if absmax > 1.0 else (1.0, absmax)
+    return absmax / absmin > 1e3
 
 
 def _is_int(value: t.Any) -> bool:
