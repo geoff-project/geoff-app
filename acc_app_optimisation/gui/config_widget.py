@@ -120,10 +120,8 @@ def _maybe_lineedit(
     """Create a line edit that may contain strings, integers or floats."""
     widget = QLineEdit(str(field.value))
     if _is_int(field.value):
-        widget.setGroupSeparatorShown(True)
         widget.setValidator(QIntValidator())
     elif _is_float(field.value):
-        widget.setGroupSeparatorShown(True)
         widget.setValidator(QDoubleValidator())
     elif isinstance(field.value, str):
         pass
