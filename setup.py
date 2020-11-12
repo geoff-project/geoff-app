@@ -50,7 +50,7 @@ setup(
         "numpy ~= 1.17",
         "pjlsa ~= 0.2.0",
         "pyjapc ~=  2.0",
-        "pyqtgraph ~= 0.11.0",
+        "pyqtgraph ~= 0.10.0",
         "qt-lsa-selector ~= 0.0.1.dev0",
         "scipy ~= 1.3",
     ],
