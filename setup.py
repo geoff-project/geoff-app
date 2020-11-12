@@ -51,7 +51,7 @@ setup(
         "pjlsa ~= 0.2.0",
         "pyjapc ~=  2.0",
         "pyqtgraph ~= 0.10.0",
-        "qt-lsa-selector ~= 0.0.1.dev0",
+        "qt-lsa-selector ~= 0.1.0.dev0",
         "scipy ~= 1.3",
     ],
     extras_require={
