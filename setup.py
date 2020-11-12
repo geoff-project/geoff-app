@@ -44,7 +44,6 @@ setup(
         "Py-BOBYQA ~= 1.2",
         "PyQt5 ~= 5.15",
         "accwidgets ~= 0.4",
-        "awake-self-matching == 0.0.11.dev0",
         "cern-awake-env ~= 0.12.1",
         "cernml-coi ~= 0.3.2",
         "gym ~= 0.17.3",
