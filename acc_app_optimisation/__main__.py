@@ -1,15 +1,20 @@
-from PyQt5.QtWidgets import *
 import sys
-import pyjapc
-from pjlsa import pjlsa
 
+# Warning: jpype.imports must be imported before pjlsa! Otherwise, JPype's
+# import hooks don't get set up correctly and qt_lsa_selector cannot import the
+# CERN packages.
+import jpype.imports  # pylint: disable=unused-import
+
+import pyjapc
+from PyQt5.QtWidgets import *
+from pjlsa import pjlsa
+from qt_lsa_selector.widget.lsa_view import LsaSelectorWidget
 
 from acc_app_optimisation.gui.generated_main_window import Ui_MainWindow
-from qt_lsa_selector.widget.lsa_view import LsaSelectorWidget
 from acc_app_optimisation.utils.utilities import IncaAccelerators
-import acc_app_optimisation.utils.utilities as utilities
+from acc_app_optimisation.utils import utilities
 from acc_app_optimisation.gui.control_pane import DecoratedControlPane
-import acc_app_optimisation.gui.plot_pane as plotting
+from acc_app_optimisation.gui import plot_pane as plotting
 from acc_app_optimisation.envs.envs_prep import AllEnvs
 
 
