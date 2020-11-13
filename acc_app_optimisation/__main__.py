@@ -43,18 +43,22 @@ class CentralWindow(QMainWindow):
         self.lsaSelectorWidget = LsaSelectorWidget(
             self, self.lsa, self.japc, accelerator="sps", as_dock=False
         )
-        self.mainwindow.controlPane.layout().addWidget(self.lsaSelectorWidget)
+        lsa_layout = QGridLayout()
+        lsa_layout.setSpacing(0)
+        lsa_layout.addWidget(self.lsaSelectorWidget)
+        self.mainwindow.controlPane.setLayout(lsa_layout)
+        self.mainwindow.controlPane.setStyleSheet("border: 1px solid black;")
 
-        self.lsaSelectorWidget.selectionChanged.connect(
-            lambda x: self.set_selector(self.lsaSelectorWidget.getUser())
+        self.lsaSelectorWidget.selectionChanged.connect(self.on_lsa_cycle_changed)
+        self.mainwindow.machineCombo.currentTextChanged.connect(
+            self.on_accelerator_changed
         )
 
-        self.mainwindow.machineCombo.currentTextChanged.connect(self.set_accelerator)
+    def on_lsa_cycle_changed(self):
+        user = self.lsaSelectorWidget.getUser()
+        self.japc.setSelector(user)
 
-    def set_selector(self, selector):
-        self.japc.setSelector(selector)
-
-    def set_accelerator(self, acc_name):
+    def on_accelerator_changed(self, acc_name):
         if acc_name == "linac3":
             lsa_acc_name = "leir"
         elif acc_name == "linac4":
@@ -64,24 +68,7 @@ class CentralWindow(QMainWindow):
         self.accelerator = utilities.getAcceleratorFromAcceleratorName(acc_name)
         self.allEnvs.setAccelerator(self.accelerator)
         self.decoratedControlPane.setAllEnvs(self.allEnvs)
-        self.mainwindow.controlPane.layout().removeWidget(self.lsaSelectorWidget)
-        self.japc = pyjapc.PyJapc("", noSet=False, incaAcceleratorName="AD")
-        self.decoratedControlPane.set_japc(self.japc)
-        try:
-            self.lsaSelectorWidget = LsaSelectorWidget(
-                self,
-                self.lsa,
-                self.japc,
-                accelerator=lsa_acc_name,
-                as_dock=False,
-            )
-        except KeyError as exc:
-            (accelerator,) = exc.args
-            if accelerator in ["leir", "awake"]:
-                self.lsaSelectorWidget = QLabel("")
-            else:
-                raise
-        self.mainwindow.controlPane.layout().addWidget(self.lsaSelectorWidget)
+        self.lsaSelectorWidget.setAccelerator(lsa_acc_name)
 
 
 if __name__ == "__main__":

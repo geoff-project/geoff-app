@@ -48,12 +48,6 @@ class DecoratedControlPane(object):
         for val in IncaAccelerators:
             self.machineCombo.addItem(val.lsa_name)
 
-        layout = QGridLayout()
-        self.controlPane.setLayout(layout)
-        self.controlPane.setStyleSheet("border: 1px solid black;")
-
-        self.controlPane.layout().setSpacing(0)
-
         for algo in all_single_algos_dict:
             self.mainwindow.algoCombo.addItem(algo)
         self.selected_algo_name = self.mainwindow.algoCombo.currentText()
