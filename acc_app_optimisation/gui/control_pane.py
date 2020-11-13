@@ -19,8 +19,9 @@ from ..algos.single_opt import (
 
 
 class DecoratedControlPane(object):
-    def __init__(self, mainwindow):
+    def __init__(self, mainwindow, plotpane):
         self.mainwindow = mainwindow
+        self.plotpane = plotpane
         self.selected_env = None
         self.selected_algo = None
         self._japc = None
@@ -45,16 +46,10 @@ class DecoratedControlPane(object):
         self.selected_algo_name = self.mainwindow.algoCombo.currentText()
         self.threadpool = QThreadPool()
         self.opt_runner = OptimizerRunner(None)
-        # Lambda instead of direct binding because `self.plotPane` only is set
-        # at a later point.
-        self.opt_runner.signals.objective_updated.connect(
-            lambda x, y: self.plotPane.curve.setData(x, y)
-        )
-        self.opt_runner.signals.actors_updated.connect(
-            lambda x, y: self.plotPane.setActorsCurveData(x, y)
-        )
-        self.opt_runner.signals.optimisation_finished.connect(lambda: self.finish())
-        self.mainwindow.algoCombo.currentTextChanged.connect(lambda x: self.set_algo(x))
+        self.opt_runner.signals.objective_updated.connect(self.plotpane.curve.setData)
+        self.opt_runner.signals.actors_updated.connect(self.plotpane.setActorsCurveData)
+        self.opt_runner.signals.optimisation_finished.connect(self.finish)
+        self.mainwindow.algoCombo.currentTextChanged.connect(self.set_algo)
         self.mainwindow.environmentCombo.currentTextChanged.connect(
             self.on_env_selected
         )
@@ -63,9 +58,6 @@ class DecoratedControlPane(object):
         self.mainwindow.stopButton.clicked.connect(self.stop_opt)
         self.mainwindow.resetButton.clicked.connect(self.reset_opt)
         self.mainwindow.stopButton.setEnabled(False)
-
-    def setPlotPane(self, plotPane):
-        self.plotPane = plotPane
 
     def updateMachine(self, machine: coi.Machine) -> None:
         combo_box = self.mainwindow.environmentCombo
@@ -103,7 +95,7 @@ class DecoratedControlPane(object):
             algo_class = all_single_algos_dict[self.selected_algo_name]
             self.selected_algo = algo_class(self.selected_env)
             (dimension,) = self.selected_env.optimization_space.shape
-            self.plotPane.setActorCount(dimension)
+            self.plotpane.setActorCount(dimension)
             self.mainwindow.configEnvButton.setEnabled(
                 isinstance(self.selected_env.unwrapped, coi.Configurable)
             )

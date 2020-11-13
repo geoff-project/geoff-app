@@ -38,9 +38,8 @@ class CentralWindow(QMainWindow):
         self.mainwindow.controlPane.setStyleSheet("border: 1px solid black;")
 
         self.accelerator = IncaAccelerators.SPS
-        self.decoratedControlPane = DecoratedControlPane(self.mainwindow)
-        self.plotPane = plotting.PlotPane(self.mainwindow)
-        self.decoratedControlPane.setPlotPane(self.plotPane)
+        self.plotpane = plotting.PlotPane(self.mainwindow)
+        self.decoratedControlPane = DecoratedControlPane(self.mainwindow, self.plotpane)
         self.decoratedControlPane.updateMachine(self.accelerator.machine)
         # This passes the JAPC object onto decoratedControlPane.
         self.on_lsa_cycle_changed()
