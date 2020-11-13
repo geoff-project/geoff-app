@@ -9,10 +9,9 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import *
 from PyQt5.QtCore import QThreadPool
 
-from .param_widget import ParamsForm
 from .config_widget import ConfigureDialog
 from .figures_view import FiguresView
-from ..utils.utilities import IncaAccelerators
+from ..envs import envs_prep as environments
 from ..algos.single_opt import (
     OptimizerRunner,
     all_single_algos_dict,
@@ -24,7 +23,7 @@ class DecoratedControlPane(object):
         self.mainwindow = mainwindow
         self.selected_env = None
         self.selected_algo = None
-        self.allEnvs = None
+        self._japc = None
         self.controlPane = self.mainwindow.controlPane
         self.mainwindow.configEnvButton.clicked.connect(self.on_config_env)
         self.mainwindow.configEnvButton.setEnabled(False)
@@ -40,13 +39,6 @@ class DecoratedControlPane(object):
 
         self.mainwindow.setting_tab_widget.setTabText(0, "CONFIG")
         self.mainwindow.setting_tab_widget.removeTab(1)
-
-        self.machineCombo = self.mainwindow.machineCombo
-        font = QFont("Arial", 13)
-        self.machineCombo.setFont(font)
-
-        for val in IncaAccelerators:
-            self.machineCombo.addItem(val.lsa_name)
 
         for algo in all_single_algos_dict:
             self.mainwindow.algoCombo.addItem(algo)
@@ -75,14 +67,16 @@ class DecoratedControlPane(object):
     def setPlotPane(self, plotPane):
         self.plotPane = plotPane
 
-    def setAllEnvs(self, allEnvs):
-        self.allEnvs = allEnvs
-        self.mainwindow.environmentCombo.clear()
-        for env in self.allEnvs.getAllEnvsForAccelerator():
-            self.mainwindow.environmentCombo.addItem(env)
+    def updateMachine(self, machine: coi.Machine) -> None:
+        combo_box = self.mainwindow.environmentCombo
+        combo_box.clear()
+        combo_box.addItems(environments.get_env_names_by_machine(machine))
 
-    def set_japc(self, japc):
-        self.japc = japc
+    def japc(self):
+        return self._japc
+
+    def setJapc(self, japc):
+        self._japc = japc
 
     def launch_opt(self):
         self.mainwindow.launchButton.setEnabled(False)
@@ -105,7 +99,7 @@ class DecoratedControlPane(object):
 
     def on_env_selected(self, env_name):
         if env_name:
-            self.selected_env = self.allEnvs.getSelectedEnv(env_name, self.japc)
+            self.selected_env = environments.make_env_by_name(env_name, self._japc)
             algo_class = all_single_algos_dict[self.selected_algo_name]
             self.selected_algo = algo_class(self.selected_env)
             (dimension,) = self.selected_env.optimization_space.shape

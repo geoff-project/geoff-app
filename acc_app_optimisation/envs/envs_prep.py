@@ -1,29 +1,26 @@
-from cernml import coi
+import typing as t
+
 import cern_awake_env.simulation
 import cern_awake_env.machine
 
+from cernml import coi
+from pyjapc import PyJapc
 
-class AllEnvs:
-    def __init__(self):
-        self.accelerator = None
 
-    def setAccelerator(self, accelerator):
-        self.accelerator = accelerator
+def get_env_names_by_machine(machine: coi.Machine) -> t.List[str]:
+    assert isinstance(machine, coi.Machine), machine
+    return [spec.id for spec in coi.registry.all() if _get_machine(spec) == machine]
 
-    def getAllEnvsForAccelerator(self):
-        env_names = [
-            spec.id
-            for spec in coi.registry.all()
-            if spec.entry_point.metadata["cern.machine"].value
-            == self.accelerator.acc_name
-        ]
-        return env_names
 
-    def getSelectedEnv(self, name, japc):
-        spec = coi.registry.spec(name)
-        needs_japc = spec.entry_point.metadata.get("cern.japc", False)
-        if needs_japc:
-            env = coi.make(name, japc=japc)
-        else:
-            env = coi.make(name)
-        return env
+def make_env_by_name(name: str, japc: PyJapc) -> coi.Problem:
+    spec = coi.registry.spec(name)
+    needs_japc = spec.entry_point.metadata.get("cern.japc", False)
+    if needs_japc:
+        return coi.make(name, japc=japc)
+    return coi.make(name)
+
+
+def _get_machine(spec) -> coi.Machine:
+    metadata = spec.entry_point.metadata
+    machine = metadata.get("cern.machine", coi.Machine.NoMachine)
+    return machine
