@@ -53,6 +53,8 @@ class CentralWindow(QMainWindow):
         )
 
     def on_lsa_cycle_changed(self):
+        # TODO: We need to recreate the Japc object on every environment
+        # change.
         japc = self.lsaSelectorWidget.getPyJapcObject()
         self.decoratedControlPane.setJapc(japc)
 
