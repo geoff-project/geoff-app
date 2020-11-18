@@ -2,6 +2,7 @@
 
 import logging
 import sys
+import typing as t
 from types import SimpleNamespace
 
 import numpy as np
@@ -20,14 +21,59 @@ class OptimizationCancelled(Exception):
 class AbstractSingleObjectiveOptimizer(coi.Configurable):
     def __init__(self, env: coi.SingleOptimizable):
         self.env = env
+        self.wrapped_constraints: t.List[CachedNonlinearConstraint] = []
+        for constraint in env.constraints:
+            if isinstance(constraint, scipy.optimize.LinearConstraint):
+                constraint = convert_linear_constraint(constraint)
+            assert isinstance(constraint, scipy.optimize.NonlinearConstraint)
+            constraint = CachedNonlinearConstraint(constraint)
+            self.wrapped_constraints.append(constraint)
 
     def solve(self, func):
         raise NotImplementedError()
 
 
+def convert_linear_constraint(
+    cons: scipy.optimize.LinearConstraint,
+) -> scipy.optimize.NonlinearConstraint:
+    return scipy.optimize.NonlinearConstraint(
+        lambda x: np.dot(cons.A, x),
+        cons.lb,
+        cons.ub,
+        cons.keep_feasible,
+    )
+
+
+class CachedNonlinearConstraint(scipy.optimize.NonlinearConstraint):
+    def __init__(self, constraint: scipy.optimize.NonlinearConstraint) -> None:
+        self.cache = {}
+
+        def fun(params):
+            key = tuple(params)
+            result = self.cache.get(key)
+            if result is None:
+                self.cache[key] = result = constraint.fun(params)
+            return result
+
+        super().__init__(
+            fun=fun,
+            lb=constraint.lb,
+            ub=constraint.ub,
+            jac=constraint.jac,
+            hess=constraint.hess,
+            keep_feasible=constraint.keep_feasible,
+            finite_diff_rel_step=constraint.finite_diff_rel_step,
+            finite_diff_jac_sparsity=constraint.finite_diff_jac_sparsity,
+        )
+
+    def clear_cache(self):
+        self.cache.clear()
+
+
 class OptimizerRunner(QRunnable):
     class Signals(QObject):
         actors_updated = pyqtSignal(np.ndarray, np.ndarray)
+        constraints_updated = pyqtSignal(np.ndarray, np.ndarray)
         objective_updated = pyqtSignal(np.ndarray, np.ndarray)
         optimisation_finished = pyqtSignal(bool)
 
@@ -38,6 +84,7 @@ class OptimizerRunner(QRunnable):
         self.optimizer = optimizer
         self.objectives = []
         self.actors = []
+        self.constraint_values = []
         self._is_cancelled = False
 
     def cancel(self):
@@ -57,14 +104,26 @@ class OptimizerRunner(QRunnable):
         )
         # Calculate loss function.
         loss = env.compute_single_objective(action.copy())
+        assert np.ndim(loss) == 0, "non-scalar loss"
+        # Calculate constraints and mash all of them into a single array.
+        constraint_values = np.concatenate(
+            [
+                np.asanyarray(constraint.fun(action)).flatten()
+                for constraint in self.optimizer.wrapped_constraints
+            ]
+        )
         # Log inputs and outputs.
-        self._log_inputs_outputs(action, loss)
+        self._log_inputs_outputs(action.copy().flatten(), loss, constraint_values)
         self._render_env()
+        # Clear all constraint caches.
+        for constraint in self.optimizer.wrapped_constraints:
+            constraint.clear_cache()
         return loss
 
-    def _log_inputs_outputs(self, action, loss):
-        self.actors.append(np.squeeze(action))
-        self.objectives.append(np.squeeze(loss))
+    def _log_inputs_outputs(self, action, loss, constraints):
+        self.actors.append(action)
+        self.objectives.append(loss)
+        self.constraint_values.append(constraints)
         iterations = np.arange(len(self.objectives))
         self.signals.objective_updated.emit(
             iterations,
@@ -73,6 +132,10 @@ class OptimizerRunner(QRunnable):
         self.signals.actors_updated.emit(
             iterations,
             np.array(self.actors),
+        )
+        self.signals.constraints_updated.emit(
+            iterations,
+            np.array(self.constraint_values),
         )
 
     def _render_env(self):
@@ -183,7 +246,7 @@ class CobylaAlgo(AbstractSingleObjectiveOptimizer):
 
     def solve(self, func):
         x_0 = self.env.get_initial_params()
-        constraints = list(self.env.constraints)
+        constraints = list(self.wrapped_constraints)
         constraints.append(scipy.optimize.NonlinearConstraint(np.abs, 0.0, 1.0))
         result = scipy.optimize.minimize(
             func,

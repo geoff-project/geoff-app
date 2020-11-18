@@ -46,8 +46,13 @@ class DecoratedControlPane(object):
         self.selected_algo_name = self.mainwindow.algoCombo.currentText()
         self.threadpool = QThreadPool()
         self.opt_runner = OptimizerRunner(None)
-        self.opt_runner.signals.objective_updated.connect(self.plotpane.curve.setData)
+        self.opt_runner.signals.objective_updated.connect(
+            self.plotpane.objective_curve.setData
+        )
         self.opt_runner.signals.actors_updated.connect(self.plotpane.setActorsCurveData)
+        self.opt_runner.signals.constraints_updated.connect(
+            self.plotpane.setConstraintsCurveData
+        )
         self.opt_runner.signals.optimisation_finished.connect(self.finish)
         self.mainwindow.algoCombo.currentTextChanged.connect(self.set_algo)
         self.mainwindow.environmentCombo.currentTextChanged.connect(
@@ -96,6 +101,7 @@ class DecoratedControlPane(object):
             self.selected_algo = algo_class(self.selected_env)
             (dimension,) = self.selected_env.optimization_space.shape
             self.plotpane.setActorCount(dimension)
+            self.plotpane.clearConstraintCurves()
             self.mainwindow.configEnvButton.setEnabled(
                 isinstance(self.selected_env.unwrapped, coi.Configurable)
             )
