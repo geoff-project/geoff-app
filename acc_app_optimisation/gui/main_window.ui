@@ -131,6 +131,9 @@
             </item>
             <item>
              <widget class="QPushButton" name="configEnvButton">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="text">
                <string>Configure</string>
               </property>
@@ -227,6 +230,9 @@
                </item>
                <item>
                 <widget class="QPushButton" name="stopButton">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                    <horstretch>0</horstretch>

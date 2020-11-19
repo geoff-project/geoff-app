@@ -27,9 +27,7 @@ class DecoratedControlPane(object):
         self._japc = None
         self.controlPane = self.mainwindow.controlPane
         self.mainwindow.configEnvButton.clicked.connect(self.on_config_env)
-        self.mainwindow.configEnvButton.setEnabled(False)
         self.mainwindow.configOptButton.clicked.connect(self.on_config_opt)
-        self.mainwindow.configOptButton.setEnabled(True)
 
         self.mainwindow.machinePaneLabel.setFont(QFont("Arial", 12, QFont.Bold))
         self.mainwindow.environmentLabel.setFont(QFont("Arial", 12, QFont.Bold))
@@ -62,7 +60,6 @@ class DecoratedControlPane(object):
         self.mainwindow.launchButton.clicked.connect(self.launch_opt)
         self.mainwindow.stopButton.clicked.connect(self.stop_opt)
         self.mainwindow.resetButton.clicked.connect(self.reset_opt)
-        self.mainwindow.stopButton.setEnabled(False)
 
     def updateMachine(self, machine: coi.Machine) -> None:
         combo_box = self.mainwindow.environmentCombo
