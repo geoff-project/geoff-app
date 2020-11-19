@@ -20,9 +20,8 @@ class PlotPane:
 
         self.actor_plot = StaticPlotWidget()
         self.actor_plot.setBackground("w")
-        layout = QVBoxLayout()
-        layout.addWidget(self.actor_plot)
-        mainwindow.networkfityPane.setLayout(layout)
+
+        QVBoxLayout(mainwindow.networkfityPane).addWidget(self.actor_plot)
 
         self.objective_curve = pg.PlotCurveItem([0, 0], pen="b")
         self.objective_plot.addItem(self.objective_curve)
