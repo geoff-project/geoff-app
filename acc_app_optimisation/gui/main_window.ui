@@ -140,6 +140,16 @@
              </widget>
             </item>
             <item>
+             <widget class="QCheckBox" name="showConstraintsCheckbox">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
+              <property name="text">
+               <string>Show constraints</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QLabel" name="algoSelectionLabel">
               <property name="maximumSize">
                <size>

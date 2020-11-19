@@ -56,6 +56,9 @@ class DecoratedControlPane(object):
         self.mainwindow.environmentCombo.currentTextChanged.connect(
             self.on_env_selected
         )
+        self.mainwindow.showConstraintsCheckbox.toggled.connect(
+            self.plotpane.enableConstraintsPlot
+        )
 
         self.mainwindow.launchButton.clicked.connect(self.launch_opt)
         self.mainwindow.stopButton.clicked.connect(self.stop_opt)
@@ -103,11 +106,15 @@ class DecoratedControlPane(object):
                 isinstance(self.selected_env.unwrapped, coi.Configurable)
             )
             self.mainwindow.configOptButton.setEnabled(True)
+            self.mainwindow.showConstraintsCheckbox.setEnabled(
+                bool(self.selected_env.constraints)
+            )
         else:
             self.selected_env = None
             self.selected_algo = None
             self.mainwindow.configEnvButton.setEnabled(False)
             self.mainwindow.configOptButton.setEnabled(False)
+            self.mainwindow.showConstraintsCheckbox.setEnabled(False)
 
     def finish(self):
         self.mainwindow.launchButton.setEnabled(True)

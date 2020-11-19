@@ -9,14 +9,14 @@ class PlotPane:
         mainwindow.plotTabWidget.setTabText(0, "Objective evolution")
         mainwindow.plotTabWidget.setTabText(1, "Actor evolution")
 
-        layout = QVBoxLayout()
         self.objective_plot = StaticPlotWidget()
         self.objective_plot.setBackground("w")
-        layout.addWidget(self.objective_plot)
+
         self.constraints_plot = StaticPlotWidget()
         self.constraints_plot.setBackground("w")
-        layout.addWidget(self.constraints_plot)
-        mainwindow.plotPane.setLayout(layout)
+
+        self.objective_constraints_layout = QVBoxLayout(mainwindow.plotPane)
+        self.objective_constraints_layout.addWidget(self.objective_plot, stretch=1)
 
         self.actor_plot = StaticPlotWidget()
         self.actor_plot.setBackground("w")
@@ -50,6 +50,14 @@ class PlotPane:
             curve = pg.PlotCurveItem([i, i], pen=(i, count))
             self.actor_plot.addItem(curve)
             self.actor_curves.append(curve)
+
+    def enableConstraintsPlot(self, enabled: bool):
+        layout = self.objective_constraints_layout
+        self.constraints_plot.setVisible(enabled)
+        if enabled:
+            layout.addWidget(self.constraints_plot, stretch=1)
+        else:
+            layout.removeWidget(self.constraints_plot)
 
     def clearConstraintCurves(self):
         self._setConstraintsCount(0)
