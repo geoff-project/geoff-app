@@ -9,11 +9,11 @@ import pyjapc
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import *
 from pjlsa import pjlsa
-from qt_lsa_selector.widget.lsa_view import LsaSelectorWidget
 
 from acc_app_optimisation.gui import plot_pane as plotting
 from acc_app_optimisation.gui.control_pane import DecoratedControlPane
 from acc_app_optimisation.gui.generated_main_window import Ui_MainWindow
+from acc_app_optimisation.qt_lsa_selector import LsaSelectorWidget
 from acc_app_optimisation.utils.accelerators import IncaAccelerators
 
 

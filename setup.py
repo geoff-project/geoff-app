@@ -41,6 +41,7 @@ setup(
     python_requires=">=3.6",
     packages=find_packages(),
     install_requires=[
+        "JPype1 ~= 1.0",  # TODO: Remove when we remove qt-lsa-selector.
         "Py-BOBYQA ~= 1.2",
         "PyQt5 ~= 5.12",
         "accwidgets ~= 0.4",
@@ -49,9 +50,8 @@ setup(
         "gym ~= 0.17.3",
         "numpy ~= 1.17",
         "pjlsa ~= 0.2.0",
-        "pyjapc ~=  2.0",
+        "pyjapc ~= 2.0",
         "pyqtgraph ~= 0.10.0",
-        "qt-lsa-selector ~= 0.1.0.dev0",
         "scipy ~= 1.3",
     ],
     extras_require={
