@@ -1,9 +1,13 @@
+#!/usr/bin/env python
+
+import argparse
 import logging
+import pathlib
 import sys
 
-# Warning: jpype.imports must be imported before pjlsa! Otherwise, JPype's
-# import hooks don't get set up correctly and qt_lsa_selector cannot import the
-# CERN packages.
+# Warning: jpype.imports must be imported before pjlsa! Otherwise,
+# JPype's import hooks don't get set up correctly and qt_lsa_selector
+# cannot import the CERN packages.
 import jpype.imports  # pylint: disable=unused-import
 
 import pyjapc
@@ -11,6 +15,7 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import *
 from pjlsa import pjlsa
 
+import acc_app_optimisation.foreign_imports
 from acc_app_optimisation.gui import plot_pane as plotting
 from acc_app_optimisation.gui.control_pane import DecoratedControlPane
 from acc_app_optimisation.gui.generated_main_window import Ui_MainWindow
@@ -65,10 +70,43 @@ class CentralWindow(QMainWindow):
         self.lsaSelectorWidget.setAccelerator(self.accelerator.lsa_name)
 
 
+def get_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="GeOFF: Generic Optimization Framework and Frontend"
+    )
+    parser.add_argument(
+        "foreign_imports",
+        nargs="*",
+        type=pathlib.Path,
+        help="Path to additional modules and packages that shall be imported",
+    )
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        action="store_const",
+        const=logging.WARNING,
+        default=logging.INFO,
+        dest="verbosity",
+        help="Only show warnings and errors",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_const",
+        const=logging.DEBUG,
+        dest="verbosity",
+        help="Show debug-level information",
+    )
+    return parser
+
+
 def main(argv):
     """Main function. Pass sys.argv."""
-    logging.basicConfig(level=logging.INFO)
-    app = QApplication(sys.argv)
+    args = get_parser().parse_args(argv[1:])
+    logging.basicConfig(level=args.verbosity)
+    for path in args.foreign_imports:
+        acc_app_optimisation.foreign_imports.import_from_path(path)
+    app = QApplication(argv)
     window = CentralWindow()
     window.show()
     return app.exec_()
