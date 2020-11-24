@@ -115,7 +115,7 @@ cd ~/Projects/acc-app-optimisation
 # imports in this file.
 $EDITOR acc_app_optimisation/envs/envs_prep.py
 # Reinstall and execute the GUI.
-pip install acc_app_optimisation
+pip install .
 python -m acc_app_optimisation
 ```
 
