@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Import modules and packages by path."""
 
+import collections
 import importlib
-import itertools
 import logging
 import sys
 from enum import Enum
@@ -127,19 +127,17 @@ def _find_spec(path: Path) -> importlib.machinery.ModuleSpec:
 
 def _assert_only_additions(backup: BackupModules) -> None:
     """Assert that an import has been strictly additional."""
-    changes = sorted(backup.iter_changes())
-    # This is like `{ADDITION: […], MODIFICATION: […], REMOVAL: […]}`.
-    changes = {
-        kind: list(names)
-        for kind, names in itertools.groupby(changes, key=lambda kind_name: kind_name[0])
-    }
+    # This produces a dict of the shape:
+    # `{ADDITION: […], MODIFICATION: […], REMOVAL: […]}`.
+    changes = collections.defaultdict(list)
+    for kind, name in backup.iter_changes():
+        changes[kind].append(name)
     # First remove additions, then check if there are any other changes.
     additions = changes.pop(ChangeKind.ADDITION, [])
     if changes:
         raise IllegalImport(
             ", ".join(
-                f"{change_kind.value} modules: {names}"
-                for change_kind, names in changes.items()
+                f"{kind.value} modules: {names}" for kind, names in changes.items()
             )
         )
     LOG.info("Imported modules:")
