@@ -131,7 +131,7 @@ def _assert_only_additions(backup: BackupModules) -> None:
     # This is like `{ADDITION: […], MODIFICATION: […], REMOVAL: […]}`.
     changes = {
         kind: list(names)
-        for kind, names in itertools.groupby(changes, key=lambda kind, _name: kind)
+        for kind, names in itertools.groupby(changes, key=lambda kind_name: kind_name[0])
     }
     # First remove additions, then check if there are any other changes.
     additions = changes.pop(ChangeKind.ADDITION, [])
