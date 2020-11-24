@@ -1,5 +1,6 @@
 """Module containing single-objective optimizers."""
 
+import logging
 import sys
 from types import SimpleNamespace
 
@@ -8,6 +9,8 @@ import pybobyqa
 from cernml import coi
 from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThread, pyqtSlot
 import scipy.optimize
+
+LOG = logging.getLogger(__name__)
 
 
 class OptimizationCancelled(Exception):
@@ -88,7 +91,7 @@ class OptimizerRunner(QRunnable):
             pass
         except:
             sys.excepthook(*sys.exc_info())
-            print("Aborted optimization due to the above exception", file=sys.stderr)
+            LOG.error("Aborted optimization due to the above exception", file=sys.stderr)
         self.signals.optimisation_finished.emit(True)
 
     @pyqtSlot()

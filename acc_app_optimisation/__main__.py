@@ -1,3 +1,4 @@
+import logging
 import sys
 
 # Warning: jpype.imports must be imported before pjlsa! Otherwise, JPype's
@@ -64,10 +65,14 @@ class CentralWindow(QMainWindow):
         self.lsaSelectorWidget.setAccelerator(self.accelerator.lsa_name)
 
 
-if __name__ == "__main__":
+def main(argv):
+    """Main function. Pass sys.argv."""
+    logging.basicConfig(level=logging.INFO)
     app = QApplication(sys.argv)
-
     window = CentralWindow()
     window.show()
+    return app.exec_()
 
-    sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

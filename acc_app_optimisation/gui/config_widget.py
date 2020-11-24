@@ -1,3 +1,4 @@
+import logging
 import sys
 import typing as t
 
@@ -23,6 +24,8 @@ from PyQt5.QtGui import (
 )
 
 from cernml import coi
+
+LOG = logging.getLogger(__name__)
 
 
 class ConfigureDialog(QDialog):
@@ -63,14 +66,14 @@ class ConfigureDialog(QDialog):
     def on_ok_clicked(self):
         """Apply the configs and close the window."""
         values = self.config.validate_all(self.current_values)
-        print(values, file=sys.stderr)
+        LOG.info("Ok clicked, new config: %s", values)
         self.target.apply_config(values)
         self.accept()
 
     def on_apply_clicked(self):
         """Apply the configs."""
         values = self.config.validate_all(self.current_values)
-        print(values, file=sys.stderr)
+        LOG.info("Apply clicked, new config: %s", values)
         self.target.apply_config(values)
 
     def on_cancel_clicked(self):
