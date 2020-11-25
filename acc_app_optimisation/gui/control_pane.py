@@ -11,7 +11,7 @@ from PyQt5.QtCore import QThreadPool
 
 from .config_widget import ConfigureDialog
 from .figures_view import FiguresView
-from ..envs import envs_prep as environments
+from .. import envs as environments
 from ..algos.single_opt import (
     OptimizerRunner,
     all_single_algos_dict,

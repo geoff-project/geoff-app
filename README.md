@@ -105,7 +105,7 @@ Step 5: Importing your Problem in the App
 -----------------------------------------
 
 The app imports all the environments and other optimisable problems in
-[envs\_prep.py][]. If you call [`coi.register()`][] in your package as
+[builtin\_envs.py][]. If you call [`coi.register()`][] in your package as
 expected, all that is needed is that you add an import of your package to this
 file. After a reinstall, your environment should appear in the GUI.
 
@@ -113,10 +113,10 @@ file. After a reinstall, your environment should appear in the GUI.
 cd ~/Projects/acc-app-optimisation
 # Add the line `import my_package` or `import my_package.module` to the list of
 # imports in this file.
-$EDITOR acc_app_optimisation/envs/envs_prep.py
+$EDITOR acc_app_optimisation/envs/builtin_envs.py
 # Reinstall and execute the GUI.
 pip install .
 python -m acc_app_optimisation
 ```
 
-[envs\_prep.py]: https://gitlab.cern.ch/vkain/acc-app-optimisation/blob/master/acc_app_optimisation/envs/envs_prep.py
+[builtin\_envs.py]: /acc_app_optimisation/envs/builtin_envs.py
