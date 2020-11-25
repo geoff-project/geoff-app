@@ -120,3 +120,4 @@ python -m acc_app_optimisation
 ```
 
 [builtin\_envs.py]: /acc_app_optimisation/envs/builtin_envs.py
+[`coi.register()`]: https://gitlab.cern.ch/be-op-ml-optimization/cernml-coi/blob/master/cernml/coi/_registration.py
