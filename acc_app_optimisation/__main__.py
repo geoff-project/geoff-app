@@ -78,7 +78,9 @@ def get_parser() -> argparse.ArgumentParser:
         "foreign_imports",
         nargs="*",
         type=pathlib.Path,
-        help="Path to additional modules and packages that shall be imported",
+        help="Path to additional modules and packages that shall be "
+        "imported; child modules may be imported by appending them, "
+        "delimited by `::`",
     )
     parser.add_argument(
         "-q",

@@ -2,13 +2,14 @@
 """Import modules and packages by path."""
 
 import collections
+import functools
 import importlib
 import logging
 import sys
 from enum import Enum
 from pathlib import Path
 from types import ModuleType, TracebackType
-from typing import Dict, Iterator, Optional, Tuple
+from typing import Dict, Iterator, Optional, Tuple, Type
 
 LOG = logging.getLogger(__name__)
 
@@ -77,17 +78,37 @@ class BackupModules:
             yield ChangeKind.ADDITION, name
 
 
-def import_from_path(path: Path) -> ModuleType:
+def import_from_path(to_be_imported: str) -> ModuleType:
     """Return the module that is imported from path.
 
     WARNING: Importing Python modules and packages executes arbitrary
     code. Do not use this function unless you trust the code that you
     import.
 
+    Usage:
+
+        >>> # Import a single Python file as a module.
+        >>> import_from_path("path/to/module.py")  # doctest: +SKIP
+
+        >>> # Import a directory as a package. The directory must
+        >>> # contain an __init__.py file.
+        >>> import_from_path("path/to/package")  # doctest: +SKIP
+
+        >>> # Import a package/module from inside another package. This
+        >>> # imports `package`, `package.child` and
+        >>> # `package.child.grandchild`.
+        >>> import_from_path("path/to/package::child::grandchild")  # doctest: +SKIP
+
+        >>> # If your file or directory contains a literal double colon,
+        >>> # you can protect it with a trailing forward or backward
+        >>> # slash.
+        >>> import_from_path("strange::module.py/")  # doctest: +SKIP
+        >>> import_from_path("strange::package/")  # doctest: +SKIP
+        >>> import_from_path("strange::package/::child_module")  # doctest: +SKIP
+
     Args:
-        path: The file or directory to import. If `path` points to a
-            single Python file, it is imported as a module. If it points
-            to a directory, the directory is imported as a package.
+        path: The file or directory to import. Attach child packages and
+            modules with `::`as a delimiter.
 
     Returns:
         The module that has been imported.
@@ -99,16 +120,58 @@ def import_from_path(path: Path) -> ModuleType:
             import, `sys.modules` contains exactly the same modules as
             before _plus_ zero or more additional ones.
     """
-    spec = _find_spec(path)
-    module = importlib.util.module_from_spec(spec)
+    path, child_segments = _split_import_name(to_be_imported)
+    spec = _find_root_spec(path)
     with BackupModules(keep_on_success=True) as backup:
-        sys.modules[spec.name] = module
-        spec.loader.exec_module(module)
+        if child_segments:
+            LOG.debug("descendant chain: %s", list(child_segments))
+        module = functools.reduce(
+            _search_and_import_child,
+            child_segments,
+            _import_module_from_spec(spec),
+        )
         _assert_only_additions(backup)
     return module
 
 
-def _find_spec(path: Path) -> importlib.machinery.ModuleSpec:
+def _split_import_name(
+    name: str, path_class: Type[Path] = Path
+) -> Tuple[Path, Tuple[str]]:
+    r"""Extract file path and submodules from an import name.
+
+    Usage:
+        >>> from pathlib import PurePosixPath, PureWindowsPath
+        >>> split_import_name('foo', path_class=PurePosixPath)
+        (PurePosixPath('foo'), ())
+        >>> split_import_name('foo::bar', path_class=PurePosixPath)
+        (PurePosixPath('foo'), ('bar',))
+        >>> split_import_name('foo::bar::baz', path_class=PurePosixPath)
+        (PurePosixPath('foo'), ('bar', 'baz'))
+        >>> split_import_name('foo/bar', path_class=PurePosixPath)
+        (PurePosixPath('foo/bar'), ())
+        >>> split_import_name('foo::bar/', path_class=PurePosixPath)
+        (PurePosixPath('foo::bar'), ())
+        >>> split_import_name('foo::bar/::bar::baz', path_class=PurePosixPath)
+        (PurePosixPath('foo::bar'), ('bar', 'baz'))
+        >>> split_import_name('foo\\bar', path_class=PureWindowsPath)
+        (PureWindowsPath('foo/bar'), ())
+        >>> split_import_name('foo::bar\\', path_class=PureWindowsPath)
+        (PureWindowsPath('foo::bar'), ())
+        >>> split_import_name('foo::bar\\::bar::baz', path_class=PureWindowsPath)
+        (PureWindowsPath('foo::bar'), ('bar', 'baz'))
+    """
+    child_segments = []
+    while True:
+        before, sep, after = name.rpartition("::")
+        if not sep or "/" in after or "\\" in after:
+            break
+        child_segments.append(after)
+        name = before
+    child_segments.reverse()
+    return path_class(name), tuple(child_segments)
+
+
+def _find_root_spec(path: Path) -> importlib.machinery.ModuleSpec:
     """Find a spec that tells us how to import from a path.
 
     Raises:
@@ -118,11 +181,37 @@ def _find_spec(path: Path) -> importlib.machinery.ModuleSpec:
     """
     name = path.stem
     search_dir = path.parent
-    LOG.info("Importing package %s from path %s", name, search_dir)
+    LOG.info('searching for root package "%s" in path "%s"', name, search_dir)
     spec = importlib.machinery.PathFinder.find_spec(path.stem, path=[str(search_dir)])
     if not spec:
         raise ModuleNotFoundError(path)
     return spec
+
+
+def _import_module_from_spec(spec: importlib.machinery.ModuleSpec) -> ModuleType:
+    """Import a module based on its spec."""
+    if spec.name in sys.modules:
+        LOG.info("skipping: %s (already imported)", spec.name)
+        module = sys.modules[spec.name]
+    else:
+        LOG.info("importing: %s", spec.name)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)
+    return module
+
+
+def _search_and_import_child(parent: ModuleType, child_name: str) -> ModuleType:
+    """Search a child module in a parent package and import it."""
+    # If the name isn't already relative, make it so.
+    if not child_name.startswith("."):
+        child_name = "." + child_name
+    absolute_name = f"{parent.__name__}{child_name}"
+    LOG.debug('searching descendant "%s"', absolute_name)
+    spec = importlib.util.find_spec(child_name, parent.__name__)
+    if not spec:
+        raise ModuleNotFoundError(absolute_name)
+    return _import_module_from_spec(spec)
 
 
 def _assert_only_additions(backup: BackupModules) -> None:
@@ -140,6 +229,17 @@ def _assert_only_additions(backup: BackupModules) -> None:
                 f"{kind.value} modules: {names}" for kind, names in changes.items()
             )
         )
-    LOG.info("Imported modules:")
+    LOG.info("imported modules:")
     for name in additions:
         LOG.info("    %s", name)
+
+
+def _main(argv):
+    """Main function if the module is executed on its own."""
+    logging.basicConfig(level=logging.INFO)
+    for arg in argv[1:]:
+        import_from_path(arg)
+
+
+if __name__ == "__main__":
+    _main(sys.argv)
