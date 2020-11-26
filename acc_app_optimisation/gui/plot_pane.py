@@ -1,7 +1,9 @@
 import pyqtgraph as pg
-from accwidgets.graph import *
 import numpy as np
+from accwidgets.graph import *
 from PyQt5.QtWidgets import *
+
+from ..algos.single_opt import ConstraintsUpdateMessage
 
 
 class PlotPane:
@@ -33,10 +35,13 @@ class PlotPane:
             self.actor_plot.addItem(curve)
             self.actor_curves.append(curve)
 
-    def setConstraintsCurveData(self, iterations, constraint_values):
+    def setConstraintsCurveData(self, iterations, message: ConstraintsUpdateMessage):
+        values: np.ndarray = message.values
+        _lb: np.ndarray = message.lower_bound
+        _ub: np.ndarray = message.upper_bound
         if not self.constraint_curves:
-            self._setConstraintsCount(len(constraint_values.T))
-        for curve, constraint_value in zip(self.constraint_curves, constraint_values.T):
+            self._setConstraintsCount(len(values.T))
+        for curve, constraint_value in zip(self.constraint_curves, values.T):
             curve.setData(iterations, constraint_value)
 
     def setActorsCurveData(self, iterations, actors):

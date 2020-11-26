@@ -12,6 +12,13 @@ from .base_optimizer import BaseOptimizer
 LOG = logging.getLogger(__name__)
 
 
+class ConstraintsUpdateMessage:
+    def __init__(self, *, values, lower_bound, upper_bound):
+        self.values = values
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
+
+
 class OptimizationCancelled(Exception):
     """The user clicked the Stop button to cancel optimization."""
 
@@ -84,7 +91,16 @@ class OptimizerRunner(QRunnable):
         self.signals.objective_updated.emit(iterations, np.array(self.objectives_log))
         self.signals.actors_updated.emit(iterations, np.array(self.actions_log))
         self.signals.constraints_updated.emit(
-            iterations, np.array(self.constraints_log)
+            iterations,
+            ConstraintsUpdateMessage(
+                values=np.array(self.constraints_log),
+                lower_bound=all_into_flat_array(
+                    c.lb for c in self.optimizer.wrapped_constraints
+                ),
+                upper_bound=all_into_flat_array(
+                    c.ub for c in self.optimizer.wrapped_constraints
+                ),
+            ),
         )
 
     def _render_env(self):
