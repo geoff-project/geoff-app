@@ -12,10 +12,7 @@ from PyQt5.QtCore import QThreadPool
 from .config_widget import ConfigureDialog
 from .figures_view import FiguresView
 from .. import envs as environments
-from ..algos.single_opt import (
-    OptimizerRunner,
-    all_single_algos_dict,
-)
+from ..algos import single_opt
 
 
 class DecoratedControlPane(object):
@@ -39,11 +36,11 @@ class DecoratedControlPane(object):
         self.mainwindow.setting_tab_widget.setTabText(0, "CONFIG")
         self.mainwindow.setting_tab_widget.removeTab(1)
 
-        for algo in all_single_algos_dict:
+        for algo in single_opt.ALL_ALGOS:
             self.mainwindow.algoCombo.addItem(algo)
         self.selected_algo_name = self.mainwindow.algoCombo.currentText()
         self.threadpool = QThreadPool()
-        self.opt_runner = OptimizerRunner(None)
+        self.opt_runner = single_opt.OptimizerRunner(None)
         self.opt_runner.signals.objective_updated.connect(
             self.plotpane.objective_curve.setData
         )
@@ -80,7 +77,7 @@ class DecoratedControlPane(object):
         self.mainwindow.resetButton.setEnabled(False)
         self.mainwindow.stopButton.setEnabled(True)
         self._add_render_output()
-        self.opt_runner = OptimizerRunner(self.selected_algo)
+        self.opt_runner = single_opt.OptimizerRunner(self.selected_algo)
         self.threadpool.start(self.opt_runner)
 
     def reset_opt(self):
@@ -97,7 +94,7 @@ class DecoratedControlPane(object):
     def on_env_selected(self, env_name):
         if env_name:
             self.selected_env = environments.make_env_by_name(env_name, self._japc)
-            algo_class = all_single_algos_dict[self.selected_algo_name]
+            algo_class = single_opt.ALL_ALGOS[self.selected_algo_name]
             self.selected_algo = algo_class(self.selected_env)
             (dimension,) = self.selected_env.optimization_space.shape
             self.plotpane.setActorCount(dimension)
@@ -126,7 +123,7 @@ class DecoratedControlPane(object):
             return
         self.selected_algo_name = algo_name
         if algo_name:
-            algo_class = all_single_algos_dict[self.selected_algo_name]
+            algo_class = single_opt.ALL_ALGOS[self.selected_algo_name]
             self.selected_algo = algo_class(self.selected_env)
             self.mainwindow.configOptButton.setEnabled(True)
         else:
