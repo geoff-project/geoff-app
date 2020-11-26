@@ -91,6 +91,15 @@ def print_parent_chain(widget: QtWidgets.QWidget) -> None:
         depth += 1
 
 
+def print_window_type(widget: QtWidgets.QWidget) -> None:
+    flags = widget.windowFlags()
+    print(f"{widget}: 0x{int(flags):x}")
+    for name, value in vars(QtCore.Qt).items():
+        if isinstance(value, QtCore.Qt.WindowType):
+            if flags & value:
+                print("    ", name, sep="")
+
+
 class PoppableMdiArea(QtWidgets.QMdiArea):
     def addSubWindow(
         self,
@@ -115,6 +124,17 @@ class PoppableMdiArea(QtWidgets.QMdiArea):
         return subwindow
 
 
+class Sidebar(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QtWidgets.QVBoxLayout(self)
+        for text in ["Launch", "Stop", "Reset"]:
+            button = QtWidgets.QPushButton(text)
+            button.setMinimumWidth(120)
+            layout.addWidget(button, 0)
+        layout.addStretch(1)
+
+
 class MainWindow(QtWidgets.QMainWindow):
     """Main window of the application."""
 
@@ -124,6 +144,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mdi.setMinimumSize(QtCore.QSize(640, 480))
         self.mdi.setTabsMovable(True)
         self.setCentralWidget(self.mdi)
+
+        dock = QtWidgets.QDockWidget("side bar", self)
+        dock.setWidget(Sidebar())
+        dock.setFeatures(dock.NoDockWidgetFeatures)
+        dock.setTitleBarWidget(QtWidgets.QWidget(dock))
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock)
 
         menubar = QtWidgets.QMenuBar()
         menubar.addAction("&Launch").triggered.connect(self.onLaunch)
