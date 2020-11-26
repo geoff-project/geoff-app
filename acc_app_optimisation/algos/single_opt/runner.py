@@ -2,6 +2,7 @@
 
 import logging
 import sys
+import typing as t
 
 import numpy as np
 from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThread, pyqtSlot
@@ -31,9 +32,9 @@ class OptimizerRunner(QRunnable):
     def __init__(self, optimizer: BaseOptimizer):
         super().__init__()
         self.optimizer = optimizer
-        self.objectives = []
-        self.actors = []
-        self.constraint_values = []
+        self.objectives_log = []
+        self.actions_log = []
+        self.constraints_log = []
         self._is_cancelled = False
 
     def cancel(self):
@@ -58,40 +59,32 @@ class OptimizerRunner(QRunnable):
             env.optimization_space.low,
             env.optimization_space.high,
         )
+        self.actions_log.append(action.flatten())
         # Calculate loss function.
         loss = env.compute_single_objective(action.copy())
         assert np.ndim(loss) == 0, "non-scalar loss"
+        self.objectives_log.append(loss)
         # Calculate constraints and mash all of them into a single array.
-        constraint_values = np.concatenate(
-            [
-                np.asanyarray(constraint.fun(action)).flatten()
+        self.constraints_log.append(
+            all_into_flat_array(
+                constraint.fun(action)
                 for constraint in self.optimizer.wrapped_constraints
-            ]
+            )
         )
         # Log inputs and outputs.
-        self._log_inputs_outputs(action.copy().flatten(), loss, constraint_values)
+        self._emit_all_signals()
         self._render_env()
         # Clear all constraint caches.
         for constraint in self.optimizer.wrapped_constraints:
             constraint.clear_cache()
         return loss
 
-    def _log_inputs_outputs(self, action, loss, constraints):
-        self.actors.append(action)
-        self.objectives.append(loss)
-        self.constraint_values.append(constraints)
-        iterations = np.arange(len(self.objectives))
-        self.signals.objective_updated.emit(
-            iterations,
-            np.array(self.objectives),
-        )
-        self.signals.actors_updated.emit(
-            iterations,
-            np.array(self.actors),
-        )
+    def _emit_all_signals(self):
+        iterations = np.arange(len(self.objectives_log))
+        self.signals.objective_updated.emit(iterations, np.array(self.objectives_log))
+        self.signals.actors_updated.emit(iterations, np.array(self.actions_log))
         self.signals.constraints_updated.emit(
-            iterations,
-            np.array(self.constraint_values),
+            iterations, np.array(self.constraints_log)
         )
 
     def _render_env(self):
@@ -114,3 +107,8 @@ class OptimizerRunner(QRunnable):
             sys.excepthook(*sys.exc_info())
             LOG.error("Aborted optimization due to the above exception")
         self.signals.optimisation_finished.emit(True)
+
+
+def all_into_flat_array(values: t.Iterable[t.Union[float, np.ndarray]]) -> np.ndarray:
+    """Dump arrays, scalars, etc. into a flat NumPy array."""
+    return np.concatenate([np.asanyarray(value).flatten() for value in values])
