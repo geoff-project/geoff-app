@@ -41,6 +41,11 @@
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <widget class="QLabel" name="machinePaneLabel">
+            <property name="font">
+             <font>
+              <pointsize>12</pointsize>
+             </font>
+            </property>
             <property name="text">
              <string>Machine: </string>
             </property>
@@ -114,6 +119,11 @@
                 <height>30</height>
                </size>
               </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
               <property name="text">
                <string>Environment:</string>
               </property>
@@ -126,6 +136,11 @@
                 <width>0</width>
                 <height>40</height>
                </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>13</pointsize>
+               </font>
               </property>
              </widget>
             </item>
@@ -156,6 +171,11 @@
                 <width>16777215</width>
                 <height>30</height>
                </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
               </property>
               <property name="text">
                <string>Numerical optimisation algo: </string>

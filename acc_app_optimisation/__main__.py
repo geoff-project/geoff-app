@@ -11,7 +11,6 @@ import sys
 import jpype.imports  # pylint: disable=unused-import
 
 import pyjapc
-from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import *
 from pjlsa import pjlsa
 
@@ -52,7 +51,6 @@ class CentralWindow(QMainWindow):
 
         self.lsaSelectorWidget.selectionChanged.connect(self.on_lsa_cycle_changed)
 
-        self.mainwindow.machineCombo.setFont(QFont("Arial", 13))
         self.mainwindow.machineCombo.addItems(acc.name for acc in IncaAccelerators)
         self.mainwindow.machineCombo.currentTextChanged.connect(
             self.on_accelerator_changed

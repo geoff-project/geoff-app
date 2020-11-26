@@ -9,7 +9,6 @@ from PyQt5.QtWidgets import (
     QGridLayout,
     QHBoxLayout,
 )
-from PyQt5.QtGui import *
 from PyQt5.QtCore import QThreadPool
 
 from .config_widget import ConfigureDialog
@@ -28,10 +27,6 @@ class DecoratedControlPane(object):
         self.controlPane = self.mainwindow.controlPane
         self.mainwindow.configEnvButton.clicked.connect(self.on_config_env)
         self.mainwindow.configOptButton.clicked.connect(self.on_config_opt)
-
-        self.mainwindow.machinePaneLabel.setFont(QFont("Arial", 12, QFont.Bold))
-        self.mainwindow.environmentLabel.setFont(QFont("Arial", 12, QFont.Bold))
-        self.mainwindow.algoSelectionLabel.setFont(QFont("Arial", 12, QFont.Bold))
 
         self.envRenderPane = FiguresView()
         mainwindow.plotTabWidget.addTab(self.envRenderPane, "Render output")
