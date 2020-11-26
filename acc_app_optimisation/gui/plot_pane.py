@@ -37,12 +37,15 @@ class PlotPane:
 
     def setConstraintsCurveData(self, iterations, message: ConstraintsUpdateMessage):
         values: np.ndarray = message.values
-        _lb: np.ndarray = message.lower_bound
-        _ub: np.ndarray = message.upper_bound
+        lb: np.ndarray = message.lower_bound
+        ub: np.ndarray = message.upper_bound
         if not self.constraint_curves:
             self._setConstraintsCount(len(values.T))
-        for curve, constraint_value in zip(self.constraint_curves, values.T):
-            curve.setData(iterations, constraint_value)
+        for curves, constraint_value,lb_value,ub_value in zip(self.constraint_curves, values.T,lb,ub):
+            curves.values.setData(iterations, constraint_value)
+            curves.lower_bound.setData(iterations,np.ones_like(iterations)*lb_value)
+            curves.upper_bound.setData(iterations, np.ones_like(iterations) * ub_value)
+
 
     def setActorsCurveData(self, iterations, actors):
         for curve, actor in zip(self.actor_curves, actors.T):
@@ -72,12 +75,23 @@ class PlotPane:
         self.constraints_plot.clear()
         if not count:
             return
-        curve = pg.PlotCurveItem([], pen=(0, count))
-        self.constraints_plot.addItem(curve)
-        self.constraint_curves.append(curve)
+
+        self.constraint_curves.append(self._makeConstraintsCurves(color=(0,count),layer=None))
         for i in range(1, count):
             name = f"constraint_{i}"
-            self.constraints_plot.add_layer(name, pen=(i, count))
-            curve = pg.PlotCurveItem([], pen=(i, count))
-            self.constraints_plot.addItem(curve, layer=name)
-            self.constraint_curves.append(curve)
+            self.constraint_curves.append(self._makeConstraintsCurves(color=(i, count), layer=name))
+
+    def _makeConstraintsCurves(self,color,layer):
+        solid_pen = QPen(pg.mkColor(color),0.,Qt.SolidLine)
+        dashed_pen =QPen(pg.mkColor(color),0.,Qt.DashLine)
+        if layer is not None:
+            self.constraints_plot.add_layer(layer,pen=solid_pen)
+        curves =ConstraintsUpdateMessage(
+            values=pg.PlotCurveItem([],pen=solid_pen,layer=layer),
+            lower_bound=pg.PlotCurveItem([],pen=dashed_pen,layer=layer),
+            upper_bound=pg.PlotCurveItem([],pen=dashed_pen,layer=layer)
+        )
+        self.constraints_plot.addItem(curves.values)
+        self.constraints_plot.addItem(curves.lower_bound)
+        self.constraints_plot.addItem(curves.upper_bound)
+        return curves

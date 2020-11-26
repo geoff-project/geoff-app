@@ -30,7 +30,7 @@ class OptimizerRunner(QRunnable):
         """Collection of signals provided by the runner."""
 
         actors_updated = pyqtSignal(np.ndarray, np.ndarray)
-        constraints_updated = pyqtSignal(np.ndarray, np.ndarray)
+        constraints_updated = pyqtSignal(np.ndarray, ConstraintsUpdateMessage)
         objective_updated = pyqtSignal(np.ndarray, np.ndarray)
         optimisation_finished = pyqtSignal(bool)
 
