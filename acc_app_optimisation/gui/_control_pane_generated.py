@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'control_pane.ui'
+# Form implementation generated from reading ui file 'acc_app_optimisation/gui/control_pane.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.1
 #
@@ -12,18 +12,18 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_ControlPane(object):
-    def setupUi(self, controlArea):
-        controlArea.setObjectName("controlArea")
-        controlArea.setGeometry(QtCore.QRect(0, 0, 310, 648))
+    def setupUi(self, ControlPane):
+        ControlPane.setObjectName("ControlPane")
+        ControlPane.resize(310, 648)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(controlArea.sizePolicy().hasHeightForWidth())
-        controlArea.setSizePolicy(sizePolicy)
-        controlArea.setMinimumSize(QtCore.QSize(310, 0))
-        self.verticalLayout = QtWidgets.QVBoxLayout(controlArea)
+        sizePolicy.setHeightForWidth(ControlPane.sizePolicy().hasHeightForWidth())
+        ControlPane.setSizePolicy(sizePolicy)
+        ControlPane.setMinimumSize(QtCore.QSize(310, 0))
+        self.verticalLayout = QtWidgets.QVBoxLayout(ControlPane)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.machineSelectionPane = QtWidgets.QWidget(controlArea)
+        self.machineSelectionPane = QtWidgets.QWidget(ControlPane)
         self.machineSelectionPane.setMinimumSize(QtCore.QSize(0, 40))
         self.machineSelectionPane.setObjectName("machineSelectionPane")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.machineSelectionPane)
@@ -39,17 +39,17 @@ class Ui_ControlPane(object):
         self.machineCombo.setObjectName("machineCombo")
         self.horizontalLayout_2.addWidget(self.machineCombo)
         self.verticalLayout.addWidget(self.machineSelectionPane)
-        self.controlPane = QtWidgets.QWidget(controlArea)
+        self.lsaSelectorWidget = QtWidgets.QWidget(ControlPane)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.controlPane.sizePolicy().hasHeightForWidth())
-        self.controlPane.setSizePolicy(sizePolicy)
-        self.controlPane.setMinimumSize(QtCore.QSize(0, 200))
-        self.controlPane.setMaximumSize(QtCore.QSize(16777215, 200))
-        self.controlPane.setObjectName("controlPane")
-        self.verticalLayout.addWidget(self.controlPane)
-        self.setting_tab_widget = QtWidgets.QTabWidget(controlArea)
+        sizePolicy.setHeightForWidth(self.lsaSelectorWidget.sizePolicy().hasHeightForWidth())
+        self.lsaSelectorWidget.setSizePolicy(sizePolicy)
+        self.lsaSelectorWidget.setMinimumSize(QtCore.QSize(0, 200))
+        self.lsaSelectorWidget.setMaximumSize(QtCore.QSize(16777215, 200))
+        self.lsaSelectorWidget.setObjectName("lsaSelectorWidget")
+        self.verticalLayout.addWidget(self.lsaSelectorWidget)
+        self.setting_tab_widget = QtWidgets.QTabWidget(ControlPane)
         self.setting_tab_widget.setMinimumSize(QtCore.QSize(0, 370))
         self.setting_tab_widget.setObjectName("setting_tab_widget")
         self.setting_tab = QtWidgets.QWidget()
@@ -151,11 +151,11 @@ class Ui_ControlPane(object):
         self.setting_tab_widget.addTab(self.correction_tab, "")
         self.verticalLayout.addWidget(self.setting_tab_widget)
 
-        self.retranslateUi(controlArea)
+        self.retranslateUi(ControlPane)
         self.setting_tab_widget.setCurrentIndex(0)
-        QtCore.QMetaObject.connectSlotsByName(controlArea)
+        QtCore.QMetaObject.connectSlotsByName(ControlPane)
 
-    def retranslateUi(self, controlArea):
+    def retranslateUi(self, ControlPane):
         _translate = QtCore.QCoreApplication.translate
         self.machinePaneLabel.setText(_translate("ControlPane", "Machine: "))
         self.environmentLabel.setText(_translate("ControlPane", "Environment:"))

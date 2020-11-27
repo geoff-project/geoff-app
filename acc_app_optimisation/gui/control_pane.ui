@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>ControlPane</class>
- <widget class="QWidget" name="controlArea" native="true">
+ <widget class="QWidget" name="ControlPane">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -58,7 +58,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="controlPane" native="true">
+    <widget class="QWidget" name="lsaSelectorWidget" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
        <horstretch>0</horstretch>

@@ -9,14 +9,11 @@ from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThread, pyqtSlot
 
 from .base_optimizer import BaseOptimizer
 
+# TODO: BoundedCurve is a message type -- it shouldn't live in the gui
+# subpackage!
+from ...gui.plot_manager import BoundedCurve
+
 LOG = logging.getLogger(__name__)
-
-
-class ConstraintsUpdateMessage:
-    def __init__(self, *, values, lower_bound, upper_bound):
-        self.values = values
-        self.lower_bound = lower_bound
-        self.upper_bound = upper_bound
 
 
 class OptimizationCancelled(Exception):
@@ -30,7 +27,7 @@ class OptimizerRunner(QRunnable):
         """Collection of signals provided by the runner."""
 
         actors_updated = pyqtSignal(np.ndarray, np.ndarray)
-        constraints_updated = pyqtSignal(np.ndarray, ConstraintsUpdateMessage)
+        constraints_updated = pyqtSignal(np.ndarray, BoundedCurve)
         objective_updated = pyqtSignal(np.ndarray, np.ndarray)
         optimisation_finished = pyqtSignal(bool)
 
@@ -94,17 +91,14 @@ class OptimizerRunner(QRunnable):
         iterations = np.arange(len(self.objectives_log))
         self.signals.objective_updated.emit(iterations, np.array(self.objectives_log))
         self.signals.actors_updated.emit(iterations, np.array(self.actions_log))
-        if self.optimizer.wrapped_constraints:
+        constraints = self.optimizer.wrapped_constraints
+        if constraints:
             self.signals.constraints_updated.emit(
                 iterations,
-                ConstraintsUpdateMessage(
+                BoundedCurve(
                     values=np.array(self.constraints_log),
-                    lower_bound=all_into_flat_array(
-                        c.lb for c in self.optimizer.wrapped_constraints
-                    ),
-                    upper_bound=all_into_flat_array(
-                        c.ub for c in self.optimizer.wrapped_constraints
-                    ),
+                    lower=all_into_flat_array(c.lb for c in constraints),
+                    upper=all_into_flat_array(c.ub for c in constraints),
                 ),
             )
 
