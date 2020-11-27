@@ -72,36 +72,38 @@ class OptimizerRunner(QRunnable):
         assert np.ndim(loss) == 0, "non-scalar loss"
         self.objectives_log.append(loss)
         # Calculate constraints and mash all of them into a single array.
-        self.constraints_log.append(
-            all_into_flat_array(
-                constraint.fun(action)
-                for constraint in self.optimizer.wrapped_constraints
+        if self.optimizer.wrapped_constraints:
+            self.constraints_log.append(
+                all_into_flat_array(
+                    constraint.fun(action)
+                    for constraint in self.optimizer.wrapped_constraints
+                )
             )
-        )
+            for constraint in self.optimizer.wrapped_constraints:
+                constraint.clear_cache()
         # Log inputs and outputs.
         self._emit_all_signals()
         self._render_env()
         # Clear all constraint caches.
-        for constraint in self.optimizer.wrapped_constraints:
-            constraint.clear_cache()
         return loss
 
     def _emit_all_signals(self):
         iterations = np.arange(len(self.objectives_log))
         self.signals.objective_updated.emit(iterations, np.array(self.objectives_log))
         self.signals.actors_updated.emit(iterations, np.array(self.actions_log))
-        self.signals.constraints_updated.emit(
-            iterations,
-            ConstraintsUpdateMessage(
-                values=np.array(self.constraints_log),
-                lower_bound=all_into_flat_array(
-                    c.lb for c in self.optimizer.wrapped_constraints
+        if self.optimizer.wrapped_constraints:
+            self.signals.constraints_updated.emit(
+                iterations,
+                ConstraintsUpdateMessage(
+                    values=np.array(self.constraints_log),
+                    lower_bound=all_into_flat_array(
+                        c.lb for c in self.optimizer.wrapped_constraints
+                    ),
+                    upper_bound=all_into_flat_array(
+                        c.ub for c in self.optimizer.wrapped_constraints
+                    ),
                 ),
-                upper_bound=all_into_flat_array(
-                    c.ub for c in self.optimizer.wrapped_constraints
-                ),
-            ),
-        )
+            )
 
     def _render_env(self):
         env = self.optimizer.env
