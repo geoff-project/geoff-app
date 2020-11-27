@@ -127,4 +127,5 @@ class OptimizerRunner(QRunnable):
 
 def all_into_flat_array(values: t.Iterable[t.Union[float, np.ndarray]]) -> np.ndarray:
     """Dump arrays, scalars, etc. into a flat NumPy array."""
-    return np.concatenate([np.asanyarray(value).flatten() for value in values])
+    flat_arrays = [np.asanyarray(value).flatten() for value in values]
+    return np.concatenate(flat_arrays) if flat_arrays else np.array([])
