@@ -53,8 +53,7 @@ class BobyQA(BaseOptimizer):
         self.seek_global_minimum = values.seek_global_minimum
         self.objfun_has_noise = values.objfun_has_noise
 
-    def solve(self, func):
-        x_0 = self.env.get_initial_params()
+    def solve(self, func, x_0):
         bounds = (-np.ones(x_0.shape), np.ones(x_0.shape))
         opt_result = pybobyqa.solve(
             func,
@@ -97,8 +96,7 @@ class Cobyla(BaseOptimizer):
         self.maxfun = values.maxfun
         self.rhoend = values.rhoend
 
-    def solve(self, func):
-        x_0 = self.env.get_initial_params()
+    def solve(self, func, x_0):
         constraints = list(self.wrapped_constraints)
         constraints.append(scipy.optimize.NonlinearConstraint(np.abs, 0.0, 1.0))
         result = scipy.optimize.minimize(

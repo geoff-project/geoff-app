@@ -36,13 +36,16 @@ class OptimizerRunner(QRunnable):
 
     signals = Signals()
 
-    def __init__(self, optimizer: BaseOptimizer):
+    def __init__(self, optimizer: t.Optional[BaseOptimizer]):
         super().__init__()
         self.optimizer = optimizer
         self.objectives_log = []
         self.actions_log = []
         self.constraints_log = []
         self._is_cancelled = False
+        self.x_0: t.Optional[np.ndarray] = None
+        if optimizer:
+            self.x_0 = optimizer.env.get_initial_params()
 
     def cancel(self):
         """Cancel optimization at the next step.
@@ -57,7 +60,7 @@ class OptimizerRunner(QRunnable):
         """The callback function provided to BaseOptimizer.solve()."""
         if self._is_cancelled:
             raise OptimizationCancelled()
-        QThread.msleep(50)
+        QThread.msleep(500)
         # Clip parameters into the valid range – COBYLA might otherwise go
         # out-of-bounds.
         env = self.optimizer.env
@@ -117,7 +120,9 @@ class OptimizerRunner(QRunnable):
     def run(self):
         # pylint: disable = bare-except
         try:
-            optimum = self.optimizer.solve(self._env_callback)
+            if self.x_0 is None:
+                raise TypeError("Cannot run without optimizer")
+            optimum = self.optimizer.solve(self._env_callback, self.x_0.copy())
             self._env_callback(optimum)
         except OptimizationCancelled:
             LOG.info("Manually cancelled optimization")

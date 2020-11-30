@@ -1,4 +1,7 @@
+import typing as t
+
 from cernml import coi
+import numpy as np
 from PyQt5.QtWidgets import (
     QWidget,
     QPushButton,
@@ -40,6 +43,7 @@ class DecoratedControlPane(object):
             self.mainwindow.algoCombo.addItem(algo)
         self.selected_algo_name = self.mainwindow.algoCombo.currentText()
         self.threadpool = QThreadPool()
+        self._opt_last_starting_point: t.Optional[np.ndarray] = None
         self.opt_runner = single_opt.OptimizerRunner(None)
         self.opt_runner.signals.objective_updated.connect(
             self.plotpane.objective_curve.setData
@@ -78,6 +82,7 @@ class DecoratedControlPane(object):
         self.mainwindow.stopButton.setEnabled(True)
         self._add_render_output()
         self.opt_runner = single_opt.OptimizerRunner(self.selected_algo)
+        self._opt_last_starting_point = self.opt_runner.x_0
         self.threadpool.start(self.opt_runner)
 
     def reset_opt(self):
@@ -85,13 +90,15 @@ class DecoratedControlPane(object):
             return
         if self.selected_algo is None:
             return
-        self.selected_env.compute_single_objective(self.selected_algo.x_0)
+        self.selected_env.compute_single_objective(self._opt_last_starting_point)
 
     def stop_opt(self):
         self.mainwindow.stopButton.setEnabled(False)
         self.opt_runner.cancel()
 
     def on_env_selected(self, env_name):
+        self.mainwindow.resetButton.setEnabled(False)
+        self._opt_last_starting_point = None
         if env_name:
             self.selected_env = environments.make_env_by_name(env_name, self._japc)
             algo_class = single_opt.ALL_ALGOS[self.selected_algo_name]

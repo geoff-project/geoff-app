@@ -25,11 +25,12 @@ class BaseOptimizer(coi.Configurable):
 
     def __init__(self, env: coi.SingleOptimizable):
         self.env = env
+        self.x_0: t.Optional[np.ndarray] = None
         self.wrapped_constraints = [
             CachedNonlinearConstraint.from_any_constraint(c) for c in env.constraints
         ]
 
-    def solve(self, func):
+    def solve(self, func, x_0):
         """Solve the optimization problem."""
         raise NotImplementedError()
 
