@@ -71,6 +71,14 @@ def _add_items_to_plot(
         plot.addItem(curve)
 
 
+def _make_plot_widget_with_margins() -> accgraph.StaticPlotWidget:
+    """Trivial helper to add some margins to our plots."""
+    widget = accgraph.StaticPlotWidget()
+    layout: QtWidgets.QLayout = widget.plotItem.layout
+    layout.setContentsMargins(15, 15, 15, 15)
+    return widget
+
+
 class PlotManager:
     """Manager to put plots into an MDI area and remove them from there.
 
@@ -82,8 +90,8 @@ class PlotManager:
         self._mdi = mdi
         pyqtgraph.setConfigOptions(foreground="k", background="w")
 
-        self._objective_plot = accgraph.StaticPlotWidget()
-        self._constraints_plot = accgraph.StaticPlotWidget()
+        self._objective_plot = _make_plot_widget_with_margins()
+        self._constraints_plot = _make_plot_widget_with_margins()
         self._constraints_plot.hide()
         objective_constraints_widget = QtWidgets.QWidget()
         objective_constraints_widget.setWindowTitle("Objective")
@@ -93,7 +101,7 @@ class PlotManager:
         layout.addWidget(self._constraints_plot, stretch=1)
         self._mdi.addSubWindow(objective_constraints_widget)
 
-        self._actors_plot = accgraph.StaticPlotWidget()
+        self._actors_plot = _make_plot_widget_with_margins()
         self._actors_plot.setWindowTitle("Actors")
         self._mdi.addSubWindow(self._actors_plot)
 
