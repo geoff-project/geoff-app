@@ -74,8 +74,7 @@ def _add_items_to_plot(
 def _make_plot_widget_with_margins() -> accgraph.StaticPlotWidget:
     """Trivial helper to add some margins to our plots."""
     widget = accgraph.StaticPlotWidget()
-    layout: QtWidgets.QLayout = widget.plotItem.layout
-    layout.setContentsMargins(15, 15, 15, 15)
+    widget.plotItem.setContentsMargins(15, 15, 15, 15)
     return widget
 
 
@@ -97,6 +96,7 @@ class PlotManager:
         objective_constraints_widget.setWindowTitle("Objective")
         layout = QtWidgets.QVBoxLayout(objective_constraints_widget)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         layout.addWidget(self._objective_plot, stretch=1)
         layout.addWidget(self._constraints_plot, stretch=1)
         self._mdi.addSubWindow(objective_constraints_widget)

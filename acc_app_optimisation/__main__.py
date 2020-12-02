@@ -86,7 +86,12 @@ class MainMdiArea(app_gui.PopoutMdiArea):
     """Subclass of `PopoutMdiArea` for customization."""
 
     def __init__(self, parent: t.Optional[QtWidgets.QWidget] = None) -> None:
-        super().__init__(parent, viewMode=QtWidgets.QMdiArea.TabbedView)
+        super().__init__(
+            parent,
+            viewMode=QtWidgets.QMdiArea.TabbedView,
+            frameShape=QtWidgets.QFrame.StyledPanel,
+            frameShadow=QtWidgets.QFrame.Plain,
+        )
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         """Event handler to ensure that the first tab is selected upon startup."""
