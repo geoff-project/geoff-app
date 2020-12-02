@@ -91,6 +91,7 @@ class MainMdiArea(app_gui.PopoutMdiArea):
             viewMode=QtWidgets.QMdiArea.TabbedView,
             frameShape=QtWidgets.QFrame.StyledPanel,
             frameShadow=QtWidgets.QFrame.Plain,
+            tabsMovable=True,
         )
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
