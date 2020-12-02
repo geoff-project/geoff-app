@@ -57,7 +57,10 @@ class OptimizerRunner(QRunnable):
         """The callback function provided to BaseOptimizer.solve()."""
         if self._is_cancelled:
             raise OptimizationCancelled()
-        QThread.msleep(500)
+        # Yield at least once per optimization step. This releases
+        # Python's Global Interpreter Lock (GIL) and gives the main
+        # thread a chance to process GUI events.
+        QThread.yieldCurrentThread()
         # Clip parameters into the valid range – COBYLA might otherwise go
         # out-of-bounds.
         env = self.optimizer.env
@@ -107,8 +110,14 @@ class OptimizerRunner(QRunnable):
         if "matplotlib_figures" not in env.metadata.get("render.modes", []):
             return
         figures = env.render(mode="matplotlib_figures")
+        # `draw()` refreshes the figures immediately on this thread. Do
+        # not use `draw_idle()`: it postpones drawing until the next
+        # time the (main thread) event loop runs. This leads to a race
+        # condition between the main thread drawing the figures and this
+        # thread modifying them.
         for figure in figures:
-            figure.canvas.draw_idle()
+            QThread.yieldCurrentThread()
+            figure.canvas.draw()
 
     @pyqtSlot()
     def run(self):
