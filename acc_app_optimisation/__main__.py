@@ -6,7 +6,7 @@ import logging
 import sys
 import typing as t
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
 from acc_app_optimisation import gui as app_gui
@@ -82,14 +82,37 @@ class MdiViewMenu(QtWidgets.QMenu):
         self._arrange_group.setEnabled(view_mode == QtWidgets.QMdiArea.SubWindowView)
 
 
+class MainMdiArea(app_gui.PopoutMdiArea):
+    """Subclass of `PopoutMdiArea` for customization."""
+
+    def __init__(self, parent: t.Optional[QtWidgets.QWidget] = None) -> None:
+        super().__init__(parent, viewMode=QtWidgets.QMdiArea.TabbedView)
+
+    def showEvent(self, event: QtGui.QShowEvent) -> None:
+        """Event handler to ensure that the first tab is selected upon startup."""
+        # pylint: disable = invalid-name
+        # "Spontaneous" means that the main window is currently
+        # minimized and about to be restored. "Not spontaneous" means
+        # that this widget is currently hidden and about to be made
+        # visible. In our application, this only happens at startup,
+        # when `main_window.show()` is called.
+        if event.spontaneous():
+            return
+        # Show the first subwindow instead of the one most recently
+        # created.
+        windows = self.subWindowList(self.CreationOrder)
+        first_window = windows[0] if windows else None
+        self.setActiveSubWindow(first_window)
+
+
 class MainWindow(QtWidgets.QMainWindow):
     """The main window."""
 
     def __init__(self) -> None:
         super().__init__()
-        self._mdi = app_gui.PopoutMdiArea(viewMode=QtWidgets.QMdiArea.TabbedView)
-        self.setCentralWidget(self._mdi)
-        self._plot_manager = app_gui.PlotManager(self._mdi)
+        mdi = MainMdiArea()
+        self.setCentralWidget(mdi)
+        self._plot_manager = app_gui.PlotManager(mdi)
         self.runner = None
 
         self._control_pane = app_gui.ControlPane(plot_manager=self._plot_manager)
@@ -99,7 +122,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # We must keep ownership of this QMenu to keep the GC from
         # reclaiming it.
-        self._view_menu = MdiViewMenu("&View", self._mdi)
+        self._view_menu = MdiViewMenu("&View", mdi)
         menubar = QtWidgets.QMenuBar(self)
         menubar.addMenu(self._view_menu)
         self.setMenuBar(menubar)
