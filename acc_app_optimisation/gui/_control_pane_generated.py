@@ -134,6 +134,7 @@ class Ui_ControlPane(object):
         self.stopButton.setObjectName("stopButton")
         self.horizontalLayout_3.addWidget(self.stopButton)
         self.resetButton = QtWidgets.QPushButton(self.buttonPane)
+        self.resetButton.setEnabled(False)
         self.resetButton.setObjectName("resetButton")
         self.horizontalLayout_3.addWidget(self.resetButton)
         self.verticalLayout_2.addWidget(self.buttonPane)
