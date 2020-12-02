@@ -53,18 +53,23 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         self.selected_env = None
         self.plot_manager = plot_manager
 
+        # Create a dummy runner and connect its (class-scope) signals to
+        # handlers. Use QueuedConnection as the signals cross thread
+        # boundaries.
         self._opt_last_starting_point: t.Optional[np.ndarray] = None
         self.opt_runner = single_opt.OptimizerRunner(None)
         self.opt_runner.signals.objective_updated.connect(
-            self.plot_manager.set_objective_curve_data
+            self.plot_manager.set_objective_curve_data, QtCore.Qt.QueuedConnection
         )
         self.opt_runner.signals.actors_updated.connect(
-            self.plot_manager.set_actors_curve_data
+            self.plot_manager.set_actors_curve_data, QtCore.Qt.QueuedConnection
         )
         self.opt_runner.signals.constraints_updated.connect(
-            self.plot_manager.set_constraints_curve_data
+            self.plot_manager.set_constraints_curve_data, QtCore.Qt.QueuedConnection
         )
-        self.opt_runner.signals.optimisation_finished.connect(self._on_finished)
+        self.opt_runner.signals.optimisation_finished.connect(
+            self._on_finished, QtCore.Qt.QueuedConnection
+        )
 
         self.launchButton.clicked.connect(self._on_launch_clicked)
         self.stopButton.clicked.connect(self._on_stop_clicked)
