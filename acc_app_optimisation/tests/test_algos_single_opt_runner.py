@@ -10,14 +10,11 @@ from unittest.mock import Mock
 
 import numpy as np
 import pytest
+from PyQt5 import QtCore
 from cernml import coi
 from pytest_mock import MockerFixture
 from scipy.optimize import NonlinearConstraint
 
-# pylint: disable = wrong-import-position
-pytest.importorskip("PyQt5")
-
-from PyQt5 import QtCore
 from acc_app_optimisation.algos.single_opt import (
     ALL_ALGOS,
     BaseOptimizer,
