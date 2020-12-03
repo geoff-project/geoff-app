@@ -8,10 +8,7 @@ import numpy as np
 from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThread, pyqtSlot
 
 from .base_optimizer import BaseOptimizer
-
-# TODO: BoundedCurve is a message type -- it shouldn't live in the gui
-# subpackage!
-from ...gui.plot_manager import BoundedCurve
+from ...utils.bounded import BoundedArray
 
 LOG = logging.getLogger(__name__)
 
@@ -27,7 +24,7 @@ class OptimizerRunner(QRunnable):
         """Collection of signals provided by the runner."""
 
         actors_updated = pyqtSignal(np.ndarray, np.ndarray)
-        constraints_updated = pyqtSignal(np.ndarray, BoundedCurve)
+        constraints_updated = pyqtSignal(np.ndarray, BoundedArray)
         objective_updated = pyqtSignal(np.ndarray, np.ndarray)
         optimisation_finished = pyqtSignal(bool)
 
@@ -98,7 +95,7 @@ class OptimizerRunner(QRunnable):
         if constraints:
             self.signals.constraints_updated.emit(
                 iterations,
-                BoundedCurve(
+                BoundedArray(
                     values=np.array(self.constraints_log),
                     lower=all_into_flat_array(c.lb for c in constraints),
                     upper=all_into_flat_array(c.ub for c in constraints),

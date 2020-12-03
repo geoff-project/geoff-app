@@ -14,52 +14,25 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from .popout_mdi_area import PopinWindow, PopoutMdiArea
+from ..utils.bounded import Bounded, BoundedArray
 
 
 LOG = logging.getLogger(__name__)
 
 
-T = t.TypeVar("T")  # pylint: disable=invalid-name
+ColorSpec = t.Union[
+    str,  # one of: r, g, b, c, m, y, k, w
+    str,  # "RGB"
+    str,  # "RGBA"
+    str,  # "RRGGBB"
+    str,  # "RRGGBBAA"
+    int,  # see `pyqtgraph.intColor()`
+    t.Tuple[int, int],  # see `pyqtgraph.intColor()`
+    t.Tuple[int, int, int],  # R, G, B; integers 0-255
+    t.Tuple[int, int, int, int],  # R, G, B, A; integers 0-255
+    QtGui.QColor,
+]
 FigureSpec = t.Union[Figure, t.Tuple[str, Figure]]
-
-
-class BoundedCurve(t.Generic[T]):
-    """A named 3-tuple with a nominal value, upper and lower bounds.
-
-    This supports tuple unpacking:
-
-        >>> c: BoundedCurve[str]
-        >>> c = BoundedCurve(values='V', lower='L', upper='U')
-        >>> v, l, u = c
-        >>> v, l, u
-        ('V', 'L', 'U')
-    """
-
-    # TODO: Turn into a namedtuple in Python 3.7.
-    # pylint: disable = too-few-public-methods
-    values: T
-    lower: T
-    upper: T
-
-    def __init__(self, values: T, lower: T, upper: T) -> None:
-        self.values = values
-        self.lower = lower
-        self.upper = upper
-
-    def __repr__(self) -> str:
-        return "{name}(values={values!r}, lower={lower!r}, upper={upper!r})".format(
-            name=type(self).__name__,
-            values=self.values,
-            lower=self.lower,
-            upper=self.upper,
-        )
-
-    def __iter__(self) -> t.Iterator[T]:
-        return iter(self._as_tuple())
-
-    def _as_tuple(self) -> t.Tuple[T, T, T]:
-        """Return the values as a tuple; order: values, lower, upper."""
-        return (self.values, self.lower, self.upper)
 
 
 def _add_items_to_plot(
@@ -247,13 +220,15 @@ class PlotManager:
             curve.setData(xlist, curve_ylist)
 
     def set_constraints_curve_data(
-        self, xlist: np.ndarray, ylist: BoundedCurve[np.ndarray]
+        self,
+        xlist: np.ndarray,
+        ylist: BoundedArray,
     ) -> None:
         """Update the constraints curves with new data.
 
         Args:
             xlist: A 1D NumPy array with `N` X coordinates.
-            ylist: A `BoundedCurve` containing three arrays:
+            ylist: A `BoundedArray` containing three arrays:
                 values: A 2D NumPy array of shape `(N, C)`, where `N` is
                     the number of points and `C` is the number of
                     constraints to plot.
@@ -299,7 +274,7 @@ class PlotManager:
 
     def _constraints_curves(
         self, num: int
-    ) -> t.Iterable[BoundedCurve[pyqtgraph.PlotDataItem]]:
+    ) -> t.Iterable[Bounded[pyqtgraph.PlotDataItem]]:
         """The curves inside `self._constraints_curves.`
 
         If there are not exactly `num` bounded curves in the constraints
@@ -313,7 +288,7 @@ class PlotManager:
             for i in range(num):
                 chunk = axes.items[3 * i : 3 * i + 3]
                 assert len(chunk) == 3, chunk
-                result.append(BoundedCurve(*chunk))
+                result.append(Bounded(*chunk))
         else:
             self._constraints_plot.clear()
             for color, layer_name in _iter_colored_layers(num):
@@ -335,24 +310,10 @@ def _split_figure_title(item: FigureSpec) -> t.Tuple[str, Figure]:
     return (title, figure)
 
 
-ColorSpec = t.Union[
-    str,  # one of: r, g, b, c, m, y, k, w
-    str,  # "RGB"
-    str,  # "RGBA"
-    str,  # "RRGGBB"
-    str,  # "RRGGBBAA"
-    int,  # see `pyqtgraph.intColor()`
-    t.Tuple[int, int],  # see `pyqtgraph.intColor()`
-    t.Tuple[int, int, int],  # R, G, B; integers 0-255
-    t.Tuple[int, int, int, int],  # R, G, B, A; integers 0-255
-    QtGui.QColor,
-]
-
-
 def _make_curve_with_bounds(
     color: ColorSpec,
     layer: t.Optional[str],
-) -> BoundedCurve[pyqtgraph.PlotDataItem]:
+) -> Bounded[pyqtgraph.PlotDataItem]:
     """Create three curves; one with a solid-line, two with a dashed-line pen.
 
     This only creates the curve items; you still need to add them to a
@@ -361,7 +322,7 @@ def _make_curve_with_bounds(
     color = pyqtgraph.mkColor(color)
     solid_pen = QtGui.QPen(color, 0.0, Qt.SolidLine)
     dashed_pen = QtGui.QPen(color, 0.0, Qt.DashLine)
-    curves = BoundedCurve(
+    curves = Bounded(
         values=pyqtgraph.PlotDataItem(pen=solid_pen, layer=layer),
         lower=pyqtgraph.PlotDataItem(pen=dashed_pen, layer=layer),
         upper=pyqtgraph.PlotDataItem(pen=dashed_pen, layer=layer),
