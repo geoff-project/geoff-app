@@ -90,10 +90,12 @@ class PlotManager:
         pyqtgraph.setConfigOptions(foreground="k", background="w")
 
         self._objective_plot = _make_plot_widget_with_margins()
+        self._objective_plot.setTitle("Objective")
         self._constraints_plot = _make_plot_widget_with_margins()
+        self._constraints_plot.setTitle("Constraints")
         self._constraints_plot.hide()
         objective_constraints_widget = QtWidgets.QWidget()
-        objective_constraints_widget.setWindowTitle("Objective")
+        objective_constraints_widget.setWindowTitle("Objective and Constraints")
         layout = QtWidgets.QVBoxLayout(objective_constraints_widget)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
