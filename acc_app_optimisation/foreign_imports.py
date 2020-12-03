@@ -72,7 +72,7 @@ class BackupModules:
             new_module = new_modules.get(name, None)
             if new_module is None:
                 yield ChangeKind.REMOVAL, name
-            if new_module is not old_module:
+            elif new_module is not old_module:
                 yield ChangeKind.MODIFICATION, name
         for name in set(new_modules).difference(old_modules):
             yield ChangeKind.ADDITION, name
@@ -136,7 +136,7 @@ def import_from_path(to_be_imported: str) -> ModuleType:
 
 def _split_import_name(
     name: str, path_class: Type[Path] = Path
-) -> Tuple[Path, Tuple[str]]:
+) -> Tuple[Path, Tuple[str, ...]]:
     r"""Extract file path and submodules from an import name.
 
     Usage:
