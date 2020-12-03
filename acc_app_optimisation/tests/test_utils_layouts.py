@@ -8,10 +8,10 @@
 
 import pytest
 
-try:
-    from PyQt5 import QtWidgets
-except ImportError:
-    pytest.skip("Cannot run PyQt-dependent tests", allow_module_level=True)
+# pylint: disable = wrong-import-position
+pytest.importorskip("PyQt5")
+
+from PyQt5 import QtWidgets
 
 import acc_app_optimisation.utils.layouts as layout_utils
 
