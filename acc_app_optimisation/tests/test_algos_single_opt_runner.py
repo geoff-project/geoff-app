@@ -10,10 +10,14 @@ from unittest.mock import Mock
 
 import numpy as np
 import pytest
-from PyQt5 import QtCore
 from cernml import coi
 from pytest_mock import MockerFixture
 from scipy.optimize import NonlinearConstraint
+
+try:
+    from PyQt5 import QtCore
+except ImportError:
+    pytest.skip("Cannot run PyQt-dependent tests", allow_module_level=True)
 
 from acc_app_optimisation.algos.single_opt import (
     ALL_ALGOS,
