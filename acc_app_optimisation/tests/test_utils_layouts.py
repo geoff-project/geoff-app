@@ -9,7 +9,7 @@
 import pytest
 
 # pylint: disable = wrong-import-position
-pytest.importorskip("PyQt5")
+pytest.importorskip("PyQt5.QtWidgets")
 
 from PyQt5 import QtWidgets
 
