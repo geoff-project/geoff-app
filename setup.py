@@ -62,7 +62,7 @@ setup(
     },
     zip_safe=True,
     author="Verena Kain",
-    author_email="verena@kain@cern.ch",
+    author_email="verena.kain@cern.ch",
     url="https://gitlab.cern.ch/vkain/acc-app-optimisation",
     description="GUI for generic numerical optimisation",
     long_description=get_long_description(),
