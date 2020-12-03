@@ -55,7 +55,10 @@ setup(
         "scipy ~= 1.3",
     ],
     extras_require={
-        "test": [],
+        "test": [
+            "pytest ~= 3.0",
+            "pytest-mock ~= 3.3",
+        ],
     },
     zip_safe=True,
     author="Verena Kain",

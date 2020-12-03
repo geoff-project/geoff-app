@@ -88,23 +88,23 @@ def import_from_path(to_be_imported: str) -> ModuleType:
     Usage:
 
         >>> # Import a single Python file as a module.
-        >>> import_from_path("path/to/module.py")  # doctest: +SKIP
+        >>> import_from_path("path/to/module.py")
 
         >>> # Import a directory as a package. The directory must
         >>> # contain an __init__.py file.
-        >>> import_from_path("path/to/package")  # doctest: +SKIP
+        >>> import_from_path("path/to/package")
 
         >>> # Import a package/module from inside another package. This
         >>> # imports `package`, `package.child` and
         >>> # `package.child.grandchild`.
-        >>> import_from_path("path/to/package::child::grandchild")  # doctest: +SKIP
+        >>> import_from_path("path/to/package::child::grandchild")
 
         >>> # If your file or directory contains a literal double colon,
         >>> # you can protect it with a trailing forward or backward
         >>> # slash.
-        >>> import_from_path("strange::module.py/")  # doctest: +SKIP
-        >>> import_from_path("strange::package/")  # doctest: +SKIP
-        >>> import_from_path("strange::package/::child_module")  # doctest: +SKIP
+        >>> import_from_path("strange::module.py/")
+        >>> import_from_path("strange::package/")
+        >>> import_from_path("strange::package/::child_module")
 
     Args:
         path: The file or directory to import. Attach child packages and
@@ -137,29 +137,7 @@ def import_from_path(to_be_imported: str) -> ModuleType:
 def _split_import_name(
     name: str, path_class: Type[Path] = Path
 ) -> Tuple[Path, Tuple[str, ...]]:
-    r"""Extract file path and submodules from an import name.
-
-    Usage:
-        >>> from pathlib import PurePosixPath, PureWindowsPath
-        >>> split_import_name('foo', path_class=PurePosixPath)
-        (PurePosixPath('foo'), ())
-        >>> split_import_name('foo::bar', path_class=PurePosixPath)
-        (PurePosixPath('foo'), ('bar',))
-        >>> split_import_name('foo::bar::baz', path_class=PurePosixPath)
-        (PurePosixPath('foo'), ('bar', 'baz'))
-        >>> split_import_name('foo/bar', path_class=PurePosixPath)
-        (PurePosixPath('foo/bar'), ())
-        >>> split_import_name('foo::bar/', path_class=PurePosixPath)
-        (PurePosixPath('foo::bar'), ())
-        >>> split_import_name('foo::bar/::bar::baz', path_class=PurePosixPath)
-        (PurePosixPath('foo::bar'), ('bar', 'baz'))
-        >>> split_import_name('foo\\bar', path_class=PureWindowsPath)
-        (PureWindowsPath('foo/bar'), ())
-        >>> split_import_name('foo::bar\\', path_class=PureWindowsPath)
-        (PureWindowsPath('foo::bar'), ())
-        >>> split_import_name('foo::bar\\::bar::baz', path_class=PureWindowsPath)
-        (PureWindowsPath('foo::bar'), ('bar', 'baz'))
-    """
+    """Extract file path and submodules from an import name."""
     child_segments = []
     while True:
         before, sep, after = name.rpartition("::")
