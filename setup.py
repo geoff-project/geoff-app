@@ -51,12 +51,12 @@ setup(
         "numpy ~= 1.17",
         "pjlsa ~= 0.2.0",
         "pyjapc ~= 2.0",
-        "pyqtgraph ~= 0.10.0",
+        "pyqtgraph ~= 0.10.0",  # Nailed down by accwidgets.
         "scipy ~= 1.3",
     ],
     extras_require={
         "test": [
-            "pytest ~= 3.0",
+            "pytest ~= 6.0",
             "pytest-mock ~= 3.3",
         ],
     },
