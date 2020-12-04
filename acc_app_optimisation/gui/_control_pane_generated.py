@@ -15,7 +15,10 @@ class Ui_ControlPane(object):
     def setupUi(self, ControlPane):
         ControlPane.setObjectName("ControlPane")
         ControlPane.resize(310, 599)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(ControlPane.sizePolicy().hasHeightForWidth())
@@ -30,26 +33,39 @@ class Ui_ControlPane(object):
         font.setPointSize(12)
         self.machinePaneLabel.setFont(font)
         self.machinePaneLabel.setObjectName("machinePaneLabel")
-        self.machineLayout.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.machinePaneLabel)
+        self.machineLayout.setWidget(
+            0, QtWidgets.QFormLayout.LabelRole, self.machinePaneLabel
+        )
         self.machineCombo = QtWidgets.QComboBox(ControlPane)
         self.machineCombo.setMinimumSize(QtCore.QSize(0, 30))
         self.machineCombo.setObjectName("machineCombo")
-        self.machineLayout.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.machineCombo)
+        self.machineLayout.setWidget(
+            0, QtWidgets.QFormLayout.FieldRole, self.machineCombo
+        )
         self.mainLayout.addLayout(self.machineLayout)
         self.lsaSelectorWidget = QtWidgets.QWidget(ControlPane)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.MinimumExpanding, QtWidgets.QSizePolicy.MinimumExpanding)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.MinimumExpanding,
+            QtWidgets.QSizePolicy.MinimumExpanding,
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lsaSelectorWidget.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.lsaSelectorWidget.sizePolicy().hasHeightForWidth()
+        )
         self.lsaSelectorWidget.setSizePolicy(sizePolicy)
         self.lsaSelectorWidget.setMinimumSize(QtCore.QSize(100, 200))
         self.lsaSelectorWidget.setObjectName("lsaSelectorWidget")
         self.mainLayout.addWidget(self.lsaSelectorWidget)
         self.settingsTabWidget = QtWidgets.QTabWidget(ControlPane)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.settingsTabWidget.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.settingsTabWidget.sizePolicy().hasHeightForWidth()
+        )
         self.settingsTabWidget.setSizePolicy(sizePolicy)
         self.settingsTabWidget.setObjectName("settingsTabWidget")
         self.settingsTab = QtWidgets.QWidget()
@@ -106,7 +122,9 @@ class Ui_ControlPane(object):
         self.runLayout.addWidget(self.stopButton)
         self.resetButton = QtWidgets.QPushButton(self.settingsTab)
         self.resetButton.setEnabled(False)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy = QtWidgets.QSizePolicy(
+            QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+        )
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.resetButton.sizePolicy().hasHeightForWidth())
@@ -126,10 +144,17 @@ class Ui_ControlPane(object):
         self.machinePaneLabel.setText(_translate("ControlPane", "Machine: "))
         self.environmentLabel.setText(_translate("ControlPane", "Environment:"))
         self.configEnvButton.setText(_translate("ControlPane", "Configure"))
-        self.showConstraintsCheckbox.setText(_translate("ControlPane", "Show constraints"))
-        self.algoSelectionLabel.setText(_translate("ControlPane", "Numerical optimisation algo: "))
+        self.showConstraintsCheckbox.setText(
+            _translate("ControlPane", "Show constraints")
+        )
+        self.algoSelectionLabel.setText(
+            _translate("ControlPane", "Numerical optimisation algo: ")
+        )
         self.configOptButton.setText(_translate("ControlPane", "Configure"))
         self.launchButton.setText(_translate("ControlPane", "Launch"))
         self.stopButton.setText(_translate("ControlPane", "Stop"))
         self.resetButton.setText(_translate("ControlPane", "Reset"))
-        self.settingsTabWidget.setTabText(self.settingsTabWidget.indexOf(self.settingsTab), _translate("ControlPane", "Config"))
+        self.settingsTabWidget.setTabText(
+            self.settingsTabWidget.indexOf(self.settingsTab),
+            _translate("ControlPane", "Config"),
+        )
