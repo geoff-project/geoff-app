@@ -4,7 +4,6 @@ include:
 
 variables:
   project_name: acc_app_optimisation
-  PIP_USE_DEPRECATED: legacy-resolver
 
 
 # A full installation of the project, tested with pytest.
