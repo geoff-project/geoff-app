@@ -24,29 +24,18 @@ and Technical Networks.
 Setup
 -----
 
-To use [acc-py-deploy][], you need to activate the September 2020 Beta
-version of AccPy. There are two ways to do this. One is to stay on the stable
-Acc-Py release and only activate the deploy tool:
+To use [acc-py-deploy][], run either of these lines in your shell. You don't
+have to run them if you have already set up Acc-Py in your init script:
 
 ```bash
-# Activate stable Acc-Py.
-# This is not necessary if you do this in your init script already.
+# Activate Acc-Py.
+# This is the "full" distribution with lots of pre-installed packages.
 source /acc/local/share/python/acc-py/pro/setup.sh
 
-# Add Acc-Py-Deploy to your executable path.
-export PATH=/acc/local/share/python/tmp/deploy-beta/acc-py-cli/pro/bin:$PATH
-```
-
-The other way is to completely switch to the upcoming Acc-Py release. Note that
-this might break your existing setup, as the release changes a lot of things.
-It is based on Python 3.7 instead of 3.6, it has a much slimmer set of
-pre-installed packages, etc.
-
-```bash
-# Activate Acc-Py 2020.09 Beta.
-# If you already source Acc-Py in your init script, you might have to modify
-# that line.
-source /acc/local/share/python/acc-py/base/2020.9b/setup.sh
+# Activate Acc-Py Base.
+# This is the "base" distribution containing only the bare minimum of
+# pre-installed packages.
+source /acc/local/share/python/acc-py/base/pro/setup.sh
 ```
 
 Running
@@ -59,7 +48,7 @@ Once this setup is done, you can run the GUI by executing the following line:
 acc-py app run acc-app-optimisation
 
 # Run a specific version.
-acc-py appp run --version 0.0.1 acc-app-optimisation
+acc-py appp run acc-app-optimisation --version 0.0.1 
 ```
 
 This runs the GUI in a completely sealed virtual environment. This means that
@@ -69,53 +58,87 @@ current environment.
 Installation
 ============
 
-The information on other packages in this section is up-to-date as of November
-2020.
+The information in this section is only relevant if you want to install this
+application into your own environment. You typically want to do this when
+developing a plugin for your own optimization problem. This section is
+up-to-date as of December 2020.
 
-This application vendors the unpublished project [Qt LSA Selector][] (to be
-published separately as part of [Accwidgets][]), which in turn depends on
-[Pjlsa 0.2][Pjlsa]. This is _not_ part of the currently stable Acc-Py release,
+This application currently vendors the [Qt LSA Selector][] widget (to be
+published as part of [Accwidgets][] 0.5). This project in turn depends on
+[Pjlsa 0.2][Pjlsa]. This is _not_ part of the current Acc-Py release (19.5.2),
 which only provides [Pjlsa 0.0.14][Pjlsa]. Due to this, installing this package
-is a bit awkward at the moment. It is our hope that the [Acc-Py-Deploy][]
-project will significantly streamline the process.
+is a bit awkward at the moment.
 
 Step 1: Acc-Py and Venv
 -----------------------
 
-You can use either the stable Acc-Py release or the September 2020 Beta
-release. In the former case, you **will need an insolated virtual environment**
-because of the Pjlsa compatibility issue outlined above.
+You can start out with two base distributions:
+- Acc-Py Base 2020.11 (slim distribution, incldudes the bare minimum);
+- Acc-Py 19.5.2 (full distribution, includes [Pjlsa][]).
+
+If you use Acc-Py Base, you can create a virtual environment based on it as
+follows:
 
 ```bash
-# Use the stable release, Python 3.6. Note that the venv is isolated from the
-# Acc-Py environment (no `--system-site-packages`).
-source /acc/local/share/python/acc-py-pyqt/pro/setup.sh
-python -m venv /opt/venvs/acc-app-optimisation
-source /opt/venvs/acc-app-optimisation/bin/activate
+# Set up production-stage release of Acc-Py Base, switch to Python 3.7.
+source /acc/local/share/python/acc-py/base/pro/setup.sh
 
-# Use the beta release, Python 3.7. Because the Acc-Py environment does not
-# supply Pjlsa nor JPype nor PyJapc, we are free to include it in the venv.
-source /acc/local/share/python/acc-py/base/2020.9b/setup.sh
-python -m venv /opt/venvs/acc-app-optimisation --system-site-packages
-source /opt/venvs/acc-app-optimisation/bin/activate
+# Make some space for virtual environments. If you run out of space in your
+# HOME, consider putting them into /opt/venvs instead.
+mkdir -p ~/venvs
+
+# Make a virtual environment based on Acc-Py base and activate it.
+python -m venv --system-site-packages ~/venvs/acc-app-optimisation
+source ~/venvs/acc-app-optimisation
 ```
+
+If you use Acc-Py 19.5.2, the setup is very similar, but you need to *isolate*
+your environment from the packages provided by it.
+
+```bash
+# Use the production-stage release of Acc-Py (19.5.2 at the moment), stay on
+# Python 3.6.
+source /acc/local/share/python/acc-py-pyqt/pro/setup.sh
+
+# Make some space for virtual environments. If you run out of space in your
+# HOME, consider putting them into /opt/venvs instead.
+mkdir -p ~/venvs
+
+# Make a virtual environment isolated from Acc-Py and activate it.
+python -m venv ~/venvs/acc-app-optimisation
+source ~/venvs/acc-app-optimisation
+```
+
+Of course, you're free to set up your virtual environment however you prefer.
+The steps above have been tested to work.
 
 Step 2: Installing the App
 --------------------------
 
-Clone the app and install it. You can verify that it works by executing its
-Python package.
+Once you've activated a virtual environment of your choice, installing the
+application is dead-simple:
 
 ```bash
-cd ~/Projects
-git clone https://gitlab.cern.ch/vkain/acc-app-optimisation.git
-cd acc-app-optimisation
-pip install .
+pip install acc-app-optimisation
+```
+
+And you can run the installed version via:
+
+```bash
 python -m acc_app_optimisation
 ```
 
+If you have decided to clone this repository, you can install this clone
+(instead of a published verison) like this:
+
+```bash
+git clone https://gitlab.cern.ch/vkain/acc-app-optimisation.git
+cd acc-app-optimisation
+pip install .
+```
+
 Step 3: Using Your Own Optimisation Problem
-------------------------------------------------
+-------------------------------------------
 
 The app provides a number of built-in problems to solve; but it also provides a
 _foreign-imports_ mechanism to temporarily add your own problem to its list.
@@ -145,8 +168,12 @@ can obviously be extended to import the submodule of a submodule.
 To import more than one module, simply pass the paths to all of them as
 separate arguments.
 
-Step 3: (Alternative) Adding Your Problem to the Built-In List
---------------------------------------------------------------
+Of course, if you have installed the application into your own environment, you
+need to replace `acc-py app run acc-app-optimisation` with `python -m
+acc_app_optimisation`.
+
+Step 3: (Deprecated) Adding Your Problem to the Built-In List
+-------------------------------------------------------------
 
 If the recommended procedure in step 3 doesn't work for you, it is also
 possible to modify your local copy of the app to include your optimization
