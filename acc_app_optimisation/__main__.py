@@ -8,6 +8,7 @@ import typing as t
 
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
+from accwidgets.log_console import LogConsoleDock, LogConsole
 
 from acc_app_optimisation import gui as app_gui
 from acc_app_optimisation import foreign_imports
@@ -126,6 +127,14 @@ class MainWindow(QtWidgets.QMainWindow):
         dock.setWidget(self._control_pane)
         self.addDockWidget(Qt.LeftDockWidgetArea, dock)
 
+        console = LogConsole()
+        console.expanded = False
+        log_dock = LogConsoleDock(
+            console=console, allowed_areas=Qt.BottomDockWidgetArea
+        )
+        log_dock.setFeatures(log_dock.DockWidgetFloatable)
+        self.addDockWidget(Qt.BottomDockWidgetArea, log_dock)
+
         # We must keep ownership of this QMenu to keep the GC from
         # reclaiming it.
         self._view_menu = MdiViewMenu("&View", mdi)
@@ -133,7 +142,7 @@ class MainWindow(QtWidgets.QMainWindow):
         menubar.addMenu(self._view_menu)
         self.setMenuBar(menubar)
 
-        self.setStatusBar(QtWidgets.QStatusBar(self))
+        # self.setStatusBar(QtWidgets.QStatusBar(self))
 
 
 def get_parser() -> argparse.ArgumentParser:
