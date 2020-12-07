@@ -148,8 +148,8 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         if not env_name:
             self.selected_env = None
             LOG.debug("new environment: %s", self.selected_env)
-            self.mainwindow.configEnvButton.setEnabled(False)
-            self.mainwindow.showConstraintsCheckbox.setEnabled(False)
+            self.configEnvButton.setEnabled(False)
+            self.showConstraintsCheckbox.setEnabled(False)
             self._on_algo_changed(None)
             return
 
