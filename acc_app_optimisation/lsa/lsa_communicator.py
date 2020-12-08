@@ -50,8 +50,10 @@ class LSACommunicator:
         parameter = self.parameter_service.findParameterByName(parameter_name)
 
         scalar_setting = ScalarSetting(Type.DOUBLE)
-        scalar_setting.setBeamProcess(
-            Contexts.getFunctionBeamProcessAt(cycle, parameter.getParticleTransfers().iterator().next(), time))
+        beamProcess = Contexts.getFunctionBeamProcessAt(cycle, parameter.getParticleTransfers().iterator().next(), time)
+        scalar_setting.setBeamProcess(beamProcess)
+        beamProcess_startTime = beamProcess.getStartTime()
+        time_for_incoroporation = time-beamProcess_startTime
         scalar_setting.setParameter(parameter)
         scalar_setting.setTargetValue(ValueFactory.createScalar(0.0))
         scalar_setting.setCorrectionValue(ValueFactory.createScalar(delta_setting))
@@ -59,9 +61,18 @@ class LSACommunicator:
         incorporation_request = IncorporationRequest.builder().\
             setContext(cycle).\
             setRelative(True).\
-            addIncorporationSetting(IncorporationSetting(scalar_setting, time)).\
+            addIncorporationSetting(IncorporationSetting(scalar_setting, time_for_incoroporation)).\
             build()
 
         self.trim_service.incorporate(incorporation_request)
+
+if __name__ == "__main__":
+    communicator = LSACommunicator()
+
+    context = "HIRADMAT_PILOT_Q20_2018_V1"
+    parameter_name = "logical.RDH.20207/K"
+    time=2305.
+    delta_setting=5e-6
+    communicator.incorporate_setting(context=context,parameter_name=parameter_name,time=time,delta_setting=delta_setting)
 
 
