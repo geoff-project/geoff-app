@@ -2,7 +2,6 @@ import typing
 import jpype.imports
 
 import pjlsa
-import pyjapc
 from PyQt5.QtGui import QColor, QFont
 from PyQt5.QtCore import QAbstractTableModel, QObject, QModelIndex, Qt, QVariant
 
@@ -11,14 +10,12 @@ class LsaSelectorModel(QAbstractTableModel):
     def __init__(
         self,
         lsa: pjlsa.LSAClient,
-        japc: pyjapc.PyJapc,
         accelerator: str,
         parent: typing.Optional[QObject] = None,
     ) -> None:
         super().__init__(parent)
         jpype.imports.registerDomain("cern")
         self.lsa = lsa
-        self.japc = japc
         self.contexts = self.findContexts(accelerator.lower())
 
     @property
@@ -32,11 +29,6 @@ class LsaSelectorModel(QAbstractTableModel):
     @property
     def user(self):
         return self.context.getUser()
-
-    @property
-    def pyjapc(self):
-        self.japc.setSelector(self.user)
-        return self.japc
 
     def setAccelerator(self, accelerator: str):
         self.beginResetModel()

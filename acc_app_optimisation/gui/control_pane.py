@@ -91,7 +91,6 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         self.lsaSelectorWidget = LsaSelectorWidget(
             self,
             lsa=pjlsa.LSAClient("gpn"),
-            japc=PyJapc("", noSet=False, incaAcceleratorName="AD"),
             accelerator=self.accelerator.lsa_name,
             as_dock=False,
         )

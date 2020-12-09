@@ -1,6 +1,5 @@
 import typing
 
-import pyjapc
 from pjlsa import pjlsa
 from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtSignal
@@ -27,7 +26,6 @@ class LsaSelectorWidget(QDockWidget):
         self,
         parent: typing.Optional[QWidget] = ...,
         lsa: pjlsa.LSAClient = ...,
-        japc: pyjapc.PyJapc = ...,
         accelerator: str = "sps",
         application_title=None,
         application_logo=None,
@@ -54,7 +52,7 @@ class LsaSelectorWidget(QDockWidget):
         label.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
 
         self.view = QTableView()
-        self.view.setModel(LsaSelectorModel(lsa, japc, accelerator))
+        self.view.setModel(LsaSelectorModel(lsa, accelerator))
         self.view.setShowGrid(False)
         self.view.verticalHeader().hide()
         self.view.horizontalHeader().hide()
@@ -98,9 +96,6 @@ class LsaSelectorWidget(QDockWidget):
 
     def getUser(self):
         return self.view.model().user
-
-    def getPyJapcObject(self):
-        return self.view.model().pyjapc
 
     def setAccelerator(self, acc_name: str):
         self.view.model().setAccelerator(acc_name)
