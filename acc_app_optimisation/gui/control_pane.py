@@ -89,9 +89,9 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
 
         lsa_dummy = self.lsaSelectorWidget
         self.lsaSelectorWidget = LsaSelectorWidget(
-            self,
-            lsa=pjlsa.LSAClient("gpn"),
+            pjlsa.LSAClient("gpn"),
             accelerator=self.accelerator.lsa_name,
+            parent=self,
             as_dock=False,
         )
         self.layout().replaceWidget(lsa_dummy, self.lsaSelectorWidget)

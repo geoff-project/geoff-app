@@ -24,9 +24,10 @@ class LsaSelectorWidget(QDockWidget):
 
     def __init__(
         self,
-        parent: typing.Optional[QWidget] = ...,
-        lsa: pjlsa.LSAClient = ...,
+        lsa: pjlsa.LSAClient,
         accelerator: str = "sps",
+        parent: typing.Optional[QWidget] = None,
+        *,
         application_title=None,
         application_logo=None,
         as_dock=True,
