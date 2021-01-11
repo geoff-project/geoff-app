@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (
     QDoubleSpinBox,
     QLineEdit,
     QCheckBox,
+    QTabWidget,
 )
 from PyQt5.QtGui import (
     QIntValidator,
@@ -28,7 +29,7 @@ from cernml import coi
 LOG = logging.getLogger(__name__)
 
 
-class ConfigureDialog(QDialog):
+class ConfigureWidget(QWidget):
     """Qt dialog that allows configuring an environment.
 
     Args:
@@ -43,42 +44,13 @@ class ConfigureDialog(QDialog):
         self.current_values = {
             field.dest: field.value for field in self.config.fields()
         }
-        main_layout = QVBoxLayout()
-        self.setLayout(main_layout)
-        params = QWidget()
-        main_layout.addWidget(params)
-        params_layout = QFormLayout()
-        params.setLayout(params_layout)
+        params_layout = QFormLayout(self)
         for field in self.config.fields():
             label = QLabel(field.label)
             widget = self._make_field_widget(field)
             if field.help is not None:
                 widget.setToolTip(field.help)
             params_layout.addRow(label, widget)
-        controls = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
-        )
-        controls.button(QDialogButtonBox.Ok).clicked.connect(self.on_ok_clicked)
-        controls.button(QDialogButtonBox.Apply).clicked.connect(self.on_apply_clicked)
-        controls.button(QDialogButtonBox.Cancel).clicked.connect(self.on_cancel_clicked)
-        main_layout.addWidget(controls)
-
-    def on_ok_clicked(self):
-        """Apply the configs and close the window."""
-        values = self.config.validate_all(self.current_values)
-        LOG.info("Ok clicked, new config: %s", values)
-        self.target.apply_config(values)
-        self.accept()
-
-    def on_apply_clicked(self):
-        """Apply the configs."""
-        values = self.config.validate_all(self.current_values)
-        LOG.info("Apply clicked, new config: %s", values)
-        self.target.apply_config(values)
-
-    def on_cancel_clicked(self):
-        """Discard any changes and close the window."""
-        self.reject()
 
     def _make_field_widget(self, field: coi.Config.Field) -> QWidget:
         """Given a field, pick the best widget to configure it."""
@@ -98,6 +70,93 @@ class ConfigureDialog(QDialog):
         if widget is not None:
             return widget
         return QLabel(str(field.value))
+
+
+class ConfigureDialog(QDialog):
+    """Qt dialog that allows configuring an environment.
+
+    Args:
+        target: The environment to be configured.
+        parent: The parent widget to attach to.
+    """
+
+    def __init__(self, target: coi.Configurable, parent=None):
+        super().__init__(parent)
+        self.cfg_widget = ConfigureWidget(target)
+        main_layout = QVBoxLayout(self)
+        main_layout.addWidget(self.cfg_widget)
+        controls = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
+        )
+        controls.button(QDialogButtonBox.Ok).clicked.connect(self.on_ok_clicked)
+        controls.button(QDialogButtonBox.Apply).clicked.connect(self.on_apply_clicked)
+        controls.button(QDialogButtonBox.Cancel).clicked.connect(self.on_cancel_clicked)
+        main_layout.addWidget(controls)
+
+    def on_ok_clicked(self):
+        """Apply the configs and close the window."""
+        values = self.cfg_widget.config.validate_all(self.cfg_widget.current_values)
+        LOG.info("Ok clicked, new config: %s", values)
+        self.cfg_widget.target.apply_config(values)
+        self.accept()
+
+    def on_apply_clicked(self):
+        """Apply the configs."""
+        values = self.cfg_widget.config.validate_all(self.cfg_widget.current_values)
+        LOG.info("Apply clicked, new config: %s", values)
+        self.cfg_widget.target.apply_config(values)
+
+    def on_cancel_clicked(self):
+        """Discard any changes and close the window."""
+        self.reject()
+
+
+class FunctionConfigureDialog(QDialog):
+    """Qt dialog that allows configuring a FunctionOptimizable.
+
+    Args:
+        target: The environment to be configured.
+        parent: The parent widget to attach to.
+    """
+
+    def __init__(self, target: coi.Configurable, parent=None):
+        super().__init__(parent)
+        tab_widget = QTabWidget()
+        if isinstance(target, coi.Configurable):
+            self.cfg_widget = ConfigureWidget(target)
+            tab_widget.addTab(self.cfg_widget, "Configuration")
+        else:
+            self.cfg_widget = None
+        self.points_widget = QLineEdit()
+        tab_widget.addTab(self.points_widget, "Skeleton points")
+        main_layout = QVBoxLayout(self)
+        main_layout.addWidget(tab_widget)
+        controls = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
+        )
+        controls.button(QDialogButtonBox.Ok).clicked.connect(self.on_ok_clicked)
+        controls.button(QDialogButtonBox.Apply).clicked.connect(self.on_apply_clicked)
+        controls.button(QDialogButtonBox.Cancel).clicked.connect(self.on_cancel_clicked)
+        main_layout.addWidget(controls)
+
+    def on_ok_clicked(self):
+        """Apply the configs and close the window."""
+        if self.cfg_widget:
+            values = self.cfg_widget.config.validate_all(self.cfg_widget.current_values)
+            LOG.info("Ok clicked, new config: %s", values)
+            self.cfg_widget.target.apply_config(values)
+        self.accept()
+
+    def on_apply_clicked(self):
+        """Apply the configs."""
+        if self.cfg_widget:
+            values = self.cfg_widget.config.validate_all(self.cfg_widget.current_values)
+            LOG.info("Apply clicked, new config: %s", values)
+        self.cfg_widget.target.apply_config(values)
+
+    def on_cancel_clicked(self):
+        """Discard any changes and close the window."""
+        self.reject()
 
 
 def _checkbox(field: coi.Config.Field, values: t.Dict[str, str]) -> QWidget:

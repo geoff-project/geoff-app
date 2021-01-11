@@ -12,12 +12,12 @@ import jpype.imports  # pylint: disable=unused-import
 
 import numpy as np
 from PyQt5 import QtCore, QtWidgets
-from cernml import coi
+from cernml import coi, coi_funcs
 from pjlsa import pjlsa
 from pyjapc import PyJapc
 
 from ._control_pane_generated import Ui_ControlPane
-from .config_widget import ConfigureDialog
+from .config_widget import ConfigureDialog, FunctionConfigureDialog
 from .plot_manager import PlotManager
 from .. import envs
 from ..algos import single_opt
@@ -165,7 +165,7 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         self.showConstraintsCheckbox.setEnabled(bool(constraints))
         LOG.debug("number of constraints: %d", len(constraints))
 
-        is_configurable = isinstance(self.selected_env.unwrapped, coi.Configurable)
+        is_configurable = self._is_env_configurable()
         self.configEnvButton.setEnabled(is_configurable)
         LOG.debug("configurable: %s", is_configurable)
 
@@ -188,13 +188,22 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
     def _on_config_env(self) -> None:
         """Handler for the env configuration."""
         env = self.selected_env
-        if not isinstance(env.unwrapped, coi.Configurable):
+        if not self._is_env_configurable():
             LOG.error("not configurable: %s", env.unwrapped)
             return
-        dialog = ConfigureDialog(env, self.window())
+        if isinstance(env.unwrapped, coi_funcs.FunctionOptimizable):
+            dialog = FunctionConfigureDialog(env, self.window())
+        else:
+            dialog = ConfigureDialog(env, self.window())
         name = type(env.unwrapped).__name__
         dialog.setWindowTitle(f"Configure {name} ...")
         dialog.open()
+
+    def _is_env_configurable(self) -> bool:
+        return isinstance(
+            self.selected_env.unwrapped,
+            (coi.Configurable, coi_funcs.FunctionOptimizable),
+        )
 
     def _on_config_algo(self) -> None:
         """Handler for the algorith, configuration."""
