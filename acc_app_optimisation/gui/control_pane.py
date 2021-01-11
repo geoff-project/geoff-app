@@ -44,7 +44,11 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
     """The sidebar of the app."""
 
     def __init__(
-        self, parent: t.Optional[QtWidgets.QWidget] = None, *, plot_manager: PlotManager
+        self,
+        parent: t.Optional[QtWidgets.QWidget] = None,
+        *,
+        plot_manager: PlotManager,
+        lsa: pjlsa.LSAClient,
     ) -> None:
         super().__init__(parent)
         self.setupUi(self)
@@ -89,9 +93,9 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
 
         lsa_dummy = self.lsaSelectorWidget
         self.lsaSelectorWidget = LsaSelectorWidget(
-            pjlsa.LSAClient("gpn"),
-            accelerator=self.accelerator.lsa_name,
+            lsa,
             parent=self,
+            accelerator=self.accelerator.lsa_name,
             as_dock=False,
         )
         self.layout().replaceWidget(lsa_dummy, self.lsaSelectorWidget)
@@ -138,6 +142,7 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         LOG.debug("cycle changed: %s, %s", settings.context, settings.user)
         # TODO: We have to recreate the environment because the JAPC
         # object has changed.
+        self._on_env_changed(self.environmentCombo.currentText())
 
     def _on_env_changed(self, env_name: str) -> None:
         """Handler for the environment selection."""
