@@ -1,10 +1,10 @@
-import argparse
-import logging
+"""Definition of the main window for the app."""
+
 import typing as t
 
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
-from accwidgets.log_console import LogConsoleDock, LogConsole
+from accwidgets.log_console import LogConsoleDock, LogConsole, LogConsoleModel
 import pjlsa
 
 from acc_app_optimisation import gui as app_gui
@@ -108,7 +108,12 @@ class MainMdiArea(app_gui.PopoutMdiArea):
 class MainWindow(QtWidgets.QMainWindow):
     """The main window."""
 
-    def __init__(self, lsa: pjlsa.LSAClient) -> None:
+    def __init__(
+        self,
+        *,
+        lsa: pjlsa.LSAClient,
+        model: t.Optional[LogConsoleModel] = None,
+    ) -> None:
         super().__init__()
         mdi = MainMdiArea()
         self.setCentralWidget(mdi)
@@ -123,7 +128,7 @@ class MainWindow(QtWidgets.QMainWindow):
         dock.setWidget(self._control_pane)
         self.addDockWidget(Qt.LeftDockWidgetArea, dock)
 
-        console = LogConsole()
+        console = LogConsole(model=model)
         console.expanded = False
         log_dock = LogConsoleDock(
             console=console, allowed_areas=Qt.BottomDockWidgetArea
@@ -139,36 +144,3 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setMenuBar(menubar)
 
         # self.setStatusBar(QtWidgets.QStatusBar(self))
-
-
-def get_parser() -> argparse.ArgumentParser:
-    """Return the CLI argument parser."""
-    parser = argparse.ArgumentParser(
-        description="GeOFF: Generic Optimization Framework and Frontend"
-    )
-    parser.add_argument(
-        "foreign_imports",
-        nargs="*",
-        type=str,
-        help="Path to additional modules and packages that shall be "
-        "imported; child modules may be imported by appending them, "
-        "delimited by `::`",
-    )
-    parser.add_argument(
-        "-q",
-        "--quiet",
-        action="store_const",
-        const=logging.WARNING,
-        default=logging.INFO,
-        dest="verbosity",
-        help="Only show warnings and errors",
-    )
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_const",
-        const=logging.DEBUG,
-        dest="verbosity",
-        help="Show debug-level information",
-    )
-    return parser
