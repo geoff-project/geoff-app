@@ -2,6 +2,7 @@
 
 """Module containing the main GUI logic of the app."""
 
+import sys
 import typing as t
 from logging import getLogger
 
@@ -25,6 +26,15 @@ from ..qt_lsa_selector import LsaSelectorWidget
 from ..utils.accelerators import IncaAccelerators
 
 LOG = getLogger(__name__)
+
+
+class CreatingEnvDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(
+            QtWidgets.QLabel("Environment is being initialized, please wait ...")
+        )
 
 
 class CycleSettings:
@@ -140,8 +150,6 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         """Handler for the LSA cycle selection."""
         settings = self.cycleSettings()
         LOG.debug("cycle changed: %s, %s", settings.context, settings.user)
-        # TODO: We have to recreate the environment because the JAPC
-        # object has changed.
         self._on_env_changed(self.environmentCombo.currentText())
 
     def _on_env_changed(self, env_name: str) -> None:
@@ -149,27 +157,34 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         LOG.debug("environment changed: %s", env_name)
         self._opt_last_starting_point = None
         self.resetButton.setEnabled(False)
-        if not env_name:
-            self.selected_env = None
-            LOG.debug("new environment: %s", self.selected_env)
+        self.selected_env = None
+        if env_name:
+            please_wait_dialog = CreatingEnvDialog(self.window())
+            please_wait_dialog.show()
+            japc = self._make_japc()
+            try:
+                self.selected_env = envs.make_env_by_name(env_name, japc)
+            except:
+                sys.excepthook(*sys.exc_info())
+                LOG.error("Exception raised while initializing environment")
+            finally:
+                please_wait_dialog.accept()
+                please_wait_dialog.setParent(None)
+        LOG.debug("new environment: %s", self.selected_env)
+        if self.selected_env is None:
             self.configEnvButton.setEnabled(False)
             self.showConstraintsCheckbox.setEnabled(False)
             self._on_algo_changed(None)
-            return
+        else:
+            constraints = self.selected_env.constraints
+            self.showConstraintsCheckbox.setEnabled(bool(constraints))
+            LOG.debug("number of constraints: %d", len(constraints))
 
-        japc = self._make_japc()
-        self.selected_env = envs.make_env_by_name(env_name, japc)
-        LOG.debug("new environment: %s", self.selected_env)
+            is_configurable = self._is_env_configurable()
+            self.configEnvButton.setEnabled(is_configurable)
+            LOG.debug("configurable: %s", is_configurable)
 
-        constraints = self.selected_env.constraints
-        self.showConstraintsCheckbox.setEnabled(bool(constraints))
-        LOG.debug("number of constraints: %d", len(constraints))
-
-        is_configurable = self._is_env_configurable()
-        self.configEnvButton.setEnabled(is_configurable)
-        LOG.debug("configurable: %s", is_configurable)
-
-        self._on_algo_changed(self.algoClass())
+            self._on_algo_changed(self.algoClass())
 
     def _on_algo_changed(
         self, algo_class: t.Optional[t.Type[single_opt.BaseOptimizer]]
