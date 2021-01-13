@@ -63,15 +63,12 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         super().__init__(parent)
         self.setupUi(self)
         self.accelerator = IncaAccelerators.SPS
-        self.selected_algo = None
-        self.selected_env = None
         self.plot_manager = plot_manager
 
         # Create a dummy runner and connect its (class-scope) signals to
         # handlers. Use QueuedConnection as the signals cross thread
         # boundaries.
-        self._opt_last_starting_point: t.Optional[np.ndarray] = None
-        self.opt_runner = single_opt.OptimizerRunner(None)
+        self.opt_runner = single_opt.OptimizerRunner()
         self.opt_runner.signals.objective_updated.connect(
             self.plot_manager.set_objective_curve_data, QtCore.Qt.QueuedConnection
         )
@@ -155,120 +152,124 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
     def _on_env_changed(self, env_name: str) -> None:
         """Handler for the environment selection."""
         LOG.debug("environment changed: %s", env_name)
-        self._opt_last_starting_point = None
         self.resetButton.setEnabled(False)
-        self.selected_env = None
+        self.opt_runner.set_problem(None)
         if env_name:
             please_wait_dialog = CreatingEnvDialog(self.window())
             please_wait_dialog.show()
             japc = self._make_japc()
             try:
-                self.selected_env = envs.make_env_by_name(env_name, japc)
+                env = envs.make_env_by_name(env_name, japc)
             except:
                 sys.excepthook(*sys.exc_info())
                 LOG.error("Exception raised while initializing environment")
+                env = None
             finally:
                 please_wait_dialog.accept()
                 please_wait_dialog.setParent(None)
-        LOG.debug("new environment: %s", self.selected_env)
-        if self.selected_env is None:
+                self.opt_runner.set_problem(env)
+        LOG.debug("new environment: %s", env)
+        if env is None:
             self.configEnvButton.setEnabled(False)
             self.showConstraintsCheckbox.setEnabled(False)
             self._on_algo_changed(None)
         else:
-            constraints = self.selected_env.constraints
+            constraints = env.constraints
             self.showConstraintsCheckbox.setEnabled(bool(constraints))
             LOG.debug("number of constraints: %d", len(constraints))
 
-            is_configurable = self._is_env_configurable()
+            is_configurable = _is_env_configurable(env)
             self.configEnvButton.setEnabled(is_configurable)
             LOG.debug("configurable: %s", is_configurable)
-
-            self._on_algo_changed(self.algoClass())
 
     def _on_algo_changed(
         self, algo_class: t.Optional[t.Type[single_opt.BaseOptimizer]]
     ) -> None:
         """Handler for the algorithm selection."""
-        LOG.debug("algorithm changed: %s with env %s", algo_class, self.selected_env)
-        if self.selected_env and algo_class:
-            self.selected_algo = algo_class(self.selected_env)
-        else:
-            self.selected_algo = None
-        LOG.debug("new algorithm: %s", self.selected_algo)
+        self.opt_runner.set_optimizer_class(algo_class)
+        LOG.debug("new algorithm: %s", self.opt_runner.optimizer)
         self.configOptButton.setEnabled(
-            isinstance(self.selected_algo, coi.Configurable)
+            isinstance(self.opt_runner.optimizer, coi.Configurable)
         )
 
     def _on_config_env(self) -> None:
         """Handler for the env configuration."""
-        env = self.selected_env
-        if not self._is_env_configurable():
+        env = self.opt_runner.problem
+        if not _is_env_configurable(env):
             LOG.error("not configurable: %s", env.unwrapped)
             return
-        dialog = ProblemConfigureDialog(env, self.window())
+        dialog = ProblemConfigureDialog(
+            env,
+            skeleton_points=self.opt_runner.skeleton_points,
+            parent=self.window(),
+        )
         name = type(env.unwrapped).__name__
         dialog.setWindowTitle(f"Configure {name} ...")
+        dialog.skeleton_points_updated.connect(self.opt_runner.set_skeleton_points)
         dialog.open()
-
-    def _is_env_configurable(self) -> bool:
-        return isinstance(
-            self.selected_env.unwrapped,
-            (coi.Configurable, coi_funcs.FunctionOptimizable),
-        )
 
     def _on_config_algo(self) -> None:
         """Handler for the algorith, configuration."""
-        if not isinstance(self.selected_algo, coi.Configurable):
-            LOG.error("not configurable: %s", self.selected_algo)
+        algo = getattr(self.opt_runner, "optimizer", None)
+        if not isinstance(algo, coi.Configurable):
+            LOG.error("not configurable: %s", algo)
             return
-        dialog = PureConfigureDialog(self.selected_algo, self.window())
-        name = type(self.selected_algo).__name__
-        dialog.setWindowTitle(f"Configure {name} ...")
+        dialog = PureConfigureDialog(algo, self.window())
+        dialog.setWindowTitle(f"Configure {type(algo).__name__} ...")
         dialog.open()
 
     def _on_launch_clicked(self) -> None:
         """Handler for the Launch button."""
-        if not self.selected_algo:
-            LOG.error("cannot launch, no algorithm")
+        if not self.opt_runner.is_ready_to_run():
+            LOG.error("cannot launch, optimizer is missing configuration")
             return
         LOG.debug("launching ...")
         self.launchButton.setEnabled(False)
         self.resetButton.setEnabled(False)
         self.stopButton.setEnabled(True)
         self._add_render_output()
-        self.opt_runner = single_opt.OptimizerRunner(self.selected_algo)
-        self._opt_last_starting_point = self.opt_runner.x_0.copy()
+        job = self.opt_runner.create_job()
         threadpool = QtCore.QThreadPool.globalInstance()
-        threadpool.start(self.opt_runner)
+        threadpool.start(job)
 
     def _on_stop_clicked(self) -> None:
         """Handler for the Stop button."""
+        if self.opt_runner.last_job is None:
+            LOG.error("no job to cancel")
+            return
         LOG.debug("stopping ...")
         self.stopButton.setEnabled(False)
-        self.opt_runner.cancel()
+        self.opt_runner.last_job.cancel()
 
     def _on_reset_clicked(self) -> None:
         """Handler for the Reset button."""
-        x_0 = self._opt_last_starting_point
-        if self.selected_env is None or x_0 is None:
-            LOG.error("cannot reset: env=%s, x_0=%s", self.selected_env, x_0)
+        job = self.opt_runner.last_job
+        if job is None:
+            LOG.error("cannot reset %s, no job has been run", self.opt_runner.problem)
             return
-        LOG.debug("resetting to %s ...", x_0)
-        self.selected_env.compute_single_objective(x_0)
+        LOG.debug("resetting %s ...", self.opt_runner.problem)
+        job.reset()
 
     def _on_finished(self) -> None:
         """Handler for when optimization is finished."""
-        LOG.debug("optimization finished")
+        LOG.info("optimization finished")
         self.launchButton.setEnabled(True)
         self.resetButton.setEnabled(True)
         self.stopButton.setEnabled(False)
 
     def _add_render_output(self) -> None:
-        env = self.selected_env
+        env = self.opt_runner.problem
+        assert env is not None
         render_modes = env.metadata.get("render.modes", [])
         if "matplotlib_figures" in render_modes:
             figures = env.render(mode="matplotlib_figures")
             self.plot_manager.replace_mpl_figures(figures)
         else:
             self.plot_manager.clear_mpl_figures()
+
+
+def _is_env_configurable(env: coi.Problem) -> bool:
+    return isinstance(
+        env.unwrapped,
+        (coi.Configurable, coi_funcs.FunctionOptimizable),
+    )

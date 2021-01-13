@@ -100,6 +100,7 @@ class ProblemConfigureDialog(_BaseDialog):
     def __init__(
         self,
         target: coi.Problem,
+        skeleton_points: t.Optional[np.ndarray] = None,
         parent: t.Optional[QWidget] = None,
     ) -> None:
         super().__init__(
@@ -107,7 +108,11 @@ class ProblemConfigureDialog(_BaseDialog):
             parent=parent,
         )
         self._points = (
-            QLineEdit()
+            QLineEdit(
+                " ".join(map(str, skeleton_points))
+                if skeleton_points is not None
+                else ""
+            )
             if isinstance(target.unwrapped, coi_funcs.FunctionOptimizable)
             else None
         )
