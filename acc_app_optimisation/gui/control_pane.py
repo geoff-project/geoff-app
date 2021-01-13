@@ -18,7 +18,7 @@ from pjlsa import pjlsa
 from pyjapc import PyJapc
 
 from ._control_pane_generated import Ui_ControlPane
-from .config_widget import ConfigureDialog, FunctionConfigureDialog
+from .cfgdialog import ConfigureDialog, FunctionConfigureDialog
 from .plot_manager import PlotManager
 from .. import envs
 from ..algos import single_opt
