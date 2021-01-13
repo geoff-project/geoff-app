@@ -18,7 +18,7 @@ from pjlsa import pjlsa
 from pyjapc import PyJapc
 
 from ._control_pane_generated import Ui_ControlPane
-from .cfgdialog import ConfigureDialog, FunctionConfigureDialog
+from .cfgdialog import PureConfigureDialog, ProblemConfigureDialog
 from .plot_manager import PlotManager
 from .. import envs
 from ..algos import single_opt
@@ -206,10 +206,7 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         if not self._is_env_configurable():
             LOG.error("not configurable: %s", env.unwrapped)
             return
-        if isinstance(env.unwrapped, coi_funcs.FunctionOptimizable):
-            dialog = FunctionConfigureDialog(env, self.window())
-        else:
-            dialog = ConfigureDialog(env, self.window())
+        dialog = ProblemConfigureDialog(env, self.window())
         name = type(env.unwrapped).__name__
         dialog.setWindowTitle(f"Configure {name} ...")
         dialog.open()
@@ -225,7 +222,7 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         if not isinstance(self.selected_algo, coi.Configurable):
             LOG.error("not configurable: %s", self.selected_algo)
             return
-        dialog = ConfigureDialog(self.selected_algo, self.window())
+        dialog = PureConfigureDialog(self.selected_algo, self.window())
         name = type(self.selected_algo).__name__
         dialog.setWindowTitle(f"Configure {name} ...")
         dialog.open()
