@@ -21,6 +21,12 @@ class ConfigureWidget(QWidget):
     Args:
         target: The environment to be configured.
         parent: The parent widget to attach to.
+
+    Attributes:
+        target: The object to configure.
+        config: The `Config` object returned by the target.
+        current_values: A dictionary of unparsed, unvalidated values,
+            one for each field.
     """
 
     target: coi.Configurable
@@ -46,8 +52,30 @@ class ConfigureWidget(QWidget):
                 widget.setToolTip(field.help)
             params_layout.addRow(label, widget)
 
-    def apply_configs(self) -> None:
-        """Apply the currently chosen values to the configurable."""
-        values = self.config.validate_all(self.current_values)
-        self.target.apply_config(values)
-        LOG.info("applied configuration: %s", values)
+    @t.overload
+    def apply_config(self) -> None:
+        ...
+
+    @t.overload
+    def apply_config(self, *, return_exc: bool) -> t.Optional[Exception]:
+        ...
+
+    def apply_config(self, *, return_exc: bool = False) -> t.Optional[Exception]:
+        """Apply the currently chosen values to the configurable.
+
+        Args:
+            return_exc: If passed and True, this captures and returns an
+                exception that happens during validation. The default is
+                to let any exceptions bubble up to indicate that
+                validation failed.
+        """
+        try:
+            values = self.config.validate_all(self.current_values)
+            self.target.apply_config(values)
+        except Exception as exc:
+            LOG.warning("configuration failed validation: %s", exc)
+            if return_exc:
+                return exc
+            raise
+        LOG.info("configuration applied: %s", values)
+        return None

@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (
 from cernml import coi
 
 from .cfgwidget import ConfigureWidget
+from .excdialog import exception_dialog
 
 
 class ConfigureDialog(QDialog):
@@ -29,9 +30,9 @@ class ConfigureDialog(QDialog):
         parent: t.Optional[QWidget] = None,
     ) -> None:
         super().__init__(parent)
-        self.form = ConfigureWidget(target)
+        self.cfg_widget = ConfigureWidget(target)
         main_layout = QVBoxLayout(self)
-        main_layout.addWidget(self.form)
+        main_layout.addWidget(self.cfg_widget)
         controls = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
         )
@@ -42,12 +43,17 @@ class ConfigureDialog(QDialog):
 
     def on_ok_clicked(self):
         """Apply the configs and close the window."""
-        self.form.apply_configs()
-        self.accept()
+        exc = self.cfg_widget.apply_config(return_exc=True)
+        if exc:
+            _show_config_failed(self.cfg_widget.target, exc, parent=self)
+        else:
+            self.accept()
 
     def on_apply_clicked(self):
         """Apply the configs."""
-        self.form.apply_configs()
+        exc = self.cfg_widget.apply_config(return_exc=True)
+        if exc:
+            _show_config_failed(self.cfg_widget.target, exc, parent=self)
 
 
 class FunctionConfigureDialog(QDialog):
@@ -84,11 +90,27 @@ class FunctionConfigureDialog(QDialog):
 
     def on_ok_clicked(self):
         """Apply the configs and close the window."""
-        if self.cfg_widget:
-            self.cfg_widget.apply_configs()
-        self.accept()
+        exc = self.cfg_widget.apply_config(return_exc=True) if self.cfg_widget else None
+        if exc:
+            _show_config_failed(self.cfg_widget.target, exc, parent=self)
+        else:
+            self.accept()
 
     def on_apply_clicked(self):
         """Apply the configs."""
         if self.cfg_widget:
-            self.cfg_widget.apply_configs()
+            exc = self.cfg_widget.apply_config(return_exc=True)
+            if exc:
+                _show_config_failed(self.cfg_widget.target, exc, parent=self)
+
+
+def _show_config_failed(
+    target: coi.Configurable, exc: Exception, parent: t.Optional[QWidget]
+) -> None:
+    dialog = exception_dialog(
+        exc,
+        title="Configuration validation",
+        text=f"{target} could not be configured.",
+        parent=parent,
+    )
+    dialog.show()
