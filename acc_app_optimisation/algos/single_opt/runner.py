@@ -1,7 +1,5 @@
 """The runner for all optimizers."""
 
-from __future__ import annotations
-
 import logging
 import traceback
 import typing as t
@@ -48,7 +46,7 @@ class OptimizerRunner:
         self._optimizer_class: t.Optional[t.Type[BaseOptimizer]] = None
         self._optimizer: t.Optional[BaseOptimizer] = None
         self._problem: t.Optional[coi.Problem] = None
-        self.last_job: t.Optional[AbstractJob] = None
+        self.last_job: t.Optional["AbstractJob"] = None
         self._skeleton_points: t.Optional[np.ndarray] = None
         self.signals = self.Signals()
 
@@ -109,7 +107,7 @@ class OptimizerRunner:
             return points is not None and np.size(points)
         raise TypeError(f"Cannot optimize: {env}")
 
-    def create_job(self) -> AbstractJob:
+    def create_job(self) -> "AbstractJob":
         """Create a new job ready to be submitted to a threadpool.
 
         If an old job exists, it is cancelled first.
