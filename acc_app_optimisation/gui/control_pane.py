@@ -2,7 +2,7 @@
 
 """Module containing the main GUI logic of the app."""
 
-import sys
+import traceback
 import typing as t
 from logging import getLogger
 
@@ -11,7 +11,6 @@ from logging import getLogger
 # cannot import the CERN packages.
 import jpype.imports  # pylint: disable=unused-import
 
-import numpy as np
 from PyQt5 import QtCore, QtWidgets
 from cernml import coi, coi_funcs
 from pjlsa import pjlsa
@@ -160,9 +159,9 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
             japc = self._make_japc()
             try:
                 env = envs.make_env_by_name(env_name, japc)
-            except:
-                sys.excepthook(*sys.exc_info())
-                LOG.error("Exception raised while initializing environment")
+            except:  # pylint: disable=bare-except
+                LOG.error(traceback.format_exc())
+                LOG.error("Aborted initialization due to the above exception")
                 env = None
             finally:
                 please_wait_dialog.accept()

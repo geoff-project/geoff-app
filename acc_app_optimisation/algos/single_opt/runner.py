@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-import sys
+import traceback
 import typing as t
 
 import gym
@@ -206,7 +206,7 @@ class _SingleAndFunctionOptJobBase(AbstractJob):
         except OptimizationCancelled:
             LOG.info("Manually cancelled optimization")
         except:
-            sys.excepthook(*sys.exc_info())
+            LOG.error(traceback.format_exc())
             LOG.error("Aborted optimization due to the above exception")
         self.signals.optimisation_finished.emit(True)
 
