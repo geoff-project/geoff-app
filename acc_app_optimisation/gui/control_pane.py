@@ -28,7 +28,9 @@ LOG = getLogger(__name__)
 
 
 class CreatingEnvDialog(QtWidgets.QDialog):
-    def __init__(self, parent=None):
+    """A button-less dialog that tells the user to wait."""
+
+    def __init__(self, parent: t.Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent)
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(
@@ -127,6 +129,34 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
             user=self.lsaSelectorWidget.getUser(),
         )
 
+    def _update_env(self, env: t.Optional[coi.Problem]) -> None:
+        """Update the selected env _object_ and the GUI.
+
+        This is internally called by various event handlers whenever a
+        new environment is available. It updates the GUI's buttons as
+        needed.
+
+        This must only be called when the environment has actually
+        changed or is to be removed. Do not call it twice with the same
+        non-None env.
+        """
+        assert env is None or env is not self.opt_runner.problem, env
+        self.opt_runner.set_problem(env)
+        self.resetButton.setEnabled(False)
+        self.configOptButton.setEnabled(
+            isinstance(self.opt_runner.optimizer, coi.Configurable)
+        )
+        if env is None:
+            self.configEnvButton.setEnabled(False)
+            self.showConstraintsCheckbox.setEnabled(False)
+        else:
+            constraints = env.constraints
+            self.showConstraintsCheckbox.setEnabled(bool(constraints))
+            LOG.debug("number of constraints: %d", len(constraints))
+            is_configurable = _is_env_configurable(env)
+            self.configEnvButton.setEnabled(is_configurable)
+            LOG.debug("configurable: %s", is_configurable)
+
     def _make_japc(self) -> PyJapc:
         """Create a fresh and up-to-date JAPC object."""
         selector = self.lsaSelectorWidget.getUser()
@@ -151,35 +181,22 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
     def _on_env_changed(self, env_name: str) -> None:
         """Handler for the environment selection."""
         LOG.debug("environment changed: %s", env_name)
-        self.resetButton.setEnabled(False)
-        self.opt_runner.set_problem(None)
-        if env_name:
-            please_wait_dialog = CreatingEnvDialog(self.window())
-            please_wait_dialog.show()
-            japc = self._make_japc()
-            try:
-                env = envs.make_env_by_name(env_name, japc)
-            except:  # pylint: disable=bare-except
-                LOG.error(traceback.format_exc())
-                LOG.error("Aborted initialization due to the above exception")
-                env = None
-            finally:
-                please_wait_dialog.accept()
-                please_wait_dialog.setParent(None)
-                self.opt_runner.set_problem(env)
+        self._update_env(None)
+        if not env_name:
+            return
+        please_wait_dialog = CreatingEnvDialog(self.window())
+        please_wait_dialog.show()
+        japc = self._make_japc()
+        try:
+            env = envs.make_env_by_name(env_name, japc)
+        except:  # pylint: disable=bare-except
+            LOG.error(traceback.format_exc())
+            LOG.error("Aborted initialization due to the above exception")
+            env = None
+        please_wait_dialog.accept()
+        please_wait_dialog.setParent(None)
         LOG.debug("new environment: %s", env)
-        if env is None:
-            self.configEnvButton.setEnabled(False)
-            self.showConstraintsCheckbox.setEnabled(False)
-            self._on_algo_changed(None)
-        else:
-            constraints = env.constraints
-            self.showConstraintsCheckbox.setEnabled(bool(constraints))
-            LOG.debug("number of constraints: %d", len(constraints))
-
-            is_configurable = _is_env_configurable(env)
-            self.configEnvButton.setEnabled(is_configurable)
-            LOG.debug("configurable: %s", is_configurable)
+        self._update_env(env)
 
     def _on_algo_changed(
         self, algo_class: t.Optional[t.Type[single_opt.BaseOptimizer]]
