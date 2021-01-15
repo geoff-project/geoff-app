@@ -65,6 +65,7 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         self.setupUi(self)
         self.accelerator = IncaAccelerators.SPS
         self.plot_manager = plot_manager
+        self.last_lsa_selection: t.Dict[IncaAccelerators, QtCore.QModelIndex] = {}
 
         # Create a dummy runner and connect its (class-scope) signals to
         # handlers. Use QueuedConnection as the signals cross thread
@@ -165,9 +166,21 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
     def _on_accelerator_changed(self, accelerator: IncaAccelerators) -> None:
         """Handler for the accelerator selection."""
         LOG.debug("accelerator changed: %s", accelerator)
+        # Remove all environments before doing anything else, to prevent
+        # spurious updates.
+        self.environmentCombo.clear()
         self.accelerator = accelerator
         self.lsaSelectorWidget.setAccelerator(accelerator.lsa_name)
-        self.environmentCombo.clear()
+        # Re-select the last context for this accelerator.
+        item_model = self.lsaSelectorWidget.view.model()
+        if item_model.rowCount():
+            index = self.last_lsa_selection.get(
+                self.accelerator,
+                item_model.createIndex(0, 0),
+            )
+            self.lsaSelectorWidget.view.setCurrentIndex(index)
+        # Add environments last. Only _now_, `_on_env_changed()` is
+        # allowed to do non-trivial work.
         self.environmentCombo.addItems(
             envs.get_env_names_by_machine(accelerator.machine)
         )
@@ -177,6 +190,9 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         settings = self.cycleSettings()
         LOG.debug("cycle changed: %s, %s", settings.context, settings.user)
         self._on_env_changed(self.environmentCombo.currentText())
+        self.last_lsa_selection[
+            self.accelerator
+        ] = self.lsaSelectorWidget.view.currentIndex()
 
     def _on_env_changed(self, env_name: str) -> None:
         """Handler for the environment selection."""
