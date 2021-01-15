@@ -6,6 +6,7 @@ import typing as t
 import numpy as np
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import (
+    QShowEvent,
     QValidator,
     QDoubleValidator,
 )
@@ -179,6 +180,11 @@ class SkeletonPointsWidget(QWidget):
         layout.addWidget(self.edit)
         layout.addWidget(reset, alignment=Qt.AlignRight)
         layout.addStretch(1)
+
+    def showEvent(self, _: QShowEvent) -> None:
+        """Pre-select the line edit upon becoming visible."""
+        # pylint: disable = invalid-name
+        self.edit.setFocus()
 
     def read_points(self) -> np.ndarray:
         """Parse the skeleton points entered by the user."""
