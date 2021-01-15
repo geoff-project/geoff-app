@@ -195,27 +195,35 @@ class SkeletonPointsWidget(QWidget):
 class WhitespaceDelimitedDoubleValidator(QDoubleValidator):
     """A `QValidator` that accepts a list of doubles, delimited by whitespace."""
 
-    def validate(self, input_: str, pos: int) -> t.Tuple[QValidator.State, str, int]:
+    def validate(self, text: str, pos: int) -> t.Tuple[QValidator.State, str, int]:
         "Implementation of `QValidator.validate()`."
         parts = []
+        # Start out with the best validator state: acceptable. As we go
+        # through the numbers, the state can only get worse:
+        # intermediate if the input looks like we caught the user
+        # mid-typing, invalid if the input is flat-out wrong.
         final_state = QValidator.Acceptable
-        for token in split_words_and_spaces(input_):
+        # Tokenize the input, split it into pure whitespace and pure
+        # floats.
+        for token in split_words_and_spaces(text):
             if token.isspace():
                 # Whitespace: If the cursor is behind this, we adjust
-                # its position.
+                # its position. If the cursor is before this, it cannot
+                # be affected.
                 part = " "
                 if pos > token.begin:
                     pos += len(" ") - len(token.text)
                 state = QValidator.Acceptable
             elif token.begin <= pos < token.end:
-                # Word, cursor inside: take validator's position changes
-                # into account.
+                # Word, cursor inside the word: take validator's
+                # position changes into account.
                 rel_pos = pos - token.begin
                 state, part, rel_pos = super().validate(token.text, rel_pos)
                 pos = token.begin + rel_pos
             else:
-                # Word, cursor outside: Only adjust cursor position if
-                # it is behind this word.
+                # Word, cursor outside the word: Only adjust cursor
+                # position if it is behind this word. If it is before,
+                # this word cannot change its position.
                 state, part, _ = super().validate(token.text, 0)
                 if pos > token.begin:
                     pos += len(part) - len(token.text)
