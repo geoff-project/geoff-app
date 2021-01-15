@@ -5,11 +5,12 @@ import typing as t
 
 import numpy as np
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5 import QtWidgets
+from PyQt5 import QtGui, QtWidgets
 from cernml import coi, coi_funcs
 
 from .cfgwidget import ConfigureWidget
 from .excdialog import exception_dialog
+from ..utils.split_words import split_words_and_spaces
 
 LOG = logging.getLogger(__name__)
 
@@ -119,18 +120,24 @@ class ProblemConfigureDialog(_BaseDialog):
 
     def on_ok_clicked(self) -> None:
         """Apply the configs and close the window."""
-        # TODO: Catch errors.
         if self.points_page is not None:
-            points = self.points_page.read_points()
+            try:
+                points = self.points_page.read_points()
+            except ValueError as exc:
+                _show_skeleton_points_failed(exc, parent=self)
+                return
             LOG.info("new skeleton points: %s", points)
             self.skeleton_points_updated.emit(points)
         super().on_ok_clicked()
 
     def on_apply_clicked(self) -> None:
         """Apply the configs."""
-        # TODO: Catch errors.
         if self.points_page is not None:
-            points = self.points_page.read_points()
+            try:
+                points = self.points_page.read_points()
+            except ValueError as exc:
+                _show_skeleton_points_failed(exc, parent=self)
+                return
             LOG.info("new skeleton points: %s", points)
             self.skeleton_points_updated.emit(points)
         super().on_apply_clicked()
@@ -153,13 +160,9 @@ class SkeletonPointsWidget(QtWidgets.QWidget):
         )
         initial_text = " ".join(map(str, [] if points is None else points))
         self.edit = QtWidgets.QLineEdit(initial_text)
-        reset = QtWidgets.QPushButton(
-            "Reset",
-            enabled=False,
-            sizePolicy=QtWidgets.QSizePolicy(
-                QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
-            ),
-        )
+        self.edit.setValidator(WhitespaceDelimitedDoubleValidator(bottom=0.0))
+        reset = QtWidgets.QPushButton("Reset", enabled=False)
+        reset.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         reset.clicked.connect(lambda: self.edit.setText(initial_text))
         self.edit.textChanged.connect(
             lambda text: reset.setEnabled(text != initial_text)
@@ -172,9 +175,56 @@ class SkeletonPointsWidget(QtWidgets.QWidget):
 
     def read_points(self) -> np.ndarray:
         """Parse the skeleton points entered by the user."""
-        text = self.edit.text()
-        points = [float(point) for point in text.split()]
-        return np.array(points)
+        locale = self.edit.validator().locale()
+        points = set()
+        for word in self.edit.text().split():
+            point, success = locale.toDouble(word)
+            if not success:
+                raise ValueError(f"could not convert string to float: {word!r}")
+            points.add(point)
+        return np.array(sorted(points))
+
+
+class WhitespaceDelimitedDoubleValidator(QtGui.QDoubleValidator):
+    """A `QValidator` that accepts a list of doubles, delimited by whitespace."""
+
+    def validate(
+        self, input_: str, pos: int
+    ) -> t.Tuple[QtGui.QValidator.State, str, int]:
+        "Implementation of `QtGui.QValidator.validate()`."
+        parts = []
+        final_state = QtGui.QValidator.Acceptable
+        for token in split_words_and_spaces(input_):
+            if token.isspace():
+                # Whitespace: If the cursor is behind this, we adjust
+                # its position.
+                part = " "
+                if pos > token.begin:
+                    pos += len(" ") - len(token.text)
+                state = QtGui.QValidator.Acceptable
+            elif token.begin <= pos < token.end:
+                # Word, cursor inside: take validator's position changes
+                # into account.
+                rel_pos = pos - token.begin
+                state, part, rel_pos = super().validate(token.text, rel_pos)
+                pos = token.begin + rel_pos
+            else:
+                # Word, cursor outside: Only adjust cursor position if
+                # it is behind this word.
+                state, part, _ = super().validate(token.text, 0)
+                if pos > token.begin:
+                    pos += len(part) - len(token.text)
+            parts.append(part)
+            if state < final_state:
+                final_state = state
+        # Final adjustment: If we have leading or trailing whitespace,
+        # OR an empty string, we're Intermediate at best, never
+        # Acceptable.
+        if final_state == QtGui.QValidator.Acceptable and (
+            not parts or parts[0].isspace() or parts[-1].isspace()
+        ):
+            final_state = QtGui.QValidator.Intermediate
+        return final_state, "".join(parts), pos
 
 
 def _show_config_failed(
@@ -186,6 +236,19 @@ def _show_config_failed(
         exc,
         title="Configuration validation",
         text=f"{target} could not be configured.",
+        parent=parent,
+    )
+    dialog.show()
+
+
+def _show_skeleton_points_failed(
+    exc: Exception,
+    parent: t.Optional[QtWidgets.QWidget],
+) -> None:
+    dialog = exception_dialog(
+        exc,
+        title="Configuration validation",
+        text="Cannot set skeleton points",
         parent=parent,
     )
     dialog.show()
