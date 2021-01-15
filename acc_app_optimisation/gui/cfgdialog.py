@@ -4,16 +4,8 @@ import logging
 import typing as t
 
 import numpy as np
-from PyQt5.QtCore import pyqtSignal
-from PyQt5.QtWidgets import (
-    QVBoxLayout,
-    QWidget,
-    QDialog,
-    QDialogButtonBox,
-    QLabel,
-    QLineEdit,
-    QTabWidget,
-)
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5 import QtWidgets
 from cernml import coi, coi_funcs
 
 from .cfgwidget import ConfigureWidget
@@ -22,7 +14,7 @@ from .excdialog import exception_dialog
 LOG = logging.getLogger(__name__)
 
 
-class _BaseDialog(QDialog):
+class _BaseDialog(QtWidgets.QDialog):
     """Common logic of `PureConfigureDialog` and `ProblemConfigureDialog`.
 
     Args:
@@ -38,18 +30,24 @@ class _BaseDialog(QDialog):
     def __init__(
         self,
         target: t.Optional[coi.Configurable],
-        parent: t.Optional[QWidget] = None,
+        parent: t.Optional[QtWidgets.QWidget] = None,
     ) -> None:
         super().__init__(parent)
         self._cfgform = None if target is None else ConfigureWidget(target)
-        self._controls = QDialogButtonBox(
-            QDialogButtonBox.Ok | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
+        self._controls = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.Ok
+            | QtWidgets.QDialogButtonBox.Apply
+            | QtWidgets.QDialogButtonBox.Cancel
         )
-        self._controls.button(QDialogButtonBox.Ok).clicked.connect(self.on_ok_clicked)
-        self._controls.button(QDialogButtonBox.Apply).clicked.connect(
+        self._controls.button(QtWidgets.QDialogButtonBox.Ok).clicked.connect(
+            self.on_ok_clicked
+        )
+        self._controls.button(QtWidgets.QDialogButtonBox.Apply).clicked.connect(
             self.on_apply_clicked
         )
-        self._controls.button(QDialogButtonBox.Cancel).clicked.connect(self.reject)
+        self._controls.button(QtWidgets.QDialogButtonBox.Cancel).clicked.connect(
+            self.reject
+        )
 
     def on_ok_clicked(self) -> None:
         """Apply the configs and close the window."""
@@ -79,10 +77,10 @@ class PureConfigureDialog(_BaseDialog):
     def __init__(
         self,
         target: coi.Configurable,
-        parent: t.Optional[QWidget] = None,
+        parent: t.Optional[QtWidgets.QWidget] = None,
     ) -> None:
         super().__init__(target, parent)
-        main_layout = QVBoxLayout(self)
+        main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.addWidget(self._cfgform)
         main_layout.addWidget(self._controls)
 
@@ -101,50 +99,29 @@ class ProblemConfigureDialog(_BaseDialog):
         self,
         target: coi.Problem,
         skeleton_points: t.Optional[np.ndarray] = None,
-        parent: t.Optional[QWidget] = None,
+        parent: t.Optional[QtWidgets.QWidget] = None,
     ) -> None:
         super().__init__(
             target=target if isinstance(target.unwrapped, coi.Configurable) else None,
             parent=parent,
         )
-        self._points = (
-            QLineEdit(
-                " ".join(map(str, skeleton_points))
-                if skeleton_points is not None
-                else ""
-            )
-            if isinstance(target.unwrapped, coi_funcs.FunctionOptimizable)
-            else None
-        )
-        tab_widget = QTabWidget()
+        tab_widget = QtWidgets.QTabWidget()
         if self._cfgform is not None:
             tab_widget.addTab(self._cfgform, "Configuration")
-        if self._points is not None:
-            points_page = QWidget()
-            layout = QVBoxLayout(points_page)
-            layout.addWidget(
-                QLabel(
-                    "Enter skeleton points for optimization of LSA\n"
-                    "functions here. Enter one point in time for each\n"
-                    "point. Separate points with whitespace."
-                )
-            )
-            layout.addWidget(self._points)
-            tab_widget.addTab(points_page, "Skeleton points")
-        main_layout = QVBoxLayout(self)
+        if isinstance(target.unwrapped, coi_funcs.FunctionOptimizable):
+            self.points_page = SkeletonPointsWidget(skeleton_points)
+            tab_widget.addTab(self.points_page, "Skeleton points")
+        else:
+            self.points_page = None
+        main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.addWidget(tab_widget)
         main_layout.addWidget(self._controls)
-
-    def _read_points_from_widget(self) -> np.ndarray:
-        text = self._points.text()
-        points = [float(point) for point in text.split()]
-        return np.array(points)
 
     def on_ok_clicked(self) -> None:
         """Apply the configs and close the window."""
         # TODO: Catch errors.
-        if self._points is not None:
-            points = self._read_points_from_widget()
+        if self.points_page is not None:
+            points = self.points_page.read_points()
             LOG.info("new skeleton points: %s", points)
             self.skeleton_points_updated.emit(points)
         super().on_ok_clicked()
@@ -152,15 +129,58 @@ class ProblemConfigureDialog(_BaseDialog):
     def on_apply_clicked(self) -> None:
         """Apply the configs."""
         # TODO: Catch errors.
-        if self._points is not None:
-            points = self._read_points_from_widget()
+        if self.points_page is not None:
+            points = self.points_page.read_points()
             LOG.info("new skeleton points: %s", points)
             self.skeleton_points_updated.emit(points)
         super().on_apply_clicked()
 
 
+class SkeletonPointsWidget(QtWidgets.QWidget):
+    """The tab page presented to set skeleton points."""
+
+    def __init__(
+        self,
+        points: t.Optional[t.Iterable[float]] = None,
+        parent: t.Optional[QtWidgets.QWidget] = None,
+    ) -> None:
+        super().__init__(parent)
+        description = QtWidgets.QLabel(
+            "Enter skeleton points for optimization of LSA "
+            "functions here. Enter one point in time for each "
+            "point. Separate points with whitespace.",
+            wordWrap=True,
+        )
+        initial_text = " ".join(map(str, [] if points is None else points))
+        self.edit = QtWidgets.QLineEdit(initial_text)
+        reset = QtWidgets.QPushButton(
+            "Reset",
+            enabled=False,
+            sizePolicy=QtWidgets.QSizePolicy(
+                QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+            ),
+        )
+        reset.clicked.connect(lambda: self.edit.setText(initial_text))
+        self.edit.textChanged.connect(
+            lambda text: reset.setEnabled(text != initial_text)
+        )
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(description)
+        layout.addWidget(self.edit)
+        layout.addWidget(reset, alignment=Qt.AlignRight)
+        layout.addStretch(1)
+
+    def read_points(self) -> np.ndarray:
+        """Parse the skeleton points entered by the user."""
+        text = self.edit.text()
+        points = [float(point) for point in text.split()]
+        return np.array(points)
+
+
 def _show_config_failed(
-    target: coi.Configurable, exc: Exception, parent: t.Optional[QWidget]
+    target: coi.Configurable,
+    exc: Exception,
+    parent: t.Optional[QtWidgets.QWidget],
 ) -> None:
     dialog = exception_dialog(
         exc,
