@@ -230,12 +230,10 @@ class WhitespaceDelimitedDoubleValidator(QDoubleValidator):
             parts.append(part)
             if state < final_state:
                 final_state = state
-        # Final adjustment: If we have leading or trailing whitespace,
-        # OR an empty string, we're Intermediate at best, never
-        # Acceptable.
-        if not parts or parts[0].isspace() or parts[-1].isspace():
-            if final_state == QValidator.Acceptable:
-                final_state = QValidator.Intermediate
+        # Final adjustment: If the text consists of nothing _but_
+        # whitespace, we just discard it.
+        if all(part.isspace() for part in parts):
+            parts.clear()
         return final_state, "".join(parts), pos
 
 
