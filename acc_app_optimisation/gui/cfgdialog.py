@@ -5,7 +5,21 @@ import typing as t
 
 import numpy as np
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtGui import (
+    QValidator,
+    QDoubleValidator,
+)
+from PyQt5.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QVBoxLayout,
+    QTabWidget,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QSizePolicy,
+    QWidget,
+)
 from cernml import coi, coi_funcs
 
 from .cfgwidget import ConfigureWidget
@@ -15,7 +29,7 @@ from ..utils.split_words import split_words_and_spaces
 LOG = logging.getLogger(__name__)
 
 
-class _BaseDialog(QtWidgets.QDialog):
+class _BaseDialog(QDialog):
     """Common logic of `PureConfigureDialog` and `ProblemConfigureDialog`.
 
     Args:
@@ -29,26 +43,18 @@ class _BaseDialog(QtWidgets.QDialog):
     """
 
     def __init__(
-        self,
-        target: t.Optional[coi.Configurable],
-        parent: t.Optional[QtWidgets.QWidget] = None,
+        self, target: t.Optional[coi.Configurable], parent: t.Optional[QWidget] = None
     ) -> None:
         super().__init__(parent)
         self._cfgform = None if target is None else ConfigureWidget(target)
-        self._controls = QtWidgets.QDialogButtonBox(
-            QtWidgets.QDialogButtonBox.Ok
-            | QtWidgets.QDialogButtonBox.Apply
-            | QtWidgets.QDialogButtonBox.Cancel
+        self._controls = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
         )
-        self._controls.button(QtWidgets.QDialogButtonBox.Ok).clicked.connect(
-            self.on_ok_clicked
-        )
-        self._controls.button(QtWidgets.QDialogButtonBox.Apply).clicked.connect(
+        self._controls.button(QDialogButtonBox.Ok).clicked.connect(self.on_ok_clicked)
+        self._controls.button(QDialogButtonBox.Apply).clicked.connect(
             self.on_apply_clicked
         )
-        self._controls.button(QtWidgets.QDialogButtonBox.Cancel).clicked.connect(
-            self.reject
-        )
+        self._controls.button(QDialogButtonBox.Cancel).clicked.connect(self.reject)
 
     def on_ok_clicked(self) -> None:
         """Apply the configs and close the window."""
@@ -76,12 +82,10 @@ class PureConfigureDialog(_BaseDialog):
     """
 
     def __init__(
-        self,
-        target: coi.Configurable,
-        parent: t.Optional[QtWidgets.QWidget] = None,
+        self, target: coi.Configurable, parent: t.Optional[QWidget] = None
     ) -> None:
         super().__init__(target, parent)
-        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout = QVBoxLayout(self)
         main_layout.addWidget(self._cfgform)
         main_layout.addWidget(self._controls)
 
@@ -100,13 +104,13 @@ class ProblemConfigureDialog(_BaseDialog):
         self,
         target: coi.Problem,
         skeleton_points: t.Optional[np.ndarray] = None,
-        parent: t.Optional[QtWidgets.QWidget] = None,
+        parent: t.Optional[QWidget] = None,
     ) -> None:
         super().__init__(
             target=target if isinstance(target.unwrapped, coi.Configurable) else None,
             parent=parent,
         )
-        tab_widget = QtWidgets.QTabWidget()
+        tab_widget = QTabWidget()
         if self._cfgform is not None:
             tab_widget.addTab(self._cfgform, "Configuration")
         if isinstance(target.unwrapped, coi_funcs.FunctionOptimizable):
@@ -114,7 +118,7 @@ class ProblemConfigureDialog(_BaseDialog):
             tab_widget.addTab(self.points_page, "Skeleton points")
         else:
             self.points_page = None
-        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout = QVBoxLayout(self)
         main_layout.addWidget(tab_widget)
         main_layout.addWidget(self._controls)
 
@@ -143,31 +147,34 @@ class ProblemConfigureDialog(_BaseDialog):
         super().on_apply_clicked()
 
 
-class SkeletonPointsWidget(QtWidgets.QWidget):
+class SkeletonPointsWidget(QWidget):
     """The tab page presented to set skeleton points."""
 
     def __init__(
         self,
         points: t.Optional[t.Iterable[float]] = None,
-        parent: t.Optional[QtWidgets.QWidget] = None,
+        parent: t.Optional[QWidget] = None,
     ) -> None:
         super().__init__(parent)
-        description = QtWidgets.QLabel(
+        description = QLabel(
             "Enter skeleton points for optimization of LSA "
             "functions here. Enter one point in time for each "
             "point. Separate points with whitespace.",
             wordWrap=True,
         )
         initial_text = " ".join(map(str, [] if points is None else points))
-        self.edit = QtWidgets.QLineEdit(initial_text)
+        self.edit = QLineEdit(initial_text)
         self.edit.setValidator(WhitespaceDelimitedDoubleValidator(bottom=0.0))
-        reset = QtWidgets.QPushButton("Reset", enabled=False)
-        reset.setSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        reset.clicked.connect(lambda: self.edit.setText(initial_text))
+        reset = QPushButton(
+            "Reset",
+            enabled=False,
+            sizePolicy=QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed),
+            clicked=lambda: self.edit.setText(initial_text),
+        )
         self.edit.textChanged.connect(
             lambda text: reset.setEnabled(text != initial_text)
         )
-        layout = QtWidgets.QVBoxLayout(self)
+        layout = QVBoxLayout(self)
         layout.addWidget(description)
         layout.addWidget(self.edit)
         layout.addWidget(reset, alignment=Qt.AlignRight)
@@ -185,15 +192,13 @@ class SkeletonPointsWidget(QtWidgets.QWidget):
         return np.array(sorted(points))
 
 
-class WhitespaceDelimitedDoubleValidator(QtGui.QDoubleValidator):
+class WhitespaceDelimitedDoubleValidator(QDoubleValidator):
     """A `QValidator` that accepts a list of doubles, delimited by whitespace."""
 
-    def validate(
-        self, input_: str, pos: int
-    ) -> t.Tuple[QtGui.QValidator.State, str, int]:
-        "Implementation of `QtGui.QValidator.validate()`."
+    def validate(self, input_: str, pos: int) -> t.Tuple[QValidator.State, str, int]:
+        "Implementation of `QValidator.validate()`."
         parts = []
-        final_state = QtGui.QValidator.Acceptable
+        final_state = QValidator.Acceptable
         for token in split_words_and_spaces(input_):
             if token.isspace():
                 # Whitespace: If the cursor is behind this, we adjust
@@ -201,7 +206,7 @@ class WhitespaceDelimitedDoubleValidator(QtGui.QDoubleValidator):
                 part = " "
                 if pos > token.begin:
                     pos += len(" ") - len(token.text)
-                state = QtGui.QValidator.Acceptable
+                state = QValidator.Acceptable
             elif token.begin <= pos < token.end:
                 # Word, cursor inside: take validator's position changes
                 # into account.
@@ -220,17 +225,14 @@ class WhitespaceDelimitedDoubleValidator(QtGui.QDoubleValidator):
         # Final adjustment: If we have leading or trailing whitespace,
         # OR an empty string, we're Intermediate at best, never
         # Acceptable.
-        if final_state == QtGui.QValidator.Acceptable and (
-            not parts or parts[0].isspace() or parts[-1].isspace()
-        ):
-            final_state = QtGui.QValidator.Intermediate
+        if not parts or parts[0].isspace() or parts[-1].isspace():
+            if final_state == QValidator.Acceptable:
+                final_state = QValidator.Intermediate
         return final_state, "".join(parts), pos
 
 
 def _show_config_failed(
-    target: coi.Configurable,
-    exc: Exception,
-    parent: t.Optional[QtWidgets.QWidget],
+    target: coi.Configurable, exc: Exception, parent: t.Optional[QWidget]
 ) -> None:
     dialog = exception_dialog(
         exc,
@@ -241,10 +243,7 @@ def _show_config_failed(
     dialog.show()
 
 
-def _show_skeleton_points_failed(
-    exc: Exception,
-    parent: t.Optional[QtWidgets.QWidget],
-) -> None:
+def _show_skeleton_points_failed(exc: Exception, parent: t.Optional[QWidget]) -> None:
     dialog = exception_dialog(
         exc,
         title="Configuration validation",
