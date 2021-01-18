@@ -8,6 +8,7 @@ import gym
 import numpy as np
 from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThread, pyqtSlot
 from cernml import coi, coi_funcs
+from cernml.coi.utils import iter_matplotlib_figures
 
 from .base_optimizer import BaseOptimizer
 from ...utils.bounded import BoundedArray
@@ -266,7 +267,7 @@ class _SingleAndFunctionOptJobBase(AbstractJob):
         # time the (main thread) event loop runs. This leads to a race
         # condition between the main thread drawing the figures and this
         # thread modifying them.
-        for figure in figures:
+        for _, figure in iter_matplotlib_figures(figures):
             QThread.yieldCurrentThread()
             figure.canvas.draw()
 

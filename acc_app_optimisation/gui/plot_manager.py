@@ -10,6 +10,7 @@ import pyqtgraph
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
+from cernml.coi.utils import iter_matplotlib_figures
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
@@ -33,6 +34,7 @@ ColorSpec = t.Union[
     QtGui.QColor,
 ]
 FigureSpec = t.Union[Figure, t.Tuple[str, Figure]]
+FigureCollection = t.Union[t.Iterable[FigureSpec], t.Mapping[str, Figure]]
 
 
 def _add_items_to_plot(
@@ -113,7 +115,7 @@ class PlotManager:
         subwindow = self._mdi.addSubWindow(canvas)
         subwindow.show()
 
-    def add_mpl_figures(self, figures: t.Iterable[FigureSpec]) -> None:
+    def add_mpl_figures(self, figures: FigureCollection) -> None:
         """Add several Matplotlib figures, creating one subwindow for each.
 
         Args:
@@ -123,11 +125,10 @@ class PlotManager:
                 title)`). The ordering is such that mapping from `str`
                 to figures can be passed in via `dict.items()`.
         """
-        for item in figures:
-            title, figure = _split_figure_title(item)
+        for title, figure in iter_matplotlib_figures(figures):
             self.add_mpl_figure(figure, title)
 
-    def replace_mpl_figures(self, figures: t.Iterable[Figure]) -> None:
+    def replace_mpl_figures(self, figures: FigureCollection) -> None:
         """Clear and add figures, but keep existing ones.
 
         This is like `clear_figures()` followed by `add_figures()`, but
@@ -135,7 +136,7 @@ class PlotManager:
         this manager.
         """
         # Handle `fig` and `(title, fig)` properly.
-        titles_and_figures = tuple(_split_figure_title(item) for item in figures)
+        titles_and_figures = tuple(iter_matplotlib_figures(figures))
         # Remove stale figures be making a new list without them -- the
         # GC will take care of the rest.
         self._clear_mpl_figures_except(fig for _, fig in titles_and_figures)
@@ -298,16 +299,6 @@ class PlotManager:
                 result.append(curves)
                 _add_items_to_plot(curves, axes)
         return result
-
-
-def _split_figure_title(item: FigureSpec) -> t.Tuple[str, Figure]:
-    """Parse the iterator elements of `PlotManager.add_mpl_figures()`."""
-    if isinstance(item, tuple):
-        title, figure = item
-    else:
-        title = ""
-        figure = item
-    return (title, figure)
 
 
 def _make_curve_with_bounds(
