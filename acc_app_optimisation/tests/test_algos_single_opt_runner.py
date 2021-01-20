@@ -36,6 +36,7 @@ def threadpool() -> QtCore.QThreadPool:
 @pytest.fixture
 def optimizable() -> coi.SingleOptimizable:
     result = Mock(spec=coi.SingleOptimizable, autospec=coi.SingleOptimizable)
+    result.unwrapped = result
     result.metadata = {"render.modes": []}
     result.constraints = [
         make_mock_constraint(shape=()),

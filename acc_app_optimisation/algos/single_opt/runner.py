@@ -100,7 +100,7 @@ class OptimizerRunner:
         """Return True if everything is set up to start a job."""
         if not self.optimizer:
             return False
-        env = self.optimizer.env
+        env = self.problem.unwrapped
         if isinstance(env, coi.SingleOptimizable):
             return True
         if isinstance(env, coi_funcs.FunctionOptimizable):
@@ -115,7 +115,7 @@ class OptimizerRunner:
         """
         if self.optimizer is None:
             raise ValueError("no optimizer selected")
-        env = self.problem
+        env = self.problem.unwrapped
         if isinstance(env, coi.SingleOptimizable):
             job = SingleOptJob(self)
         elif isinstance(env, coi_funcs.FunctionOptimizable):
