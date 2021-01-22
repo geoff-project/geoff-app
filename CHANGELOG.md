@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.0.4
+
+### Bug fixes
+
+- Unwrap the `Problem` when determining what kind of optimization job to start.
+- Handle `render("matplotlib_figures")` returning a `Dict[str, Figure]`
+  correctly.
+
 ## v0.0.3
 
 ### Visible changes
