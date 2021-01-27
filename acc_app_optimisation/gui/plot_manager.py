@@ -87,6 +87,23 @@ class PlotManager:
         # different unnamed figures.
         self._canvas_id = 0
 
+    def redraw_mpl_figures(self, *, immediate: bool = False) -> None:
+        """Issue a redraw command to all Matplotlib figures.
+
+        Args:
+            immediate: If passed and True, this function blocks until
+                all figures are redrawn. The default is to only issue
+                the redraw command, and to delay its execution until the
+                run of the event loop. This behavior is reasonable when
+                you want to avoid GUI freezes.
+        """
+        if immediate:
+            for canvas in self._mpl_canvases:
+                canvas.draw()
+        else:
+            for canvas in self._mpl_canvases:
+                canvas.draw_idle()
+
     def iter_mpl_figures(self) -> t.Iterator[Figure]:
         """Return the list of Matplotlib figures already being managed."""
         return (canvas.figure for canvas in self._mpl_canvases)

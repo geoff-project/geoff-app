@@ -281,6 +281,11 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
             return
         LOG.debug("resetting %s ...", self.opt_runner.problem)
         job.reset()
+        env = self.opt_runner.problem
+        assert env is not None
+        if "matplotlib_figures" in env.metadata.get("render.modes", []):
+            env.render(mode="matplotlib_figures")
+            self.plot_manager.redraw_mpl_figures()
 
     def _on_finished(self) -> None:
         """Handler for when optimization is finished."""

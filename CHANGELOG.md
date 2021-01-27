@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.5
+
+### Visible changes
+
+- Clicking the Reset button after running an optimization re-renders the
+  optimization problem (i.e. calls `problem.render("matplotlib_figures")` if
+  possible). This ensures that the user can see that the problem has indeed
+  been reset.
+
 ## v0.0.4
 
 ### Bug fixes
