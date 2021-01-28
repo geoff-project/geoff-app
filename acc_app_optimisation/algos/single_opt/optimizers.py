@@ -16,6 +16,7 @@ class BobyQA(BaseOptimizer):
 
     def __init__(self, env: coi.SingleOptimizable):
         self.maxfun = 100
+        self.rhobeg = 0.1
         self.rhoend = 0.05
         self.seek_global_minimum = False
         self.objfun_has_noise = False
@@ -28,6 +29,12 @@ class BobyQA(BaseOptimizer):
             self.maxfun,
             range=(0, np.inf),
             help="Maximum number of function evaluations",
+        )
+        config.add(
+            "rhobeg",
+            self.rhobeg,
+            range=(0.0, 1.0),
+            help="Initial size of the trust region",
         )
         config.add(
             "rhoend",
@@ -49,6 +56,7 @@ class BobyQA(BaseOptimizer):
 
     def apply_config(self, values: SimpleNamespace) -> None:
         self.maxfun = values.maxfun
+        self.rhobeg = values.rhobeg
         self.rhoend = values.rhoend
         self.seek_global_minimum = values.seek_global_minimum
         self.objfun_has_noise = values.objfun_has_noise
@@ -59,7 +67,7 @@ class BobyQA(BaseOptimizer):
             func,
             x0=x_0,
             bounds=bounds,
-            rhobeg=1.0,
+            rhobeg=self.rhobeg,
             rhoend=self.rhoend,
             maxfun=self.maxfun,
             seek_global_minimum=self.seek_global_minimum,
@@ -73,6 +81,7 @@ class Cobyla(BaseOptimizer):
 
     def __init__(self, env: coi.SingleOptimizable):
         self.maxfun = 100
+        self.rhobeg = 1.0
         self.rhoend = 0.05
         super().__init__(env)
 
@@ -85,6 +94,12 @@ class Cobyla(BaseOptimizer):
             help="Maximum number of function evaluations",
         )
         config.add(
+            "rhobeg",
+            self.rhobeg,
+            range=(0.0, 1.0),
+            help="Reasonable initial changes to the variables",
+        )
+        config.add(
             "rhoend",
             self.rhoend,
             range=(0.0, 1.0),
@@ -94,6 +109,7 @@ class Cobyla(BaseOptimizer):
 
     def apply_config(self, values: SimpleNamespace) -> None:
         self.maxfun = values.maxfun
+        self.rhobeg = values.rhobeg
         self.rhoend = values.rhoend
 
     def solve(self, func, x_0):
@@ -104,7 +120,7 @@ class Cobyla(BaseOptimizer):
             method="COBYLA",
             x0=x_0,
             constraints=constraints,
-            options=dict(maxiter=self.maxfun, tol=self.rhoend, rhobeg=1.0),
+            options=dict(maxiter=self.maxfun, rhobeg=self.rhobeg, tol=self.rhoend),
         )
         return result.x
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.0.6
+
+### Visible changes
+
+- The initial step size of the BobyQA and COBYLA algorithms is now configurable
+  in the GUI as "rhobeg".
+
 ## v0.0.5
 
 ### Visible changes
