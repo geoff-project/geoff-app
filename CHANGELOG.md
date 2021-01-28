@@ -4,6 +4,9 @@
 
 ### Visible changes
 
+- The algorithms now log the optimization results. The level of the message
+  depends on the result: successful optimization leaves an INFO entry, failed
+  optimization either WARNING or ERROR.
 - The initial step size of the BobyQA and COBYLA algorithms is now configurable
   in the GUI as "rhobeg".
 
