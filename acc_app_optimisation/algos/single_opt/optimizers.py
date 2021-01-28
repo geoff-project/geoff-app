@@ -1,5 +1,6 @@
 """Adapters for all provided single-objective optimizers."""
 
+import logging
 import typing as t
 from types import SimpleNamespace
 
@@ -9,6 +10,12 @@ import scipy.optimize
 from cernml import coi
 
 from .base_optimizer import BaseOptimizer
+
+LOG = logging.getLogger(__name__)
+
+
+class OptimizationFailed(Exception):
+    """Optimization failed for some reason."""
 
 
 class BobyQA(BaseOptimizer):
@@ -73,6 +80,18 @@ class BobyQA(BaseOptimizer):
             seek_global_minimum=self.seek_global_minimum,
             objfun_has_noise=self.objfun_has_noise,
         )
+        log_level = {
+            opt_result.EXIT_SUCCESS: logging.INFO,
+            opt_result.EXIT_MAXFUN_WARNING: logging.WARNING,
+            opt_result.EXIT_SLOW_WARNING: logging.WARNING,
+            opt_result.EXIT_FALSE_SUCCESS_WARNING: logging.WARNING,
+            opt_result.EXIT_INPUT_ERROR: logging.ERROR,
+            opt_result.EXIT_TR_INCREASE_ERROR: logging.ERROR,
+            opt_result.EXIT_LINALG_ERROR: logging.ERROR,
+        }.get(opt_result.flag, logging.ERROR)
+        LOG.log(log_level, opt_result.msg)
+        if log_level == logging.ERROR:
+            raise OptimizationFailed(opt_result.msg)
         return opt_result.x
 
 
@@ -122,6 +141,11 @@ class Cobyla(BaseOptimizer):
             constraints=constraints,
             options=dict(maxiter=self.maxfun, rhobeg=self.rhobeg, tol=self.rhoend),
         )
+        if result.success:
+            LOG.info(result.message)
+        else:
+            LOG.error(result.message)
+            raise OptimizationFailed(result.message)
         return result.x
 
 
