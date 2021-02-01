@@ -24,7 +24,7 @@ class Bounded(Generic[T]):
 
 
 class BoundedArray(Bounded[ndarray]):  # pylint: disable = too-few-public-methods
-    """Non-genegic subclass of `Bounded`.
+    """Non-generic subclass of `Bounded`.
 
     In contrast to `Bounded`, this class can be transmitted via PyQt
     signals.
