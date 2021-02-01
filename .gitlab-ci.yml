@@ -3,7 +3,8 @@ include:
    file: acc_py_devtools/templates/gitlab-ci/python.yml
 
 variables:
-  project_name: acc_app_optimisation
+  project_name: "acc_app_optimisation"
+  PY_VERSION: "3.7"
 
 
 # A full installation of the project, tested with pytest.

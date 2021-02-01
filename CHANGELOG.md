@@ -9,6 +9,7 @@
 
 ### Build changes
 
+- Upgrade Python requirement to 3.7.
 - Upgrade `accwidgets` requirement to 1.1.0 and only the widgets that are used.
 
 ## v0.0.6
