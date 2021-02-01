@@ -312,7 +312,7 @@ class PlotManager:
                     self._constraints_plot.add_layer(layer_name, pen=color)
                 curves = _make_curve_with_bounds(color=color, layer=layer_name)
                 result.append(curves)
-                _add_items_to_plot(curves, axes)
+                _add_items_to_plot([curves.values, curves.lower, curves.upper], axes)
         return result
 
 
