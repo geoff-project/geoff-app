@@ -1,5 +1,12 @@
 # Changelog
 
+## Upcoming
+
+### Visible changes
+
+- Upgraded the LSA selector from a built-in version to the version provided by
+  [AccWidgets](https://acc-py.web.cern.ch/gitlab/acc-co/accsoft/gui/accsoft-gui-pyqt-widgets/docs/stable/widgets/lsa_selector/index.html).
+
 ## v0.0.6
 
 ### Visible changes

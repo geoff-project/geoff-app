@@ -15,14 +15,18 @@ from PyQt5 import QtCore, QtWidgets
 from cernml import coi, coi_funcs
 from pjlsa import pjlsa
 from pyjapc import PyJapc
+from accwidgets.lsa_selector import (
+    AbstractLsaSelectorResidentContext,
+    LsaSelector,
+    LsaSelectorAccelerator,
+    LsaSelectorModel,
+)
 
 from ._control_pane_generated import Ui_ControlPane
 from .cfgdialog import PureConfigureDialog, ProblemConfigureDialog
 from .plot_manager import PlotManager
 from .. import envs
 from ..algos import single_opt
-from ..qt_lsa_selector import LsaSelectorWidget
-from ..utils.accelerators import IncaAccelerators
 
 LOG = getLogger(__name__)
 
@@ -38,17 +42,20 @@ class CreatingEnvDialog(QtWidgets.QDialog):
         )
 
 
-class CycleSettings:
-    """The current settings necessary to create a PyJapc object."""
-
-    # TODO: Turn into dataclass once Python 3.7 is required.
-    # pylint: disable = too-few-public-methods
-    def __init__(
-        self, *, accelerator: IncaAccelerators, context: str, user: str
-    ) -> None:
-        self.accelerator = accelerator
-        self.context = context
-        self.user = user
+def translate_machine(machine: coi.Machine) -> t.Optional[LsaSelectorAccelerator]:
+    """Fetch the LSA accelerator for a given CERN machine."""
+    return {
+        coi.Machine.NoMachine: None,
+        coi.Machine.Linac2: None,
+        coi.Machine.Linac3: LsaSelectorAccelerator.LEIR,
+        coi.Machine.Linac4: LsaSelectorAccelerator.PSB,
+        coi.Machine.Leir: LsaSelectorAccelerator.LEIR,
+        coi.Machine.PS: LsaSelectorAccelerator.PS,
+        coi.Machine.PSB: LsaSelectorAccelerator.PSB,
+        coi.Machine.SPS: LsaSelectorAccelerator.SPS,
+        coi.Machine.Awake: LsaSelectorAccelerator.AWAKE,
+        coi.Machine.LHC: LsaSelectorAccelerator.LHC,
+    }.get(machine)
 
 
 class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
@@ -63,9 +70,9 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
     ) -> None:
         super().__init__(parent)
         self.setupUi(self)
-        self.accelerator = IncaAccelerators.SPS
+        self.accelerator = coi.Machine.SPS
         self.plot_manager = plot_manager
-        self.last_lsa_selection: t.Dict[IncaAccelerators, QtCore.QModelIndex] = {}
+        self.last_lsa_selection: t.Dict[coi.Machine, QtCore.QModelIndex] = {}
 
         # Create a dummy runner and connect its (class-scope) signals to
         # handlers. Use QueuedConnection as the signals cross thread
@@ -100,35 +107,29 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         )
         self.algoCombo.addItems(single_opt.ALL_ALGOS)
 
-        lsa_dummy = self.lsaSelectorWidget
-        self.lsaSelectorWidget = LsaSelectorWidget(
-            lsa,
+        lsa_dummy = self.lsaSelector
+        self.lsaSelector = LsaSelector(
+            model=LsaSelectorModel(LsaSelectorAccelerator.SPS, lsa, resident_only=True),
             parent=self,
-            accelerator=self.accelerator.lsa_name,
-            as_dock=False,
         )
-        self.layout().replaceWidget(lsa_dummy, self.lsaSelectorWidget)
-        self.lsaSelectorWidget.selectionChanged.connect(self._on_lsa_cycle_changed)
+        self.layout().replaceWidget(lsa_dummy, self.lsaSelector)
+        self.lsaSelector.userSelectionChanged.connect(self._on_lsa_user_changed)
 
-        self.machineCombo.currentTextChanged.connect(
-            lambda name: self._on_accelerator_changed(IncaAccelerators[name])
+        # Only allow those machines for which there is an LSA
+        # accelerator available.
+        self.machineCombo.addItems(
+            machine.name for machine in coi.Machine if translate_machine(machine)
         )
-        self.machineCombo.addItems(acc.name for acc in IncaAccelerators)
+        self.machineCombo.currentTextChanged.connect(
+            lambda name: self._on_accelerator_changed(coi.Machine[name])
+        )
+        self.machineCombo.setCurrentText(self.accelerator.name)
 
     def algoClass(self) -> t.Optional[t.Type[single_opt.BaseOptimizer]]:
         """The currently selected algorithm class."""
         # pylint: disable = invalid-name
         name = self.algoCombo.currentText()
         return single_opt.ALL_ALGOS.get(name, None)
-
-    def cycleSettings(self) -> CycleSettings:
-        """Return the current accelerator/cycle settings."""
-        # pylint: disable = invalid-name
-        return CycleSettings(
-            accelerator=self.accelerator,
-            context=self.lsaSelectorWidget.getContext(),
-            user=self.lsaSelectorWidget.getUser(),
-        )
 
     def _update_env(self, env: t.Optional[coi.Problem]) -> None:
         """Update the selected env _object_ and the GUI.
@@ -158,41 +159,38 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
             self.configEnvButton.setEnabled(is_configurable)
             LOG.debug("configurable: %s", is_configurable)
 
-    def _make_japc(self) -> PyJapc:
+    def _make_japc(self) -> t.Optional[PyJapc]:
         """Create a fresh and up-to-date JAPC object."""
-        selector = self.lsaSelectorWidget.getUser()
-        return PyJapc(selector, noSet=False, incaAcceleratorName="AD")
+        context = self.lsaSelector.selected_context
+        if context is None:
+            return None
+        assert isinstance(context, AbstractLsaSelectorResidentContext), context
+        user_name = t.cast(AbstractLsaSelectorResidentContext, context).user
+        return PyJapc(user_name, noSet=False, incaAcceleratorName="AD")
 
-    def _on_accelerator_changed(self, accelerator: IncaAccelerators) -> None:
+    def _on_accelerator_changed(self, machine: coi.Machine) -> None:
         """Handler for the accelerator selection."""
-        LOG.debug("accelerator changed: %s", accelerator)
+        LOG.debug("accelerator changed: %s", machine)
         # Remove all environments before doing anything else, to prevent
         # spurious updates.
         self.environmentCombo.clear()
-        self.accelerator = accelerator
-        self.lsaSelectorWidget.setAccelerator(accelerator.lsa_name)
+        self.accelerator = machine
+        self.lsaSelector.accelerator = translate_machine(machine)
         # Re-select the last context for this accelerator.
-        item_model = self.lsaSelectorWidget.view.model()
-        if item_model.rowCount():
-            index = self.last_lsa_selection.get(
-                self.accelerator,
-                item_model.createIndex(0, 0),
-            )
-            self.lsaSelectorWidget.view.setCurrentIndex(index)
+        user_name = self.last_lsa_selection.get(self.accelerator)
+        if user_name is not None:
+            self.lsaSelector.select_user(user_name)
         # Add environments last. Only _now_, `_on_env_changed()` is
         # allowed to do non-trivial work.
-        self.environmentCombo.addItems(
-            envs.get_env_names_by_machine(accelerator.machine)
-        )
+        self.environmentCombo.addItems(envs.get_env_names_by_machine(machine))
 
-    def _on_lsa_cycle_changed(self, _cycle_name: str) -> None:
+    def _on_lsa_user_changed(self, user_name: str) -> None:
         """Handler for the LSA cycle selection."""
-        settings = self.cycleSettings()
-        LOG.debug("cycle changed: %s, %s", settings.context, settings.user)
-        self._on_env_changed(self.environmentCombo.currentText())
-        self.last_lsa_selection[
-            self.accelerator
-        ] = self.lsaSelectorWidget.view.currentIndex()
+        context_name = self.lsaSelector.selected_context.name
+        LOG.debug("cycle changed: %s, %s", context_name, user_name)
+        self.last_lsa_selection[self.accelerator] = user_name
+        current_env_name = self.environmentCombo.currentText()
+        self._on_env_changed(current_env_name)
 
     def _on_env_changed(self, env_name: str) -> None:
         """Handler for the environment selection."""
@@ -200,9 +198,13 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         self._update_env(None)
         if not env_name:
             return
+        japc = self._make_japc()
+        if japc is None:
+            LOG.debug("no context selected, hence no environment")
+            return
+        LOG.debug("new JPAC instance, selector: %s", japc.getSelector())
         please_wait_dialog = CreatingEnvDialog(self.window())
         please_wait_dialog.show()
-        japc = self._make_japc()
         try:
             env = envs.make_env_by_name(env_name, japc)
         except:  # pylint: disable=bare-except

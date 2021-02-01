@@ -43,7 +43,7 @@ class Ui_ControlPane(object):
             0, QtWidgets.QFormLayout.FieldRole, self.machineCombo
         )
         self.mainLayout.addLayout(self.machineLayout)
-        self.lsaSelectorWidget = QtWidgets.QWidget(ControlPane)
+        self.lsaSelector = QtWidgets.QWidget(ControlPane)
         sizePolicy = QtWidgets.QSizePolicy(
             QtWidgets.QSizePolicy.MinimumExpanding,
             QtWidgets.QSizePolicy.MinimumExpanding,
@@ -51,12 +51,12 @@ class Ui_ControlPane(object):
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(
-            self.lsaSelectorWidget.sizePolicy().hasHeightForWidth()
+            self.lsaSelector.sizePolicy().hasHeightForWidth()
         )
-        self.lsaSelectorWidget.setSizePolicy(sizePolicy)
-        self.lsaSelectorWidget.setMinimumSize(QtCore.QSize(100, 200))
-        self.lsaSelectorWidget.setObjectName("lsaSelectorWidget")
-        self.mainLayout.addWidget(self.lsaSelectorWidget)
+        self.lsaSelector.setSizePolicy(sizePolicy)
+        self.lsaSelector.setMinimumSize(QtCore.QSize(100, 200))
+        self.lsaSelector.setObjectName("lsaSelector")
+        self.mainLayout.addWidget(self.lsaSelector)
         self.settingsTabWidget = QtWidgets.QTabWidget(ControlPane)
         sizePolicy = QtWidgets.QSizePolicy(
             QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred

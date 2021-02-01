@@ -50,7 +50,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QWidget" name="lsaSelectorWidget" native="true">
+    <widget class="QWidget" name="lsaSelector" native="true">
      <property name="sizePolicy">
       <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
        <horstretch>0</horstretch>
