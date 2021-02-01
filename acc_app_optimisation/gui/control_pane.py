@@ -10,23 +10,22 @@ from logging import getLogger
 # JPype's import hooks don't get set up correctly and qt_lsa_selector
 # cannot import the CERN packages.
 import jpype.imports  # pylint: disable=unused-import
-
-from PyQt5 import QtCore, QtWidgets
-from cernml import coi, coi_funcs
-from pjlsa import pjlsa
-from pyjapc import PyJapc
 from accwidgets.lsa_selector import (
     AbstractLsaSelectorResidentContext,
     LsaSelector,
     LsaSelectorAccelerator,
     LsaSelectorModel,
 )
+from cernml import coi, coi_funcs
+from pjlsa import pjlsa
+from pyjapc import PyJapc
+from PyQt5 import QtCore, QtWidgets
 
-from ._control_pane_generated import Ui_ControlPane
-from .cfgdialog import PureConfigureDialog, ProblemConfigureDialog
-from .plot_manager import PlotManager
 from .. import envs
 from ..algos import single_opt
+from ._control_pane_generated import Ui_ControlPane
+from .cfgdialog import ProblemConfigureDialog, PureConfigureDialog
+from .plot_manager import PlotManager
 
 LOG = getLogger(__name__)
 

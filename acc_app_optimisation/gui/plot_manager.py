@@ -7,16 +7,14 @@ import typing as t
 import accwidgets.graph as accgraph
 import numpy as np
 import pyqtgraph
+from cernml.coi.utils import iter_matplotlib_figures
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
-from cernml.coi.utils import iter_matplotlib_figures
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-
-from .popout_mdi_area import PopinWindow, PopoutMdiArea
 from ..utils.bounded import Bounded, BoundedArray
-
+from .popout_mdi_area import PopinWindow, PopoutMdiArea
 
 LOG = logging.getLogger(__name__)
 

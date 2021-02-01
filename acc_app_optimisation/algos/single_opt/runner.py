@@ -6,12 +6,12 @@ import typing as t
 
 import gym
 import numpy as np
-from PyQt5.QtCore import pyqtSignal, QObject, QRunnable, QThread, pyqtSlot
 from cernml import coi, coi_funcs
 from cernml.coi.utils import iter_matplotlib_figures
+from PyQt5.QtCore import QObject, QRunnable, QThread, pyqtSignal, pyqtSlot
 
-from .base_optimizer import BaseOptimizer
 from ...utils.bounded import BoundedArray
+from .base_optimizer import BaseOptimizer
 
 LOG = logging.getLogger(__name__)
 

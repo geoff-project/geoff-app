@@ -3,6 +3,8 @@
 import typing as t
 
 import numpy as np
+from cernml.coi import Config
+from PyQt5.QtGui import QDoubleValidator, QIntValidator
 from PyQt5.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -12,11 +14,6 @@ from PyQt5.QtWidgets import (
     QSpinBox,
     QWidget,
 )
-from PyQt5.QtGui import (
-    QIntValidator,
-    QDoubleValidator,
-)
-from cernml.coi import Config
 
 from . import _type_utils
 

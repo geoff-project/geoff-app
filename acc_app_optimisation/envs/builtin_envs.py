@@ -8,5 +8,5 @@ using the `cernml.coi.register()` API.
 
 # pylint: disable = unused-import
 
-import cern_awake_env.simulation
 import cern_awake_env.machine
+import cern_awake_env.simulation

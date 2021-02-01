@@ -10,8 +10,8 @@ from unittest.mock import Mock
 
 import numpy as np
 import pytest
-from PyQt5 import QtCore
 from cernml import coi
+from PyQt5 import QtCore
 from pytest_mock import MockerFixture
 from scipy.optimize import NonlinearConstraint
 

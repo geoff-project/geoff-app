@@ -6,8 +6,8 @@ import logging
 import sys
 
 import pjlsa
-from PyQt5 import QtWidgets
 from accwidgets.log_console import LogConsoleModel
+from PyQt5 import QtWidgets
 
 
 def init_logging() -> LogConsoleModel:
@@ -46,8 +46,8 @@ def main(argv):
     lsa = pjlsa.LSAClient(server="next")
     with lsa.java_api():
         # pylint: disable = import-outside-toplevel
-        from acc_app_optimisation.main_window import MainWindow
         from acc_app_optimisation import foreign_imports
+        from acc_app_optimisation.main_window import MainWindow
 
         for path in args.foreign_imports:
             foreign_imports.import_from_path(path)

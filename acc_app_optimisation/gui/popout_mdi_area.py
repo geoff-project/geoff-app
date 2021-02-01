@@ -6,8 +6,8 @@
 
 from typing import Optional, Union
 
-from PyQt5.QtCore import Qt
 from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import Qt
 
 
 class PopoutSubwindow(QtWidgets.QMdiSubWindow):

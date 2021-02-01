@@ -3,12 +3,8 @@
 import logging
 import typing as t
 
-from PyQt5.QtWidgets import (
-    QFormLayout,
-    QLabel,
-    QWidget,
-)
 from cernml import coi
+from PyQt5.QtWidgets import QFormLayout, QLabel, QWidget
 
 from ._field_widgets import UnparsedDict, make_field_widget
 

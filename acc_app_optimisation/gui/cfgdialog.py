@@ -4,28 +4,24 @@ import logging
 import typing as t
 
 import numpy as np
+from cernml import coi, coi_funcs
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import (
-    QShowEvent,
-    QValidator,
-    QDoubleValidator,
-)
+from PyQt5.QtGui import QDoubleValidator, QShowEvent, QValidator
 from PyQt5.QtWidgets import (
     QDialog,
     QDialogButtonBox,
-    QVBoxLayout,
-    QTabWidget,
     QLabel,
     QLineEdit,
     QPushButton,
     QSizePolicy,
+    QTabWidget,
+    QVBoxLayout,
     QWidget,
 )
-from cernml import coi, coi_funcs
 
+from ..utils.split_words import split_words_and_spaces
 from .cfgwidget import ConfigureWidget
 from .excdialog import exception_dialog
-from ..utils.split_words import split_words_and_spaces
 
 LOG = logging.getLogger(__name__)
 

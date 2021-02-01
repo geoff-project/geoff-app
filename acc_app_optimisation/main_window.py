@@ -2,10 +2,10 @@
 
 import typing as t
 
+import pjlsa
+from accwidgets.log_console import LogConsole, LogConsoleDock, LogConsoleModel
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
-from accwidgets.log_console import LogConsoleDock, LogConsole, LogConsoleModel
-import pjlsa
 
 from acc_app_optimisation import gui as app_gui
 
