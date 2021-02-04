@@ -32,6 +32,7 @@ def get_parser() -> argparse.ArgumentParser:
         "foreign_imports",
         nargs="*",
         type=str,
+        metavar="PATH",
         help="Path to additional modules and packages that shall be "
         "imported; child modules may be imported by appending them, "
         "delimited by `::`",
