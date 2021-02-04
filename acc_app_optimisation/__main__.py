@@ -37,6 +37,14 @@ def get_parser() -> argparse.ArgumentParser:
         "imported; child modules may be imported by appending them, "
         "delimited by `::`",
     )
+    parser.add_argument(
+        "-s",
+        "--lsa-server",
+        type=str,
+        metavar="NAME",
+        default="gpn",
+        help="The LSA server to connect to (default: gpn)",
+    )
     return parser
 
 
@@ -44,7 +52,7 @@ def main(argv):
     """Main function. Pass sys.argv."""
     model = init_logging()
     args = get_parser().parse_args(argv[1:])
-    lsa = pjlsa.LSAClient(server="next")
+    lsa = pjlsa.LSAClient(server=args.lsa_server)
     with lsa.java_api():
         # pylint: disable = import-outside-toplevel
         from acc_app_optimisation import foreign_imports
