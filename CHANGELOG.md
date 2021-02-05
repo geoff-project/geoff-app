@@ -1,5 +1,18 @@
 # Changelog
 
+## Upcoming
+
+### Visible changes
+
+- The configure dialog is now more lenient with unconventional config types.
+  As the bare minimum, it shows a line-edit widget. Previously, a read-only
+  label would be shown.
+
+### Bug fixes
+
+- When applying a configure dialog, check boxes that were never clicked would
+  always register as True. This has been fixed.
+
 ## v0.0.7
 
 ### Visible changes
