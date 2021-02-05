@@ -9,13 +9,12 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QComboBox,
     QDoubleSpinBox,
-    QLabel,
     QLineEdit,
     QSpinBox,
     QWidget,
 )
 
-from . import _type_utils
+from . import _type_utils as _tu
 
 UnparsedDict = t.Dict[str, str]
 
@@ -23,96 +22,98 @@ UnparsedDict = t.Dict[str, str]
 def make_field_widget(field: Config.Field, values: UnparsedDict) -> QWidget:
     """Given a field, pick the best widget to configure it."""
     # pylint: disable = too-many-return-statements
+    setter = itemsetter(values, field.dest)
+    # Boolean fields always ignore range and choices.
+    if _tu.is_bool(field.value):
+        checkbox = make_checkbox(bool(field.value))
+        # `_state` is an integer with non-obvious semantics. Ignore it
+        # and use the obvious `isChecked` instead.
+        checkbox.stateChanged.connect(lambda _state: setter(checkbox.isChecked()))
+        return checkbox
     if field.choices is not None:
-        return combobox(field, values)
+        combobox = make_combobox(str(field.value), map(str, field.choices))
+        combobox.currentTextChanged.connect(setter)
+        return combobox
     if field.range is not None:
-        low, high = field.range
-        if _type_utils.is_float(field.value) and _type_utils.is_range_huge(low, high):
-            widget = maybe_lineedit(field, values)
-            assert widget is not None
-            return widget
-        return spinbox(field, values)
-    if _type_utils.is_bool(field.value):
-        return checkbox(field, values)
-    widget = maybe_lineedit(field, values)
-    if widget is not None:
-        return widget
-    return QLabel(str(field.value))
+        # Only make a spin box under when it makes sense. Otherwise,
+        # fall through to the line edit case.
+        if _tu.is_int(field.value):
+            spinbox = make_int_spinbox(field.value, field.range)
+            spinbox.valueChanged.connect(setter)
+            return spinbox
+        if _tu.is_float(field.value) and not _tu.is_range_huge(*field.range):
+            spinbox = make_double_spinbox(field.value, field.range)
+            spinbox.valueChanged.connect(setter)
+            return spinbox
+    lineedit = make_lineedit(field.value)
+    lineedit.editingFinished.connect(lambda: setter(lineedit.text()))
+    return lineedit
 
 
-def combobox(field: Config.Field, values: UnparsedDict) -> QWidget:
+def make_combobox(initial: str, choices: t.Iterable[str]) -> QComboBox:
     """Create a combo box."""
     widget = QComboBox()
-    widget.addItems(str(choice) for choice in field.choices)
-    widget.setCurrentText(str(field.value))
-    widget.currentTextChanged.connect(make_setter(field, values))
+    widget.addItems(choices)
+    widget.setCurrentText(initial)
     return widget
 
 
-def maybe_lineedit(field: Config.Field, values: UnparsedDict) -> t.Optional[QWidget]:
-    """Create a line edit that may contain strings, integers or floats."""
-    widget = QLineEdit(str(field.value))
-    if _type_utils.is_int(field.value):
+def make_lineedit(value: t.Any) -> QLineEdit:
+    """Create a line edit."""
+    widget = QLineEdit(str(value))
+    if _tu.is_int(value):
         widget.setValidator(QIntValidator())
-    elif _type_utils.is_float(field.value):
+    elif _tu.is_float(value):
         widget.setValidator(QDoubleValidator())
-    elif isinstance(field.value, str):
-        pass
     else:
-        return None
-    widget.editingFinished.connect(make_setter(field, values, get=widget.text))
+        pass
     return widget
 
 
-def spinbox(field: Config.Field, values: UnparsedDict) -> QWidget:
+def make_double_spinbox(value: float, range_: t.Tuple[float, float]) -> QDoubleSpinBox:
     """Create either an integer or a floating-point spin box."""
-    low, high = field.range
-    if _type_utils.is_int(field.value):
-        widget = QSpinBox()
-        # Ensure that the range limits are valid integers.
-        low = np.clip(np.floor(low), -(2 << 30), (2 << 30) - 1)
-        high = np.clip(np.ceil(high), -(2 << 30), (2 << 30) - 1)
-    elif _type_utils.is_float(field.value):
-        widget = QDoubleSpinBox()
-        decimals = _type_utils.guess_decimals(low, high)
-        widget.setDecimals(decimals)
-    else:
-        raise KeyError(type(field.value))
-    widget.setValue(field.value)
+    low, high = range_
+    widget = QDoubleSpinBox()
+    widget.setDecimals(_tu.guess_decimals(low, high))
+    widget.setValue(value)
     widget.setStepType(widget.AdaptiveDecimalStepType)
     widget.setGroupSeparatorShown(True)
     widget.setRange(low, high)
-    widget.valueChanged.connect(make_setter(field, values))
     return widget
 
 
-def checkbox(field: Config.Field, values: UnparsedDict) -> QWidget:
+def make_int_spinbox(value: int, range_: t.Tuple[int, int]) -> QSpinBox:
+    """Create either an integer or a floating-point spin box."""
+    # Ensure that the range limits are valid integers.
+    low, high = range_
+    low = np.clip(np.floor(low), -(2 << 30), (2 << 30) - 1)
+    high = np.clip(np.ceil(high), -(2 << 30), (2 << 30) - 1)
+    widget = QSpinBox()
+    widget.setValue(value)
+    widget.setStepType(widget.AdaptiveDecimalStepType)
+    widget.setGroupSeparatorShown(True)
+    widget.setRange(low, high)
+    return widget
+
+
+def make_checkbox(checked: bool) -> QCheckBox:
     """Create a check box."""
     widget = QCheckBox()
-    widget.setChecked(field.value)
-    widget.stateChanged.connect(make_setter(field, values))
+    widget.setChecked(checked)
     return widget
 
 
-def make_setter(
-    field: Config.Field,
-    values: UnparsedDict,
-    get: t.Optional[t.Callable[[], str]] = None,
-) -> t.Callable[..., None]:
-    """Return a callback that can be used to update a field's value."""
-    if isinstance(field.value, (bool, np.bool_)):
-        map_value = lambda v: "checked" if v else ""
-    else:
-        map_value = str
+K = t.TypeVar("K")  # pylint: disable=invalid-name
+V = t.TypeVar("V")  # pylint: disable=invalid-name
 
-    if get is not None:
 
-        def _setter():
-            values[field.dest] = map_value(get())
+def itemsetter(mapping: t.MutableMapping[K, V], key: K) -> t.Callable[[V], None]:
+    """Return a callable that takes ``values`` and runs ``mapping[key] = value``."""
 
-    else:
+    def _setter(value: V) -> None:
+        """Run ``{mapping}[{key}] = value``."""
+        mapping[key] = value
 
-        def _setter(value):
-            values[field.dest] = map_value(value)
-
+    assert _setter.__doc__ is not None
+    _setter.__doc__ = _setter.__doc__.format(**locals())
     return _setter
