@@ -149,7 +149,7 @@ class Cobyla(BaseOptimizer):
         return result.x
 
 
-ALL_ALGOS: t.Dict[str, BaseOptimizer] = {
+ALL_ALGOS: t.Dict[str, t.Type[BaseOptimizer]] = {
     "BobyQA": BobyQA,
     "COBYLA": Cobyla,
 }
