@@ -5,6 +5,34 @@ import typing as t
 import numpy as np
 
 
+def str_boolsafe(value: t.Any) -> str:
+    """Like :py:func:`str()` but with special cases.
+
+    Certain types round-trip exactly or approximately through
+    :py:func:`str()`:
+
+        >>> int(str(3))
+        3
+        >>> float(str(1.0))
+        1.0
+
+    However, this is not true for :py:func:`bool`. The function *almost*
+    works, but is subtly wrong:
+
+        >>> bool(str(True))
+        True
+        >>> bool(str(False))
+        True
+
+    This function makes a special case for booleans and returns either
+    ``"checked"`` or ``""`` (the empty string). For all other types, it
+    simply returns ``str(value)``.
+    """
+    if is_bool(value):
+        return "checked" if value else ""
+    return str(value)
+
+
 def guess_decimals(low: float, high: float) -> int:
     """Guess how many decimals to show in a double spin box."""
     absmax = max(abs(high), abs(low))

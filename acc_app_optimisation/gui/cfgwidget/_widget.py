@@ -7,6 +7,7 @@ from cernml import coi
 from PyQt5.QtWidgets import QFormLayout, QLabel, QWidget
 
 from ._field_widgets import UnparsedDict, make_field_widget
+from ._type_utils import str_boolsafe
 
 LOG = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ class ConfigureWidget(QWidget):
         self.target = target
         self.config = self.target.get_config()
         self.current_values = {
-            field.dest: str(field.value) for field in self.config.fields()
+            field.dest: str_boolsafe(field.value) for field in self.config.fields()
         }
         params_layout = QFormLayout(self)
         for field in self.config.fields():

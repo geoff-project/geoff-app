@@ -28,7 +28,9 @@ def make_field_widget(field: Config.Field, values: UnparsedDict) -> QWidget:
         checkbox = make_checkbox(bool(field.value))
         # `_state` is an integer with non-obvious semantics. Ignore it
         # and use the obvious `isChecked` instead.
-        checkbox.stateChanged.connect(lambda _state: setter(checkbox.isChecked()))
+        checkbox.stateChanged.connect(
+            lambda _state: setter(_tu.str_boolsafe(checkbox.isChecked()))
+        )
         return checkbox
     if field.choices is not None:
         combobox = make_combobox(str(field.value), map(str, field.choices))
