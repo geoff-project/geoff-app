@@ -40,14 +40,6 @@ def make_field_widget(field: Config.Field, values: UnparsedDict) -> QWidget:
     return QLabel(str(field.value))
 
 
-def checkbox(field: Config.Field, values: UnparsedDict) -> QWidget:
-    """Create a check box."""
-    widget = QCheckBox()
-    widget.setChecked(field.value)
-    widget.stateChanged.connect(make_setter(field, values))
-    return widget
-
-
 def combobox(field: Config.Field, values: UnparsedDict) -> QWidget:
     """Create a combo box."""
     widget = QComboBox()
@@ -91,6 +83,14 @@ def spinbox(field: Config.Field, values: UnparsedDict) -> QWidget:
     widget.setGroupSeparatorShown(True)
     widget.setRange(low, high)
     widget.valueChanged.connect(make_setter(field, values))
+    return widget
+
+
+def checkbox(field: Config.Field, values: UnparsedDict) -> QWidget:
+    """Create a check box."""
+    widget = QCheckBox()
+    widget.setChecked(field.value)
+    widget.stateChanged.connect(make_setter(field, values))
     return widget
 
 
