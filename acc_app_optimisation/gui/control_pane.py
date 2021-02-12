@@ -4,6 +4,7 @@
 
 import traceback
 import typing as t
+from collections import defaultdict
 from logging import getLogger
 
 # Warning: jpype.imports must be imported before pjlsa! Otherwise,
@@ -71,7 +72,7 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         self.setupUi(self)
         self.accelerator = coi.Machine.SPS
         self.plot_manager = plot_manager
-        self.last_lsa_selection: t.Dict[coi.Machine, QtCore.QModelIndex] = {}
+        self.last_lsa_selection: t.DefaultDict[coi.Machine, str] = defaultdict(str)
 
         # Create a dummy runner and connect its (class-scope) signals to
         # handlers. Use QueuedConnection as the signals cross thread
@@ -113,6 +114,7 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         )
         self.layout().replaceWidget(lsa_dummy, self.lsaSelector)
         self.lsaSelector.userSelectionChanged.connect(self._on_lsa_user_changed)
+        self.lsaSelector.select_user("")
 
         # Only allow those machines for which there is an LSA
         # accelerator available.
@@ -175,10 +177,10 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         self.environmentCombo.clear()
         self.accelerator = machine
         self.lsaSelector.accelerator = translate_machine(machine)
-        # Re-select the last context for this accelerator.
-        user_name = self.last_lsa_selection.get(self.accelerator)
-        if user_name is not None:
-            self.lsaSelector.select_user(user_name)
+        # Re-select the last context for this accelerator. This makes
+        # use of `defaultdict`'s behavior and selects the unmultiplexed
+        # context (`user_name == ""`) if none has been selected before.
+        self.lsaSelector.select_user(self.last_lsa_selection[self.accelerator])
         # Add environments last. Only _now_, `_on_env_changed()` is
         # allowed to do non-trivial work.
         self.environmentCombo.addItems(envs.get_env_names_by_machine(machine))

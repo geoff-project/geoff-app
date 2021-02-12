@@ -5,6 +5,10 @@
 ### Bug fixes
 
 - Relax the requirement on Gym from `>=0.17, <0.18` to `>=0.17`.
+- The new LSA selector introduced in [v0.0.7](#v007) no longer selected an LSA
+  context by default. This would make it necessary to select a context even if
+  the optimization problem does not require LSA or JAPC. The problem has been
+  alleviated by always selecting the unmultiplexed context by default.
 
 ## v0.0.8
 
