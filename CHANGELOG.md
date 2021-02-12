@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Bug fixes
+
+- Relax the requirement on Gym from `>=0.17, <0.18` to `>=0.17`.
+
 ## v0.0.8
 
 ### Visible changes
