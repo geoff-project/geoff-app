@@ -4,7 +4,9 @@
 import typing as t
 
 from cernml import coi
-from pyjapc import PyJapc
+
+if t.TYPE_CHECKING:
+    from pyjapc import PyJapc
 
 from . import builtin_envs
 
