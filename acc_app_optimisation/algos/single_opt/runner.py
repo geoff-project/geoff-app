@@ -7,7 +7,7 @@ import typing as t
 import gym
 import numpy as np
 from cernml import coi, coi_funcs
-from cernml.coi.utils import iter_matplotlib_figures
+from cernml.coi.mpl_utils import iter_matplotlib_figures
 from PyQt5.QtCore import QObject, QRunnable, QThread, pyqtSignal, pyqtSlot
 
 from ...utils.bounded import BoundedArray

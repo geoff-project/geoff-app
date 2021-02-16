@@ -7,7 +7,7 @@ import typing as t
 import accwidgets.graph as accgraph
 import numpy as np
 import pyqtgraph
-from cernml.coi.utils import iter_matplotlib_figures
+from cernml.coi.mpl_utils import iter_matplotlib_figures
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PyQt5 import QtGui, QtWidgets

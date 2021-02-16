@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Build changes
+
+- Upgrade `cernml-coi` requirement to 0.6.
+- Upgrade `cerml-coi-funcs` requirement to 0.1.1.
+
 ### Bug fixes
 
 - Relax the requirement on Gym from `>=0.17, <0.18` to `>=0.17`.
