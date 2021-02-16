@@ -17,7 +17,9 @@ def get_env_names_by_machine(machine: coi.Machine) -> t.List[str]:
     return [spec.id for spec in coi.registry.all() if _get_machine(spec) == machine]
 
 
-def make_env_by_name(name: str, make_japc: t.Callable[[], "PyJapc"]) -> coi.Problem:
+def make_env_by_name(
+    name: str, make_japc: t.Callable[[], "PyJapc"]
+) -> t.Tuple[coi.Problem, t.Optional["PyJapc"]]:
     """Instantiate the environment with the given name.
 
     Args:
@@ -26,12 +28,18 @@ def make_env_by_name(name: str, make_japc: t.Callable[[], "PyJapc"]) -> coi.Prob
             the environment requires JAPC access. It is called without
             arguments and should return a `PyJapc` object, or raise an
             exception on error.
+
+    Returns:
+        A tuple `(problem, japc)`, where `problem` is the instantiated
+        COI problem and `japc` is the `PyJapc` object, if it was
+        requested. If it wasn't requested, `japc` is None.
     """
     spec = coi.registry.spec(name)
     needs_japc = spec.entry_point.metadata.get("cern.japc", False)
     if needs_japc:
-        return coi.make(name, japc=make_japc())
-    return coi.make(name)
+        japc = make_japc()
+        return coi.make(name, japc=japc), japc
+    return coi.make(name), None
 
 
 def _get_machine(spec) -> coi.Machine:

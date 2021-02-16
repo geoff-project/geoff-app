@@ -58,6 +58,45 @@ def translate_machine(machine: coi.Machine) -> t.Optional[LsaSelectorAccelerator
     }.get(machine)
 
 
+class JapcFinalizer:
+    """Tiny helper class to finalize `PyJapc` properly.
+
+    This class does *not* serve to make `PyJapc` accessible, quite the
+    opposite. Its purpose is to ensure that we do nothing but finalize
+    it. This way, it is easier to keep track of who uses JAPC access and
+    who doesn't.
+
+    By default, the finalizer does not hold onto a `PyJapc` object. To
+    pass ownership of an object to it, call `update()`.
+    """
+
+    __slots__ = ["_japc"]
+
+    def __init__(self) -> None:
+        self._japc: t.Optional[PyJapc] = None
+
+    def close(self) -> None:
+        """Empty the finalizer.
+
+        If it currently holds onto a `PyJapc` object, it is finalized.
+        This is equivalent to calling `update(None)`.
+        """
+        self.update(None)
+
+    def update(self, japc: t.Optional[PyJapc]) -> None:
+        """Update the held `PyJapc` object and finalize the old one.
+
+        Args:
+            japc: The new JAPC object to hold onto. If this finalizer
+                already holds a JAPC object, it is finalized first. If
+                None is passed, the finalizer becomes empty.
+        """
+        if self._japc is not None:
+            self._japc.clearSubscriptions()
+            self._japc.rbacLogout()
+        self._japc = japc
+
+
 class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
     """The sidebar of the app."""
 
@@ -73,6 +112,10 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         self.accelerator = coi.Machine.SPS
         self.plot_manager = plot_manager
         self.last_lsa_selection: t.DefaultDict[coi.Machine, str] = defaultdict(str)
+        # The JAPC object is created lazily whenever a `coi.Problem`
+        # requires it. We only hold onto it in order to properly
+        # deinitialize it.
+        self.japc_finalizer = JapcFinalizer()
 
         # Create a dummy runner and connect its (class-scope) signals to
         # handlers. Use QueuedConnection as the signals cross thread
@@ -144,6 +187,8 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         non-None env.
         """
         assert env is None or env is not self.opt_runner.problem, env
+        if self.opt_runner.problem is not None:
+            self.opt_runner.problem.close()
         self.opt_runner.set_problem(env)
         self.resetButton.setEnabled(False)
         self.configOptButton.setEnabled(
@@ -201,13 +246,19 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
     def _on_env_changed(self, env_name: str) -> None:
         """Handler for the environment selection."""
         LOG.debug("environment changed: %s", env_name)
+        # Tricky ordering: We first finalize the `coi.Problem`, *then*
+        # we finalize `PyJapc`. Can we use a `contextlib.Exitstack` for
+        # this?
         self._update_env(None)
+        self.japc_finalizer.update(None)
         if not env_name:
             return
         please_wait_dialog = CreatingEnvDialog(self.window())
         please_wait_dialog.show()
+        env: t.Optional[coi.Problem]
         try:
-            env = envs.make_env_by_name(env_name, self._make_japc)
+            env, japc = envs.make_env_by_name(env_name, self._make_japc)
+            self.japc_finalizer.update(japc)
         except:  # pylint: disable=bare-except
             LOG.error(traceback.format_exc())
             LOG.error("Aborted initialization due to the above exception")

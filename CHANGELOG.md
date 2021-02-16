@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Visible changes
+
+- When a `coi.Problem` implements the `close()` method, the app now correctly
+  calls it before switching to another problem. It also finalizes the `PyJapc`
+  object before creating a new one. This behavior is currently not guaranteed
+  when the app is *exiting*.
+
 ### Build changes
 
 - Upgrade `cernml-coi` requirement to 0.6.
