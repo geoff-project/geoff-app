@@ -160,14 +160,19 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
             self.configEnvButton.setEnabled(is_configurable)
             LOG.debug("configurable: %s", is_configurable)
 
-    def _make_japc(self) -> t.Optional[PyJapc]:
+    def _make_japc(self) -> PyJapc:
         """Create a fresh and up-to-date JAPC object."""
         context = self.lsaSelector.selected_context
         if context is None:
-            return None
+            raise ValueError("JAPC required but no context has been selected")
         assert isinstance(context, AbstractLsaSelectorResidentContext), context
         user_name = t.cast(AbstractLsaSelectorResidentContext, context).user
-        return PyJapc(user_name, noSet=False, incaAcceleratorName="AD")
+        # No particular reason to pick "AD" as the INCA server. We use
+        # it because it is frequented by other applications less often,
+        # so it might reply quicker. Whether this is true is untested.
+        japc = PyJapc(user_name, noSet=False, incaAcceleratorName="AD")
+        LOG.debug("new JPAC instance, selector: %s", japc.getSelector())
+        return japc
 
     def _on_accelerator_changed(self, machine: coi.Machine) -> None:
         """Handler for the accelerator selection."""
@@ -199,15 +204,10 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
         self._update_env(None)
         if not env_name:
             return
-        japc = self._make_japc()
-        if japc is None:
-            LOG.debug("no context selected, hence no environment")
-            return
-        LOG.debug("new JPAC instance, selector: %s", japc.getSelector())
         please_wait_dialog = CreatingEnvDialog(self.window())
         please_wait_dialog.show()
         try:
-            env = envs.make_env_by_name(env_name, japc)
+            env = envs.make_env_by_name(env_name, self._make_japc)
         except:  # pylint: disable=bare-except
             LOG.error(traceback.format_exc())
             LOG.error("Aborted initialization due to the above exception")
