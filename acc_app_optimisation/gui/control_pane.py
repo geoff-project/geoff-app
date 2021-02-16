@@ -153,7 +153,7 @@ class ControlPane(QtWidgets.QWidget, Ui_ControlPane):
             self.configEnvButton.setEnabled(False)
             self.showConstraintsCheckbox.setEnabled(False)
         else:
-            constraints = env.constraints
+            constraints = getattr(env, "constraints", ())
             self.showConstraintsCheckbox.setEnabled(bool(constraints))
             LOG.debug("number of constraints: %d", len(constraints))
             is_configurable = _is_env_configurable(env)
