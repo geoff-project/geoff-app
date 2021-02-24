@@ -9,6 +9,7 @@ import numpy as np
 import pyqtgraph
 from cernml.coi.mpl_utils import iter_matplotlib_figures
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
@@ -122,13 +123,18 @@ class PlotManager:
         # Increment in any case -- this prevents awkward name lists like
         # this: ["Figure 1", "Named Figure", "Figure 2"].
         self._canvas_id += 1
-        canvas = FigureCanvas(figure)
         if not title:
             title = f"Figure {self._canvas_id}"
-        canvas.setWindowTitle(title)
+        subwindow = QtWidgets.QWidget()
+        canvas = FigureCanvas(figure)
+        toolbar = NavigationToolbar(canvas, subwindow)
+        layout = QtWidgets.QVBoxLayout(subwindow)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(toolbar)
+        layout.addWidget(canvas)
+        subwindow.setWindowTitle(title)
+        self._mdi.addSubWindow(subwindow).show()
         self._mpl_canvases.append(canvas)
-        subwindow = self._mdi.addSubWindow(canvas)
-        subwindow.show()
 
     def add_mpl_figures(self, figures: FigureCollection) -> None:
         """Add several Matplotlib figures, creating one subwindow for each.
@@ -186,9 +192,11 @@ class PlotManager:
                 self._remove_canvas_window(canvas)
         self._mpl_canvases = remaining_canvases
 
-    def _remove_canvas_window(self, figure: QtWidgets.QWidget) -> None:
+    def _remove_canvas_window(self, figure: FigureCanvas) -> None:
         """Remove a widget, no matter if subwindow or PopinWindow."""
-        parent = figure.parent()
+        # Parent is the widget wrapping canvas and navigation toolbar.
+        # Grapndparent is the subwindow/pop-in window.
+        parent = figure.parent().parent()
         if isinstance(parent, PopinWindow):
             t.cast(PopoutMdiArea, self._mdi).removePopinWindow(parent)
             parent.setParent(None)

@@ -8,6 +8,9 @@
   calls it before switching to another problem. It also finalizes the `PyJapc`
   object before creating a new one. This behavior is currently not guaranteed
   when the app is *exiting*.
+- Matplotlib-based plots (i.e. those created inside `coi.Problem.render()`) now
+  are decorated with the navigation toolbar known from interactive Matplotlib
+  usage. Each figure is given its own individual toolbar.
 
 ### Build changes
 
