@@ -176,9 +176,14 @@ def _import_module_from_spec(spec: importlib.machinery.ModuleSpec) -> ModuleType
         module = sys.modules[spec.name]
     else:
         LOG.info("importing: %s", spec.name)
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[spec.name] = module
-        spec.loader.exec_module(module)
+        if hasattr(spec.loader, "exec_module"):
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[spec.name] = module
+            spec.loader.exec_module(module)
+        else:
+            # zipimport.zipimporter does not provide `exec_module()`,
+            # only the legacy `load_module()` API.
+            module = spec.loader.load_module(spec.name)
     return module
 
 
