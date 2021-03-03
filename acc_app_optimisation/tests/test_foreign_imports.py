@@ -4,8 +4,12 @@
 # pylint: disable = missing-function-docstring
 # pylint: disable = missing-class-docstring
 # pylint: disable = import-outside-toplevel
+# pylint: disable = no-self-use
+# pylint: disable = redefined-outer-name
 
+import sys
 import typing as t
+from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
 from unittest.mock import Mock
 
@@ -15,65 +19,98 @@ from pytest_mock import MockerFixture
 from acc_app_optimisation import foreign_imports
 
 
-def test_import_module(mocker: MockerFixture, tmp_path: Path) -> None:
-    sys_modules = mocker.patch("sys.modules", {})
+@dataclass
+class FakePackage:
+    name: str
+    needle: str
+    path: Path
+
+
+@pytest.fixture
+def sys_modules(mocker: MockerFixture) -> t.Iterator[t.Dict[str, str]]:
+    yield mocker.patch("sys.modules", {})
+
+
+@pytest.fixture
+def fake_module(tmp_path: Path) -> t.Iterator[FakePackage]:
     name = "module"
-    value = Mock()
+    needle = str(Mock)
     path = tmp_path / f"{name}.py"
     with path.open("w") as outfile:
-        outfile.write(f"needle = {repr(str(value))}")
-    module = foreign_imports.import_from_path(str(path))
-    assert module.needle == str(value)
-    assert module.__name__ == name
-    assert module.__package__ == ""
-    assert name in sys_modules
+        outfile.write(f"needle = {repr(needle)}")
+    yield FakePackage(name, needle, path)
 
 
-def test_import_package(mocker: MockerFixture, tmp_path: Path) -> None:
-    sys_modules = mocker.patch("sys.modules", {})
+@pytest.fixture
+def fake_package(tmp_path: Path) -> t.Iterator[FakePackage]:
     name = "package"
-    value = Mock()
+    needle = str(Mock)
     path = tmp_path / name
     path.mkdir()
     with (path / "__init__.py").open("w") as outfile:
-        outfile.write(f"needle = {repr(str(value))}")
-    module = foreign_imports.import_from_path(str(path))
-    assert module.needle == str(value)
-    assert module.__name__ == name
-    assert module.__package__ == name
-    assert name in sys_modules
+        outfile.write(f"needle = {repr(needle)}")
+    yield FakePackage(name, needle, path)
 
 
-def test_import_submodule(mocker: MockerFixture, tmp_path: Path) -> None:
-    sys_modules = mocker.patch("sys.modules", {})
+@pytest.fixture
+def fake_big_package(tmp_path: Path) -> t.Iterator[FakePackage]:
     name = "package"
-    value = Mock()
+    needle = str(Mock)
     path = tmp_path / name
     path.mkdir()
     (path / "__init__.py").touch()
     with (path / "first.py").open("w") as outfile:
-        outfile.write(f"needle = {repr(str(value))}")
+        outfile.write(f"needle = {repr(needle)}")
     with (path / "second.py").open("w") as outfile:
         outfile.write("from . import first")
-    module = foreign_imports.import_from_path(str(path) + "::second")
-    assert module.first.needle == str(value)
-    assert module.first.__name__ == f"{name}.first"
-    assert module.first.__package__ == name
-    assert module.__name__ == f"{name}.second"
-    assert module.__package__ == name
-    assert name in sys_modules
-    assert f"{name}.first" in sys_modules
-    assert f"{name}.second" in sys_modules
+    yield FakePackage(name, needle, path)
 
 
-def test_backup_stack(mocker: MockerFixture) -> None:
-    outer = mocker.patch("sys.modules", {"outer": Mock()})
+def test_import_module(sys_modules: t.Dict[str, str], fake_module: FakePackage) -> None:
+    module: t.Any = foreign_imports.import_from_path(str(fake_module.path))
+    assert module.needle == fake_module.needle
+    assert module.__name__ == fake_module.name
+    assert module.__package__ == ""
+    assert fake_module.name in sys_modules
+
+
+def test_import_package(
+    sys_modules: t.Dict[str, str], fake_package: FakePackage
+) -> None:
+    module: t.Any = foreign_imports.import_from_path(str(fake_package.path))
+    assert module.needle == fake_package.needle
+    assert module.__name__ == fake_package.name
+    assert module.__package__ == fake_package.name
+    assert fake_package.name in sys_modules
+
+
+def test_import_submodule(
+    sys_modules: t.Dict[str, str], fake_big_package: FakePackage
+) -> None:
+    module: t.Any = foreign_imports.import_from_path(
+        str(fake_big_package.path) + "::second"
+    )
+    assert module.first.needle == fake_big_package.needle
+    assert module.first.__name__ == f"{fake_big_package.name}.first"
+    assert module.first.__package__ == fake_big_package.name
+    assert module.__name__ == f"{fake_big_package.name}.second"
+    assert module.__package__ == fake_big_package.name
+    assert fake_big_package.name in sys_modules
+    assert f"{fake_big_package.name}.first" in sys_modules
+    assert f"{fake_big_package.name}.second" in sys_modules
+
+
+def test_backup_stack(sys_modules: t.Dict[str, str]) -> None:
+    outer = {"outer": Mock()}
+    sys_modules.update(outer)
     backup_stack = foreign_imports.BackupModules()
     # Stack: []
     with pytest.raises(IndexError):
         _ = backup_stack.modules
     with backup_stack:
-        inner = mocker.patch("sys.modules", {"inner": Mock()})
+        inner = {"inner": Mock()}
+        sys_modules.clear()
+        sys_modules.update(inner)
         # Stack: [outer]
         assert backup_stack.modules == outer
         with backup_stack:
@@ -86,35 +123,33 @@ def test_backup_stack(mocker: MockerFixture) -> None:
         _ = backup_stack.modules
 
 
-def test_backup_keep_on_success(mocker: MockerFixture) -> None:
-    import sys
-
-    outer = mocker.patch("sys.modules", {"outer": Mock()})
+def test_backup_keep_on_success(sys_modules: t.Dict[str, str]) -> None:
     backup_stack = foreign_imports.BackupModules(keep_on_success=True)
     # On failure, sys.modules is restored.
+    outer = {"outer": Mock()}
+    sys_modules.update(outer)
     with pytest.raises(ValueError):
         with backup_stack:
-            inner = mocker.patch("sys.modules", {"inner": Mock()})
+            sys.modules.clear()
             raise ValueError()
     assert sys.modules == outer
     # On success, it remains at inner, but backup_stack still pop its
     # stack.
     with backup_stack:
-        inner = mocker.patch("sys.modules", {"inner": Mock()})
+        sys.modules.update(inner=Mock())
+        inner = sys.modules.copy()
     assert sys.modules == inner
     with pytest.raises(IndexError):
         _ = backup_stack.modules
 
 
-def test_report_modification() -> None:
-    import sys
-
+def test_report_modification(sys_modules: t.Dict[str, str]) -> None:
     with foreign_imports.BackupModules() as backup:
-        sys.modules = {"first": Mock(), "second": Mock(), "third": Mock()}
+        sys_modules.update(first=Mock(), second=Mock(), third=Mock())
         with backup:
-            sys.modules["first"] = Mock()
-            del sys.modules["second"]
-            sys.modules["fourth"] = Mock()
+            sys_modules["first"] = Mock()
+            del sys_modules["second"]
+            sys_modules["fourth"] = Mock()
             changes = list(backup.iter_changes())
     assert changes == [
         (foreign_imports.ChangeKind.MODIFICATION, "first"),
@@ -138,7 +173,6 @@ def test_report_modification() -> None:
     ],
 )
 def test_split_import_name(
-    *,
     name: str,
     expected_path: PurePath,
     expected_submodules: t.Tuple[str, ...],
