@@ -15,7 +15,7 @@ from pytest_mock import MockerFixture
 from acc_app_optimisation import foreign_imports
 
 
-def test_import_module(mocker: MockerFixture, tmp_path: Path) -> Path:
+def test_import_module(mocker: MockerFixture, tmp_path: Path) -> None:
     sys_modules = mocker.patch("sys.modules", {})
     name = "module"
     value = Mock()
@@ -29,7 +29,7 @@ def test_import_module(mocker: MockerFixture, tmp_path: Path) -> Path:
     assert name in sys_modules
 
 
-def test_import_package(mocker: MockerFixture, tmp_path: Path) -> Path:
+def test_import_package(mocker: MockerFixture, tmp_path: Path) -> None:
     sys_modules = mocker.patch("sys.modules", {})
     name = "package"
     value = Mock()
@@ -44,7 +44,7 @@ def test_import_package(mocker: MockerFixture, tmp_path: Path) -> Path:
     assert name in sys_modules
 
 
-def test_import_submodule(mocker: MockerFixture, tmp_path: Path) -> Path:
+def test_import_submodule(mocker: MockerFixture, tmp_path: Path) -> None:
     sys_modules = mocker.patch("sys.modules", {})
     name = "package"
     value = Mock()
