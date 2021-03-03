@@ -6,10 +6,10 @@ import functools
 import importlib
 import logging
 import sys
+import typing as t
 from enum import Enum
-from pathlib import Path
+from pathlib import Path, PurePath
 from types import ModuleType, TracebackType
-from typing import Dict, Iterator, Optional, Tuple, Type
 
 LOG = logging.getLogger(__name__)
 
@@ -38,11 +38,11 @@ class BackupModules:
     """
 
     def __init__(self, keep_on_success: bool = False) -> None:
-        self._modules_stack = []
+        self._modules_stack: t.List[t.Dict[str, ModuleType]] = []
         self._keep_on_success = keep_on_success
 
     @property
-    def modules(self) -> Dict[str, ModuleType]:
+    def modules(self) -> t.Dict[str, ModuleType]:
         """The current backup of `sys.modules`."""
         return self._modules_stack[-1]
 
@@ -58,8 +58,8 @@ class BackupModules:
             sys.modules = modules
 
     def iter_changes(
-        self, new_modules: Optional[Dict[str, ModuleType]] = None
-    ) -> Iterator[Tuple[ChangeKind, str]]:
+        self, new_modules: t.Optional[t.Dict[str, ModuleType]] = None
+    ) -> t.Iterator[t.Tuple[ChangeKind, str]]:
         """Return an iterator of all changes to `sys.modules`.
 
         If `new_modules` is passed, it should be a dict to use instead
@@ -120,7 +120,7 @@ def import_from_path(to_be_imported: str) -> ModuleType:
             import, `sys.modules` contains exactly the same modules as
             before _plus_ zero or more additional ones.
     """
-    path, child_segments = _split_import_name(to_be_imported)
+    path, child_segments = _split_import_name(to_be_imported, Path)
     spec = _find_root_spec(path)
     with BackupModules(keep_on_success=True) as backup:
         if child_segments:
@@ -134,9 +134,12 @@ def import_from_path(to_be_imported: str) -> ModuleType:
     return module
 
 
+P = t.TypeVar("P", bound=PurePath)  # pylint: disable=invalid-name
+
+
 def _split_import_name(
-    name: str, path_class: Type[Path] = Path
-) -> Tuple[Path, Tuple[str, ...]]:
+    name: str, path_class: t.Type[P]
+) -> t.Tuple[P, t.Tuple[str, ...]]:
     """Extract file path and submodules from an import name."""
     child_segments = []
     while True:
@@ -160,7 +163,7 @@ def _find_root_spec(path: Path) -> importlib.machinery.ModuleSpec:
     name = path.stem
     search_dir = path.parent
     LOG.info('searching for root package "%s" in path "%s"', name, search_dir)
-    spec = importlib.machinery.PathFinder.find_spec(path.stem, path=[str(search_dir)])
+    spec = importlib.machinery.PathFinder.find_spec(name, path=[str(search_dir)])
     if not spec:
         raise ModuleNotFoundError(path)
     return spec
@@ -212,7 +215,7 @@ def _assert_only_additions(backup: BackupModules) -> None:
         LOG.info("    %s", name)
 
 
-def _main(argv):
+def _main(argv: t.Sequence[str]) -> None:
     """Main function if the module is executed on its own."""
     logging.basicConfig(level=logging.INFO)
     for arg in argv[1:]:
