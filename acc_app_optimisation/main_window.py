@@ -8,6 +8,7 @@ from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
 from acc_app_optimisation import gui as app_gui
+from acc_app_optimisation.gui2 import control_pane as gui2
 
 
 class DumbDockWidget(QtWidgets.QDockWidget):
@@ -120,7 +121,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._plot_manager = app_gui.PlotManager(mdi)
         self.runner = None
 
-        self._control_pane = app_gui.ControlPane(
+        self._control_pane = gui2.ControlPane(
             lsa=lsa,
             plot_manager=self._plot_manager,
         )
