@@ -27,7 +27,7 @@ class Signals(QtCore.QObject):
     optimisation_finished = QtCore.pyqtSignal(bool)
 
 
-class OptimizationJob(Job):
+class OptJob(Job):
     """Common logic of all optimizations.
 
     This is a code-sharing base class of `SingleOptimizableJob` and
@@ -153,7 +153,7 @@ class OptimizationJob(Job):
             figure.canvas.draw()
 
 
-class SingleOptimizableJob(OptimizationJob):
+class SingleOptimizableJob(OptJob):
     """Job that optimizes `SingleOptimizable` problems."""
 
     problem: SingleOptimizable
@@ -186,7 +186,7 @@ class SingleOptimizableJob(OptimizationJob):
         self._env_callback(optimum)
 
 
-class FunctionOptimizableJob(OptimizationJob):
+class FunctionOptimizableJob(OptJob):
     """Job that optimizes `FunctionOptimizable` problems."""
 
     problem: FunctionOptimizable

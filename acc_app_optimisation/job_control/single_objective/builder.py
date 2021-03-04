@@ -3,9 +3,8 @@ from logging import getLogger
 
 import numpy as np
 from cernml import coi, coi_funcs
-from PyQt5 import QtCore
 
-from ..base import JobFactory
+from ..base import JobBuilder
 from . import jobs, optimizers
 
 if t.TYPE_CHECKING:
@@ -18,7 +17,7 @@ class CannotBuildJob(Exception):
     """One or more parameters is missing to build the job."""
 
 
-class OptimizationJobFactory(JobFactory):
+class OptJobBuilder(JobBuilder):
     japc: t.Optional["PyJapc"]
     skeleton_points: t.Optional[np.ndarray]
     optimizer_factory: t.Optional[optimizers.OptimizerFactory]
@@ -73,7 +72,7 @@ class OptimizationJobFactory(JobFactory):
             self._problem.close()
             self._problem = None
 
-    def build_job(self) -> jobs.OptimizationJob:
+    def build_job(self) -> jobs.OptJob:
         if self.optimizer_factory is None:
             raise CannotBuildJob("no optimizer selected")
         problem = self.make_problem() if self.problem is None else self.problem

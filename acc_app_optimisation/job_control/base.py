@@ -18,12 +18,21 @@ class Job(QtCore.QRunnable):
         raise NotImplementedError()
 
 
-class JobFactory(abc.ABC):
-    """Anything that can ultimately create a job.
+class JobBuilder(abc.ABC):
+    """Anything that can put together a background job.
 
-    The factory should not launch the job itself. This is typically done
-    by the caller by virtue of submitting it (as a QRunnable) to a
-    threadpool.
+    Background jobs are things that run while the GUI keeps updating.
+    Examples are:
+
+    - numerical optimization;
+    - training an RL agent;
+    - executing an RL agent.
+
+    Putting together such a job requires to keep track of some state:
+    the optimization problem to use, the optimizer, their configuration,
+    etc. A JobBuilder tracks this state and, when the user clicks
+    "Start", bundles it all into a single object that can be submitted
+    to a threadpool.
     """
 
     @abc.abstractmethod

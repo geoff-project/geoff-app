@@ -10,11 +10,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from ..envs import builtin_envs  # pylint: disable=unused-import
 from ..gui.cfgdialog import ProblemConfigureDialog, PureConfigureDialog
 from ..gui.plot_manager import PlotManager
-from ..job_control.single_objective import (
-    OptimizationJob,
-    OptimizationJobFactory,
-    optimizers,
-)
+from ..job_control.single_objective import OptJob, OptJobBuilder, optimizers
 
 if t.TYPE_CHECKING:
     from pyjapc import PyJapc  # pylint: disable=import-error, unused-import
@@ -43,20 +39,20 @@ class NumOptTab(QtWidgets.QWidget):
         super().__init__(parent)
         # Set up internal attributes.
         self._machine = coi.Machine.NoMachine
-        self._job_factory = OptimizationJobFactory()
-        self._current_job: t.Optional[OptimizationJob] = None
+        self._opt_builder = OptJobBuilder()
+        self._current_opt_job: t.Optional[OptJob] = None
         self._plot_manager = plot_manager
         # Bind the job factories signals to the outside world.
-        self._job_factory.signals.objective_updated.connect(
+        self._opt_builder.signals.objective_updated.connect(
             self._plot_manager.set_objective_curve_data
         )
-        self._job_factory.signals.actors_updated.connect(
+        self._opt_builder.signals.actors_updated.connect(
             self._plot_manager.set_actors_curve_data
         )
-        self._job_factory.signals.constraints_updated.connect(
+        self._opt_builder.signals.constraints_updated.connect(
             self._plot_manager.set_constraints_curve_data
         )
-        self._job_factory.signals.optimisation_finished.connect(self._on_opt_finished)
+        self._opt_builder.signals.optimisation_finished.connect(self._on_opt_finished)
         # Build the GUI.
         large = QtGui.QFont()
         large.setPointSize(12)
@@ -111,22 +107,22 @@ class NumOptTab(QtWidgets.QWidget):
 
     @contextlib.contextmanager
     def create_lsa_context(self, japc: "PyJapc") -> t.Iterator[None]:
-        assert self._job_factory.japc is None, "nested LSA context"
-        self._job_factory.japc = japc
+        assert self._opt_builder.japc is None, "nested LSA context"
+        self._opt_builder.japc = japc
         try:
             yield
         finally:
-            self._job_factory.unload_problem()
-            self._job_factory.japc = None
+            self._opt_builder.unload_problem()
+            self._opt_builder.japc = None
 
     def get_or_load_problem(self) -> t.Optional[optimizers.Optimizable]:
-        if self._job_factory.problem is not None:
-            return self._job_factory.problem
+        if self._opt_builder.problem is not None:
+            return self._opt_builder.problem
         please_wait_dialog = CreatingEnvDialog(self.window())
         please_wait_dialog.show()
         try:
-            LOG.debug("initializing new problem: %s", self._job_factory.problem_id)
-            return self._job_factory.make_problem()
+            LOG.debug("initializing new problem: %s", self._opt_builder.problem_id)
+            return self._opt_builder.make_problem()
         except:  # pylint: disable=bare-except
             LOG.error(traceback.format_exc())
             LOG.error("Aborted initialization due to the above exception")
@@ -147,7 +143,7 @@ class NumOptTab(QtWidgets.QWidget):
                 self.env_combo.addItem(env_spec.id)
 
     def _on_env_changed(self, name: str) -> None:
-        self._job_factory.problem_id = name
+        self._opt_builder.problem_id = name
         self._clear_job()
         if name:
             env_spec = coi.spec(name)
@@ -169,7 +165,7 @@ class NumOptTab(QtWidgets.QWidget):
             return
         dialog = ProblemConfigureDialog(
             problem,
-            skeleton_points=self._job_factory.skeleton_points,
+            skeleton_points=self._opt_builder.skeleton_points,
             parent=self.window(),
         )
         name = type(problem.unwrapped).__name__
@@ -178,11 +174,11 @@ class NumOptTab(QtWidgets.QWidget):
         dialog.open()
 
     def _set_skeleton_points(self, skeleton_points: np.ndarray) -> None:
-        self._job_factory.skeleton_points = skeleton_points
+        self._opt_builder.skeleton_points = skeleton_points
 
     def _on_algo_changed(self, _name: str) -> None:
         factory = t.cast(optimizers.OptimizerFactory, self.algo_combo.currentData())
-        self._job_factory.optimizer_factory = factory
+        self._opt_builder.optimizer_factory = factory
         self.algo_config_button.setEnabled(isinstance(factory, coi.Configurable))
 
     def _on_algo_config_clicked(self) -> None:
@@ -201,21 +197,22 @@ class NumOptTab(QtWidgets.QWidget):
         # create it, but without visual feedback.
         if self.get_or_load_problem() is None:
             return
-        self._current_job = self._job_factory.build_job()
+        self._current_opt_job = self._opt_builder.build_job()
+        assert self._current_opt_job is not None
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
         self.reset_button.setEnabled(False)
         self._add_render_output()
         threadpool = QtCore.QThreadPool.globalInstance()
-        threadpool.start(self._current_job)
+        threadpool.start(self._current_opt_job)
 
     def _on_stop_clicked(self) -> None:
-        if self._current_job is None:
+        if self._current_opt_job is None:
             LOG.error("there is nothing to stop")
             return
         LOG.debug("stopping ...")
         self.stop_button.setEnabled(False)
-        self._current_job.cancel()
+        self._current_opt_job.cancel()
 
     def _on_opt_finished(self) -> None:
         self.start_button.setEnabled(True)
@@ -223,25 +220,25 @@ class NumOptTab(QtWidgets.QWidget):
         self.reset_button.setEnabled(True)
 
     def _on_reset_clicked(self) -> None:
-        if self._current_job is None:
+        if self._current_opt_job is None:
             LOG.error("cannot reset, no job has been run")
             return
         LOG.debug("resetting ...")
-        self._current_job.reset()
-        problem = self._current_job.problem
+        self._current_opt_job.reset()
+        problem = self._current_opt_job.problem
         if "matplotlib_figures" in problem.metadata.get("render.modes", []):
             problem.render(mode="matplotlib_figures")
             self._plot_manager.redraw_mpl_figures()
 
     def _clear_job(self) -> None:
-        self._current_job = None
+        self._current_opt_job = None
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
         self.reset_button.setEnabled(False)
 
     def _add_render_output(self) -> None:
-        assert self._current_job is not None
-        problem = self._current_job.problem
+        assert self._current_opt_job is not None
+        problem = self._current_opt_job.problem
         render_modes = problem.metadata.get("render.modes", [])
         if "matplotlib_figures" in render_modes:
             figures = problem.render(mode="matplotlib_figures")

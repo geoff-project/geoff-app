@@ -1,6 +1,6 @@
 """Single-objective optimization. """
 
 from . import optimizers
-from .job_factory import CannotBuildJob, OptimizationJobFactory
-from .jobs import OptimizationJob
+from .builder import CannotBuildJob, OptJobBuilder
+from .jobs import OptJob
 from .optimizers import OptimizerFactory

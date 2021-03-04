@@ -1,1 +1,1 @@
-from .base import Job, JobFactory
+from .base import Job, JobBuilder
