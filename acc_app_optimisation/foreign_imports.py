@@ -81,30 +81,10 @@ class BackupModules:
 def import_from_path(to_be_imported: str) -> ModuleType:
     """Return the module that is imported from path.
 
-    WARNING: Importing Python modules and packages executes arbitrary
-    code. Do not use this function unless you trust the code that you
-    import.
-
-    Usage:
-
-        >>> # Import a single Python file as a module.
-        >>> import_from_path("path/to/module.py")
-
-        >>> # Import a directory as a package. The directory must
-        >>> # contain an __init__.py file.
-        >>> import_from_path("path/to/package")
-
-        >>> # Import a package/module from inside another package. This
-        >>> # imports `package`, `package.child` and
-        >>> # `package.child.grandchild`.
-        >>> import_from_path("path/to/package::child::grandchild")
-
-        >>> # If your file or directory contains a literal double colon,
-        >>> # you can protect it with a trailing forward or backward
-        >>> # slash.
-        >>> import_from_path("strange::module.py/")
-        >>> import_from_path("strange::package/")
-        >>> import_from_path("strange::package/::child_module")
+    Warning:
+        Importing Python modules and packages executes arbitrary code.
+        Do not use this function unless you trust the code that you
+        import.
 
     Args:
         path: The file or directory to import. Attach child packages and
@@ -119,6 +99,31 @@ def import_from_path(to_be_imported: str) -> ModuleType:
             collisions. An import is strictly additional if after the
             import, `sys.modules` contains exactly the same modules as
             before _plus_ zero or more additional ones.
+
+    Usage:
+
+        >>> # Import a single Python file as a module.
+        >>> import_from_path("path/to/module.py")
+
+        >>> # Import a directory as a package. The directory must
+        >>> # contain an __init__.py file.
+        >>> import_from_path("path/to/package")
+
+        >>> # Import a package inside a zip or wheel file.
+        >>> import_from_path("some_file.zip/internal/path/to/package")
+        >>> import_from_path("my_distribution-1.0.0-py3-none-any.whl/my_module.py")
+
+        >>> # Import a package/module from inside another package. This
+        >>> # imports `package`, `package.child` and
+        >>> # `package.child.grandchild`.
+        >>> import_from_path("path/to/package::child::grandchild")
+
+        >>> # If your file or directory contains a literal double colon,
+        >>> # you can protect it with a trailing forward or backward
+        >>> # slash.
+        >>> import_from_path("strange::module.py/")
+        >>> import_from_path("strange::package/")
+        >>> import_from_path("strange::package/::child_module")
     """
     path, child_segments = _split_import_name(to_be_imported, Path)
     spec = _find_root_spec(path)
