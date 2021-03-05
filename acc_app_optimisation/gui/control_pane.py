@@ -11,8 +11,8 @@ from cernml import coi
 from pyjapc import PyJapc
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from ..gui.plot_manager import PlotManager
 from .num_opt_tab import NumOptTab
+from .plot_manager import PlotManager
 
 if t.TYPE_CHECKING:
     import pjlsa  # pylint: disable=import-error, unused-import

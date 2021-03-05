@@ -7,8 +7,9 @@ from accwidgets.log_console import LogConsole, LogConsoleDock, LogConsoleModel
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
-from acc_app_optimisation import gui as app_gui
-from acc_app_optimisation.gui2 import control_pane as gui2
+from .control_pane import ControlPane
+from .plot_manager import PlotManager
+from .popout_mdi_area import PopoutMdiArea
 
 
 class DumbDockWidget(QtWidgets.QDockWidget):
@@ -77,7 +78,7 @@ class MdiViewMenu(QtWidgets.QMenu):
         self._arrange_group.setEnabled(view_mode == QtWidgets.QMdiArea.SubWindowView)
 
 
-class MainMdiArea(app_gui.PopoutMdiArea):
+class MainMdiArea(PopoutMdiArea):
     """Subclass of `PopoutMdiArea` for customization."""
 
     def __init__(self, parent: t.Optional[QtWidgets.QWidget] = None) -> None:
@@ -118,10 +119,10 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         mdi = MainMdiArea()
         self.setCentralWidget(mdi)
-        self._plot_manager = app_gui.PlotManager(mdi)
+        self._plot_manager = PlotManager(mdi)
         self.runner = None
 
-        self._control_pane = gui2.ControlPane(
+        self._control_pane = ControlPane(
             lsa=lsa,
             plot_manager=self._plot_manager,
         )

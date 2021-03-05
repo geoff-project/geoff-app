@@ -8,9 +8,9 @@ from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ..envs import builtin_envs  # pylint: disable=unused-import
-from ..gui.cfgdialog import ProblemConfigureDialog, PureConfigureDialog
-from ..gui.plot_manager import PlotManager
 from ..job_control.single_objective import OptJob, OptJobBuilder, optimizers
+from .cfgdialog import ProblemConfigureDialog, PureConfigureDialog
+from .plot_manager import PlotManager
 
 if t.TYPE_CHECKING:
     from pyjapc import PyJapc  # pylint: disable=import-error, unused-import
