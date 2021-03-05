@@ -9,7 +9,7 @@ import scipy.optimize
 from cernml.coi import Config, Configurable, SingleOptimizable
 from cernml.coi_funcs import FunctionOptimizable
 
-from .constraints import Constraint, LinearConstraint
+from .constraints import Constraint, NonlinearConstraint
 
 Optimizable = t.Union[SingleOptimizable, FunctionOptimizable]
 Objective = t.Callable[[np.ndarray], float]
@@ -149,8 +149,7 @@ class Cobyla(OptimizerFactory, Configurable):
     @staticmethod
     def _make_bounds_constraint(bounds: t.Tuple[np.ndarray, np.ndarray]) -> Constraint:
         lower, upper = bounds
-        ones = np.diag(np.ones_like(lower))
-        return LinearConstraint(ones, lower, upper)
+        return NonlinearConstraint(lambda x: x, lower, upper)
 
     def get_config(self) -> Config:
         config = Config()
