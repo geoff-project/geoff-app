@@ -34,8 +34,6 @@ class OptJob(Job):
     `FunctionOptimizableJob`.
     """
 
-    can_reset: t.ClassVar[bool] = True
-
     wrapped_constraints: t.List[constraints.CachedNonlinearConstraint]
     problem: optimizers.Optimizable
 
@@ -67,6 +65,10 @@ class OptJob(Job):
 
     def run_optimization(self) -> None:
         """The implementation of the optimization procedure."""
+        raise NotImplementedError()
+
+    def reset(self) -> None:
+        """Evaluate the problem at x_0."""
         raise NotImplementedError()
 
     def cancel(self) -> None:

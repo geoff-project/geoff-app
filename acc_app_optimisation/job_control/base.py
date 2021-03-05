@@ -5,13 +5,7 @@ from PyQt5 import QtCore
 
 
 class Job(QtCore.QRunnable):
-    """Abstract base class of things that can be started, stopped and reset."""
-
-    can_reset: t.ClassVar[bool] = False
-
-    def reset(self) -> None:
-        """Evaluate the environment at x_0."""
-        raise NotImplementedError()
+    """Abstract base class of background jobs that can be cancelled."""
 
     def cancel(self) -> None:
         """Cancel optimization at the next step."""

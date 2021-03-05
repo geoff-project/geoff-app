@@ -12,10 +12,12 @@ from pyjapc import PyJapc
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from .num_opt_tab import NumOptTab
-from .plot_manager import PlotManager
+from .rl_train_tab import RlTrainTab
 
 if t.TYPE_CHECKING:
     import pjlsa  # pylint: disable=import-error, unused-import
+
+    from .plot_manager import PlotManager  # pylint: disable=unused-import
 
 LOG = getLogger(__name__)
 
@@ -45,11 +47,12 @@ class ControlPane(QtWidgets.QWidget):
         parent: t.Optional[QtWidgets.QWidget] = None,
         *,
         lsa: "pjlsa.LSAClient",
-        plot_manager: PlotManager,
+        plot_manager: "PlotManager",
         japc_no_set: bool = False,
     ) -> None:
         super().__init__(parent)
         # Set up internal attributes.
+        # TODO: PyJapc should be a global.
         self._japc = PyJapc("", noSet=japc_no_set, incaAcceleratorName="AD")
         self._last_lsa_selection: t.Dict[str, str] = {}
         self._finalizers = contextlib.ExitStack()
@@ -70,7 +73,9 @@ class ControlPane(QtWidgets.QWidget):
         self.lsa_selector.userSelectionChanged.connect(self._on_lsa_user_changed)
         self.tabs = QtWidgets.QTabWidget()
         self.num_opt_tab = NumOptTab(plot_manager=plot_manager)
+        self.rl_train_tab = RlTrainTab(plot_manager=plot_manager)
         self.tabs.addTab(self.num_opt_tab, "Num. Optimization")
+        self.tabs.addTab(self.rl_train_tab, "Train RL Agent")
         self.tabs.setElideMode(QtCore.Qt.ElideRight)
         # Lay out all widgets.
         layout = QtWidgets.QVBoxLayout(self)
@@ -96,6 +101,7 @@ class ControlPane(QtWidgets.QWidget):
         if last_selection:
             self.lsa_selector.select_user(last_selection)
         self.num_opt_tab.setMachine(machine)
+        self.rl_train_tab.setMachine(machine)
 
     def _on_lsa_user_changed(self, user_name: str) -> None:
         context_name = self.lsa_selector.selected_context.name
@@ -108,4 +114,5 @@ class ControlPane(QtWidgets.QWidget):
         self._japc.setSelector(user_name)
         self._finalizers.callback(self._japc.clearSubscriptions)
         self._finalizers.enter_context(self.num_opt_tab.create_lsa_context(self._japc))
+        self._finalizers.enter_context(self.rl_train_tab.create_lsa_context(self._japc))
         self._finalizers.callback(LOG.debug, "Invoking finalizers")
