@@ -178,3 +178,9 @@ class Cobyla(OptimizerFactory, Configurable):
         self.maxfun = values.maxfun
         self.rhobeg = values.rhobeg
         self.rhoend = values.rhoend
+
+
+ALL_OPTIMIZERS: t.Mapping[str, t.Type[OptimizerFactory]] = {
+    "BOBYQA": Bobyqa,
+    "COBYLA": Cobyla,
+}

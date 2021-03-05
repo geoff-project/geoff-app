@@ -8,7 +8,7 @@ from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ..envs import builtin_envs  # pylint: disable=unused-import
-from ..job_control.single_objective import OptJob, OptJobBuilder, optimizers
+from ..job_control.single_objective import ALL_OPTIMIZERS, OptJob, OptJobBuilder
 from .cfgdialog import ProblemConfigureDialog, PureConfigureDialog
 from .plot_manager import PlotManager
 
@@ -101,8 +101,7 @@ class NumOptTab(QtWidgets.QWidget):
         run_control.addWidget(self.reset_button)
         layout.addLayout(run_control)
         # Fill all GUI elements, fire any events based on that.
-        self.algo_combo.addItem("BOBYQA", optimizers.Bobyqa())
-        self.algo_combo.addItem("COBYLA", optimizers.Cobyla())
+        self.algo_combo.addItems(ALL_OPTIMIZERS.keys())
         self.setMachine(self._machine)
 
     @contextlib.contextmanager
@@ -176,14 +175,14 @@ class NumOptTab(QtWidgets.QWidget):
     def _set_skeleton_points(self, skeleton_points: np.ndarray) -> None:
         self._opt_builder.skeleton_points = skeleton_points
 
-    def _on_algo_changed(self, _name: str) -> None:
-        factory = t.cast(optimizers.OptimizerFactory, self.algo_combo.currentData())
-        self._opt_builder.optimizer_factory = factory
+    def _on_algo_changed(self, name: str) -> None:
+        factory_class = ALL_OPTIMIZERS[name]
+        self._opt_builder.optimizer_factory = factory()
         self.algo_config_button.setEnabled(isinstance(factory, coi.Configurable))
 
     def _on_algo_config_clicked(self) -> None:
-        factory = t.cast(optimizers.OptimizerFactory, self.algo_combo.currentData())
         name = self.algo_combo.currentText()
+        factory = self._opt_builder.optimizer_factory
         if not isinstance(factory, coi.Configurable):
             LOG.error("not configurable: %s", factory)
             return
