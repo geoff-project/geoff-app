@@ -4,7 +4,7 @@ import typing as t
 from logging import getLogger
 
 import numpy as np
-from cernml import coi
+from cernml import coi, coi_funcs
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ..envs import builtin_envs  # pylint: disable=unused-import
@@ -137,8 +137,12 @@ class NumOptTab(QtWidgets.QWidget):
         self._machine = machine
         self.env_combo.clear()
         for env_spec in coi.registry.all():
-            metadata = env_spec.entry_point.metadata
-            if machine == metadata.get("cern.machine", coi.Machine.NoMachine):
+            env_class = env_spec.entry_point
+            env_machine = env_class.metadata.get("cern.machine", coi.Machine.NoMachine)
+            is_optimizable = isinstance(
+                env_class, (coi.SingleOptimizable, coi_funcs.FunctionOptimizable)
+            )
+            if machine == env_machine and is_optimizable:
                 self.env_combo.addItem(env_spec.id)
 
     def _on_env_changed(self, name: str) -> None:
