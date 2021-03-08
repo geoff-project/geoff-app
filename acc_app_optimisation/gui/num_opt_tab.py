@@ -9,7 +9,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ..envs import builtin_envs  # pylint: disable=unused-import
 from ..job_control.single_objective import OptJob, OptJobBuilder, optimizers
-from .cfgdialog import ProblemConfigureDialog, PureConfigureDialog
+from . import configuration
 from .plot_manager import PlotManager
 
 if t.TYPE_CHECKING:
@@ -166,7 +166,7 @@ class NumOptTab(QtWidgets.QWidget):
         if not isinstance(problem.unwrapped, coi.Configurable):
             LOG.error("not configurable: %s", problem)
             return
-        dialog = ProblemConfigureDialog(
+        dialog = configuration.OptimizableDialog(
             problem,
             skeleton_points=self._opt_builder.skeleton_points,
             parent=self.window(),
@@ -191,7 +191,7 @@ class NumOptTab(QtWidgets.QWidget):
         if not isinstance(factory, coi.Configurable):
             LOG.error("not configurable: %s", factory)
             return
-        dialog = PureConfigureDialog(factory, self.window())
+        dialog = configuration.PureDialog(factory, self.window())
         dialog.setWindowTitle(f"Configure {name} ...")
         dialog.open()
 

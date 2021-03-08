@@ -9,7 +9,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ..envs import builtin_envs  # pylint: disable=unused-import
 from ..job_control import train_rl
-from .cfgdialog import PureConfigureDialog
+from . import configuration
 from .plot_manager import PlotManager
 
 if t.TYPE_CHECKING:
@@ -154,7 +154,7 @@ class RlTrainTab(QtWidgets.QWidget):
         if not isinstance(problem.unwrapped, coi.Configurable):
             LOG.error("not configurable: %s", problem)
             return
-        dialog = PureConfigureDialog(problem, parent=self.window())
+        dialog = configuration.PureDialog(problem, parent=self.window())
         name = type(problem.unwrapped).__name__
         dialog.setWindowTitle(f"Configure {name} ...")
         dialog.open()
@@ -170,7 +170,7 @@ class RlTrainTab(QtWidgets.QWidget):
         if not isinstance(factory, coi.Configurable):
             LOG.error("not configurable: %s", factory)
             return
-        dialog = PureConfigureDialog(factory, self.window())
+        dialog = configuration.PureDialog(factory, self.window())
         dialog.setWindowTitle(f"Configure {name} ...")
         dialog.open()
 

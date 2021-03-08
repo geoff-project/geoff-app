@@ -5,23 +5,12 @@ import typing as t
 
 import numpy as np
 from cernml import coi, coi_funcs
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QDoubleValidator, QShowEvent, QValidator
-from PyQt5.QtWidgets import (
-    QDialog,
-    QDialogButtonBox,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QSizePolicy,
-    QTabWidget,
-    QVBoxLayout,
-    QWidget,
-)
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QTabWidget, QVBoxLayout, QWidget
 
-from ..utils.split_words import split_words_and_spaces
-from .cfgwidget import ConfigureWidget
-from .excdialog import exception_dialog
+from ..excdialog import exception_dialog
+from ._skeleton_points import SkeletonPointsWidget
+from ._widget import ConfigureWidget
 
 LOG = logging.getLogger(__name__)
 
@@ -85,7 +74,7 @@ class _BaseDialog(QDialog):
         return True
 
 
-class PureConfigureDialog(_BaseDialog):
+class PureDialog(_BaseDialog):
     """Qt dialog that allows configuring an environment.
 
     Args:
@@ -103,7 +92,7 @@ class PureConfigureDialog(_BaseDialog):
         main_layout.addWidget(self._controls)
 
 
-class ProblemConfigureDialog(_BaseDialog):
+class OptimizableDialog(_BaseDialog):
     """Qt dialog that allows configuring a FunctionOptimizable.
 
     Args:
@@ -159,101 +148,6 @@ class ProblemConfigureDialog(_BaseDialog):
             LOG.info("new skeleton points: %s", points)
             self.skeleton_points_updated.emit(points)
         super().on_apply_clicked()
-
-
-class SkeletonPointsWidget(QWidget):
-    """The tab page presented to set skeleton points."""
-
-    def __init__(
-        self,
-        points: t.Optional[t.Iterable[float]] = None,
-        parent: t.Optional[QWidget] = None,
-    ) -> None:
-        super().__init__(parent)
-        description = QLabel(
-            "Enter skeleton points for optimization of LSA "
-            "functions here. Enter one point in time for each "
-            "point. Separate points with whitespace.",
-        )
-        description.setWordWrap(True)
-        initial_text = " ".join(map(str, [] if points is None else points))
-        validator = WhitespaceDelimitedDoubleValidator()
-        validator.setBottom(0.0)
-        self.edit = QLineEdit(initial_text)
-        self.edit.setValidator(validator)
-        reset = QPushButton("Reset")
-        reset.setEnabled(False)
-        reset.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        reset.clicked.connect(lambda: self.edit.setText(initial_text))
-        self.edit.textChanged.connect(
-            lambda text: reset.setEnabled(text != initial_text)
-        )
-        layout = QVBoxLayout(self)
-        layout.addWidget(description)
-        layout.addWidget(self.edit)
-        layout.addWidget(reset, alignment=Qt.AlignRight)
-        layout.addStretch(1)
-
-    def showEvent(self, _: QShowEvent) -> None:
-        """Pre-select the line edit upon becoming visible."""
-        # pylint: disable = invalid-name
-        self.edit.setFocus()
-
-    def read_points(self) -> np.ndarray:
-        """Parse the skeleton points entered by the user."""
-        locale = self.edit.validator().locale()
-        points = set()
-        for word in self.edit.text().split():
-            point, success = locale.toDouble(word)
-            if not success:
-                raise ValueError(f"could not convert string to float: {word!r}")
-            points.add(point)
-        return np.array(sorted(points))
-
-
-class WhitespaceDelimitedDoubleValidator(QDoubleValidator):
-    """A `QValidator` that accepts a list of doubles, delimited by whitespace."""
-
-    def validate(self, text: str, pos: int) -> t.Tuple[QValidator.State, str, int]:
-        "Implementation of `QValidator.validate()`."
-        parts = []
-        # Start out with the best validator state: acceptable. As we go
-        # through the numbers, the state can only get worse:
-        # intermediate if the input looks like we caught the user
-        # mid-typing, invalid if the input is flat-out wrong.
-        final_state = QValidator.Acceptable
-        # Tokenize the input, split it into pure whitespace and pure
-        # floats.
-        for token in split_words_and_spaces(text):
-            if token.isspace():
-                # Whitespace: If the cursor is behind this, we adjust
-                # its position. If the cursor is before this, it cannot
-                # be affected.
-                part = " "
-                if pos > token.begin:
-                    pos += len(" ") - len(token.text)
-                state = QValidator.Acceptable
-            elif token.begin <= pos < token.end:
-                # Word, cursor inside the word: take validator's
-                # position changes into account.
-                rel_pos = pos - token.begin
-                state, part, rel_pos = super().validate(token.text, rel_pos)
-                pos = token.begin + rel_pos
-            else:
-                # Word, cursor outside the word: Only adjust cursor
-                # position if it is behind this word. If it is before,
-                # this word cannot change its position.
-                state, part, _ = super().validate(token.text, 0)
-                if pos > token.begin:
-                    pos += len(part) - len(token.text)
-            parts.append(part)
-            if state < final_state:
-                final_state = state
-        # Final adjustment: If the text consists of nothing _but_
-        # whitespace, we just discard it.
-        if all(part.isspace() for part in parts):
-            parts.clear()
-        return final_state, "".join(parts), pos
 
 
 def _show_config_failed(
