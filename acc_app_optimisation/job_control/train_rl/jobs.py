@@ -64,19 +64,16 @@ class TrainJobBuilder(JobBuilder):
         self.unload_env()
         spec = coi.spec(self._env_id)
         needs_japc = spec.entry_point.metadata.get("cern.japc", False)
+        kwargs: t.Dict[str, t.Any] = {}
         if needs_japc:
             if self.japc is None:
                 raise CannotBuildJob("no LSA context selected")
-            LOG.debug(
-                "Initializing %s with selector %s",
-                self._env_id,
-                self.japc.getSelector(),
-            )
-            env = coi.make(self._env_id, japc=self.japc)
+            LOG.debug("Using selector %s", self.japc.getSelector())
+            kwargs["japc"] = self.japc
         else:
-            LOG.debug("Initializing %s (no JAPC)", self._env_id)
-            env = coi.make(self._env_id)
-        self._env = env
+            LOG.debug("Using no JAPC")
+        LOG.debug("Making %s", self._env_id)
+        self._env = env = coi.make(self._env_id, **kwargs)
         return env
 
     def unload_env(self) -> None:

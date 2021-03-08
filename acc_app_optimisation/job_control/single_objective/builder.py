@@ -51,19 +51,15 @@ class OptJobBuilder(JobBuilder):
         self.unload_problem()
         spec = coi.spec(self.problem_id)
         needs_japc = spec.entry_point.metadata.get("cern.japc", False)
+        kwargs: t.Dict[str, t.Any] = {}
         if needs_japc:
             if self.japc is None:
                 raise CannotBuildJob("no LSA context selected")
-            LOG.debug(
-                "Initializing %s with selector %s",
-                self.problem_id,
-                self.japc.getSelector(),
-            )
-            problem = coi.make(self.problem_id, japc=self.japc)
+            LOG.debug("Using selector %s", self.japc.getSelector())
+            kwargs["japc"] = self.japc
         else:
-            LOG.debug("Initializing %s (no JAPC)", self.problem_id)
-            problem = coi.make(self.problem_id)
-        self._problem = problem
+            LOG.debug("Using no JAPC")
+        self._problem = problem = coi.make(self._problem_id, **kwargs)
         return problem
 
     def unload_problem(self) -> None:
