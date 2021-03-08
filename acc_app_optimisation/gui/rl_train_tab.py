@@ -201,7 +201,20 @@ class RlTrainTab(QtWidgets.QWidget):
         self.save_button.setEnabled(True)
 
     def _on_save_clicked(self) -> None:
-        raise NotImplementedError()
+        dialog = QtWidgets.QFileDialog(self.window())
+        dialog.setAcceptMode(dialog.AcceptSave)
+        dialog.setFileMode(dialog.AnyFile)
+        dialog.setModal(True)
+        dialog.accepted.connect(lambda: self._on_save_model_accepted(dialog))
+        dialog.show()
+
+    def _on_save_model_accepted(self, dialog: QtWidgets.QFileDialog) -> None:
+        if self._current_train_job is None:
+            LOG.error("there is nothing to save")
+            return
+        [path] = dialog.selectedFiles()
+        LOG.info("saving: %s", path)
+        self._current_train_job.save(path)
 
     def _clear_job(self) -> None:
         self._current_train_job = None
