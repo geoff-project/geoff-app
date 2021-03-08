@@ -34,6 +34,7 @@ class Signals(QtCore.QObject):
 
 class TrainJobBuilder(JobBuilder):
     japc: t.Optional["PyJapc"]
+    time_limit: int
     agent_factory: t.Optional[agents.AgentFactory]
     signals: Signals
 
@@ -41,6 +42,7 @@ class TrainJobBuilder(JobBuilder):
         self._env: t.Optional[gym.Env] = None
         self._env_id = ""
         self.japc = None
+        self.time_limit = 0
         self.agent_factory = None
         self.signals = Signals()
 
@@ -72,8 +74,16 @@ class TrainJobBuilder(JobBuilder):
             kwargs["japc"] = self.japc
         else:
             LOG.debug("Using no JAPC")
+        if spec.max_episode_steps is not None:
+            LOG.debug("Default time limit: %d", spec.max_episode_steps)
+            self.time_limit = spec.max_episode_steps
+        else:
+            LOG.debug("No default time limit")
+            self.time_limit = 0
         LOG.debug("Making %s", self._env_id)
-        self._env = env = coi.make(self._env_id, **kwargs)
+        # Use spec.make instead of coi.make to avoid auto-wrapping in a
+        # gym.wrappers.TimeLimit.
+        self._env = env = spec.make(**kwargs)
         return env
 
     def unload_env(self) -> None:
@@ -86,6 +96,8 @@ class TrainJobBuilder(JobBuilder):
         if self.agent_factory is None:
             raise CannotBuildJob("no algorithm selected")
         env = self._env if self._env is not None else self.make_env()
+        if self.time_limit:
+            env = gym.wrappers.TimeLimit(env, max_episode_steps=self.time_limit)
         return TrainJob(env=env, agent_factory=self.agent_factory, signals=self.signals)
 
 

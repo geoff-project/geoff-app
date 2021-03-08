@@ -59,7 +59,7 @@ class OptJobBuilder(JobBuilder):
             kwargs["japc"] = self.japc
         else:
             LOG.debug("Using no JAPC")
-        self._problem = problem = coi.make(self._problem_id, **kwargs)
+        self._problem = problem = spec.make(**kwargs)
         return problem
 
     def unload_problem(self) -> None:
