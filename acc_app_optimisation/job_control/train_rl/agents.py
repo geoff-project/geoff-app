@@ -64,7 +64,7 @@ class TD3(AgentFactory):
         self, ac_space: gym.spaces.Box
     ) -> t.Optional[sb3.common.noise.ActionNoise]:
         if self.action_noise:
-            return NormalActionNoise(
+            return sb3.common.noise.NormalActionNoise(
                 mean=np.zeros(ac_space.shape),
                 sigma=self.action_noise * np.ones(ac_space.shape),
             )

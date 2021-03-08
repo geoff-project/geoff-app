@@ -111,7 +111,7 @@ class RlTrainTab(QtWidgets.QWidget):
         please_wait_dialog = CreatingEnvDialog(self.window())
         please_wait_dialog.show()
         try:
-            LOG.debug("initializing new problem: %s", self._opt_builder.problem_id)
+            LOG.debug("initializing new problem: %s", self._train_builder.env_id)
             return self._train_builder.make_env()
         except:  # pylint: disable=bare-except
             LOG.error(traceback.format_exc())
@@ -130,12 +130,11 @@ class RlTrainTab(QtWidgets.QWidget):
         for env_spec in coi.registry.all():
             env_class = env_spec.entry_point
             env_machine = env_class.metadata.get("cern.machine", coi.Machine.NoMachine)
-            LOG.warning("%s: is %s, expected %s", env_spec.id, env_machine, machine)
             if machine == env_machine and issubclass(env_class, gym.Env):
                 self.env_combo.addItem(env_spec.id)
 
     def _on_env_changed(self, name: str) -> None:
-        # self._opt_builder.problem_id = name
+        self._train_builder.env_id = name
         self._clear_job()
         if name:
             env_spec = coi.spec(name)
@@ -184,9 +183,9 @@ class RlTrainTab(QtWidgets.QWidget):
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
         self.save_button.setEnabled(False)
-        self._add_render_output()
+        self._add_render_output(env)
         threadpool = QtCore.QThreadPool.globalInstance()
-        threadpool.start(self._current_opt_job)
+        threadpool.start(self._current_train_job)
 
     def _on_stop_clicked(self) -> None:
         if self._current_train_job is None:
@@ -205,14 +204,12 @@ class RlTrainTab(QtWidgets.QWidget):
         raise NotImplementedError()
 
     def _clear_job(self) -> None:
-        # self._current_opt_job = None
+        self._current_train_job = None
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
         self.save_button.setEnabled(False)
 
-    def _add_render_output(self) -> None:
-        assert self._current_opt_job is not None
-        problem = self._current_opt_job.problem
+    def _add_render_output(self, problem: coi.Problem) -> None:
         render_modes = problem.metadata.get("render.modes", [])
         if "matplotlib_figures" in render_modes:
             figures = problem.render(mode="matplotlib_figures")

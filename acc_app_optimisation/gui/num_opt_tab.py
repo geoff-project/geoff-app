@@ -8,7 +8,7 @@ from cernml import coi, coi_funcs
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from ..envs import builtin_envs  # pylint: disable=unused-import
-from ..job_control.single_objective import ALL_OPTIMIZERS, OptJob, OptJobBuilder
+from ..job_control.single_objective import OptJob, OptJobBuilder, optimizers
 from .cfgdialog import ProblemConfigureDialog, PureConfigureDialog
 from .plot_manager import PlotManager
 
@@ -101,7 +101,7 @@ class NumOptTab(QtWidgets.QWidget):
         run_control.addWidget(self.reset_button)
         layout.addLayout(run_control)
         # Fill all GUI elements, fire any events based on that.
-        self.algo_combo.addItems(ALL_OPTIMIZERS.keys())
+        self.algo_combo.addItems(optimizers.ALL_OPTIMIZERS.keys())
         self.setMachine(self._machine)
 
     @contextlib.contextmanager
@@ -139,7 +139,7 @@ class NumOptTab(QtWidgets.QWidget):
         for env_spec in coi.registry.all():
             env_class = env_spec.entry_point
             env_machine = env_class.metadata.get("cern.machine", coi.Machine.NoMachine)
-            is_optimizable = isinstance(
+            is_optimizable = issubclass(
                 env_class, (coi.SingleOptimizable, coi_funcs.FunctionOptimizable)
             )
             if machine == env_machine and is_optimizable:
@@ -180,8 +180,9 @@ class NumOptTab(QtWidgets.QWidget):
         self._opt_builder.skeleton_points = skeleton_points
 
     def _on_algo_changed(self, name: str) -> None:
-        factory_class = ALL_OPTIMIZERS[name]
-        self._opt_builder.optimizer_factory = factory()
+        factory_class = optimizers.ALL_OPTIMIZERS[name]
+        factory = factory_class()
+        self._opt_builder.optimizer_factory = factory
         self.algo_config_button.setEnabled(isinstance(factory, coi.Configurable))
 
     def _on_algo_config_clicked(self) -> None:
@@ -198,14 +199,15 @@ class NumOptTab(QtWidgets.QWidget):
         # Let `self.get_or_load_problem()` to create the problem object
         # so that we get a please-wait dialog. `build_job()` would also
         # create it, but without visual feedback.
-        if self.get_or_load_problem() is None:
+        problem = self.get_or_load_problem()
+        if problem is None:
             return
         self._current_opt_job = self._opt_builder.build_job()
         assert self._current_opt_job is not None
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
         self.reset_button.setEnabled(False)
-        self._add_render_output()
+        self._add_render_output(problem)
         threadpool = QtCore.QThreadPool.globalInstance()
         threadpool.start(self._current_opt_job)
 
@@ -239,9 +241,7 @@ class NumOptTab(QtWidgets.QWidget):
         self.stop_button.setEnabled(False)
         self.reset_button.setEnabled(False)
 
-    def _add_render_output(self) -> None:
-        assert self._current_opt_job is not None
-        problem = self._current_opt_job.problem
+    def _add_render_output(self, problem: coi.Problem) -> None:
         render_modes = problem.metadata.get("render.modes", [])
         if "matplotlib_figures" in render_modes:
             figures = problem.render(mode="matplotlib_figures")

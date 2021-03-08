@@ -1,7 +1,6 @@
 import traceback
 import typing as t
 from logging import getLogger
-from pathlib import Path
 
 import gym
 import numpy as np
@@ -12,6 +11,9 @@ from ..base import Job, JobBuilder
 from . import agents
 
 if t.TYPE_CHECKING:
+    from io import BufferedIOBase  # pylint: disable=unused-import
+    from pathlib import Path  # pylint: disable=unused-import
+
     from pyjapc import PyJapc  # pylint: disable=import-error, unused-import
 
 LOG = getLogger(__name__)
@@ -121,7 +123,7 @@ class TrainJob(Job):
     def cancel(self) -> None:
         self._env.cancel()
 
-    def save(self, path: Path) -> None:
+    def save(self, path: t.Union[str, "Path", "BufferedIOBase"]) -> None:
         if not self._finished:
             raise RuntimeError("cannot save a model before or during training")
         self._agent.save(path)
