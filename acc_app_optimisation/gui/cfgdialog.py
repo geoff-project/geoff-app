@@ -43,7 +43,8 @@ class _BaseDialog(QDialog):
         self, target: t.Optional[coi.Configurable], parent: t.Optional[QWidget] = None
     ) -> None:
         super().__init__(parent)
-        self._cfgform = None if target is None else ConfigureWidget(target)
+        self.target = target
+        self._cfgform = None if target is None else ConfigureWidget(target.get_config())
         self._controls = QDialogButtonBox(  # type: ignore
             QDialogButtonBox.Ok | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
         )
@@ -55,19 +56,33 @@ class _BaseDialog(QDialog):
 
     def on_ok_clicked(self) -> None:
         """Apply the configs and close the window."""
-        if self._cfgform is not None:
-            exc = self._cfgform.apply_config(return_exc=True)
-            if exc is not None:
-                _show_config_failed(self._cfgform.target, exc, parent=self)
-                return
-        self.accept()
+        # Only close the dialog if there was no error.
+        if self._apply_config():
+            self.accept()
 
     def on_apply_clicked(self) -> None:
         """Apply the configs."""
-        if self._cfgform is not None:
-            exc = self._cfgform.apply_config(return_exc=True)
-            if exc is not None:
-                _show_config_failed(self._cfgform.target, exc, parent=self)
+        self._apply_config()
+
+    def _apply_config(self) -> bool:
+        """Apply the currently chosen values to the configurable.
+
+        Returns:
+            True if the config has been applied successfully. False if
+            an exception has been raised.
+        """
+        if self.target is None:
+            return True
+        assert self._cfgform is not None
+        try:
+            values = self._cfgform.current_values()
+            self.target.apply_config(values)
+        except Exception as exc:  # pylint: disable=broad-except
+            LOG.warning("configuration failed validation: %s", exc)
+            _show_config_failed(self.target, exc, parent=self)
+            return False
+        LOG.info("configuration applied: %s", values)
+        return True
 
 
 class PureConfigureDialog(_BaseDialog):

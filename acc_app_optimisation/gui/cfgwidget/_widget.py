@@ -2,11 +2,12 @@
 
 import logging
 import typing as t
+from types import SimpleNamespace
 
 from cernml import coi
 from PyQt5.QtWidgets import QFormLayout, QLabel, QWidget
 
-from ._field_widgets import UnparsedDict, make_field_widget
+from ._field_widgets import make_field_widget
 from ._type_utils import str_boolsafe
 
 LOG = logging.getLogger(__name__)
@@ -16,63 +17,41 @@ class ConfigureWidget(QWidget):
     """Qt dialog that allows configuring an environment.
 
     Args:
-        target: The environment to be configured.
+        config: A `Config` object describing this widget.
         parent: The parent widget to attach to.
-
-    Attributes:
-        target: The object to configure.
-        config: The `Config` object returned by the target.
-        current_values: A dictionary of unparsed, unvalidated values,
-            one for each field.
     """
-
-    target: coi.Configurable
-    config: coi.Config
-    current_values: UnparsedDict
 
     def __init__(
         self,
-        target: coi.Configurable,
+        config: coi.Config,
         parent: t.Optional[QWidget] = None,
     ) -> None:
         super().__init__(parent)
-        self.target = target
-        self.config = self.target.get_config()
-        self.current_values = {
-            field.dest: str_boolsafe(field.value) for field in self.config.fields()
+        self._config = config
+        self._current_values = {
+            field.dest: str_boolsafe(field.value) for field in self._config.fields()
         }
         params_layout = QFormLayout(self)
-        for field in self.config.fields():
+        for field in self._config.fields():
             label = QLabel(field.label)
-            widget = make_field_widget(field, self.current_values)
+            widget = make_field_widget(field, self._current_values)
             if field.help is not None:
                 widget.setToolTip(field.help)
             params_layout.addRow(label, widget)
 
-    @t.overload
-    def apply_config(self) -> None:
-        ...
+    def config(self) -> coi.Config:
+        """Return the config that created this widget."""
+        return self._config
 
-    @t.overload
-    def apply_config(self, *, return_exc: bool) -> t.Optional[Exception]:
-        ...
+    def current_values(self) -> SimpleNamespace:
+        """Validate the current values and return them as a namespace.
 
-    def apply_config(self, *, return_exc: bool = False) -> t.Optional[Exception]:
-        """Apply the currently chosen values to the configurable.
+        Note that this performs only the first step of validation! You
+        still have to pass these values to
+        `coi.Configurable.apply_config()`, which may fail.
 
-        Args:
-            return_exc: If passed and True, this captures and returns an
-                exception that happens during validation. The default is
-                to let any exceptions bubble up to indicate that
-                validation failed.
+        Raises:
+            coi.BadConfig: if the values currently in the widget fail
+                validation.
         """
-        try:
-            values = self.config.validate_all(self.current_values)
-            self.target.apply_config(values)
-        except Exception as exc:
-            LOG.warning("configuration failed validation: %s", exc)
-            if return_exc:
-                return exc
-            raise
-        LOG.info("configuration applied: %s", values)
-        return None
+        return self._config.validate_all(self._current_values)
