@@ -17,3 +17,18 @@ exclude = '''
 
 [tool.isort]
 profile = "black"
+
+[tool.pylint.REPORTS]
+score = false
+reports = false
+output-format = 'colorized'
+
+[tool.pylint.'MESSAGES CONTROL']
+disable = [
+    'duplicate-code',
+    'fixme',
+    'missing-module-docstring',
+    'missing-class-docstring',
+    'missing-function-docstring',
+    'too-few-public-methods',
+]
