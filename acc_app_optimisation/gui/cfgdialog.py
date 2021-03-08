@@ -44,7 +44,7 @@ class _BaseDialog(QDialog):
     ) -> None:
         super().__init__(parent)
         self._cfgform = None if target is None else ConfigureWidget(target)
-        self._controls = QDialogButtonBox(
+        self._controls = QDialogButtonBox(  # type: ignore
             QDialogButtonBox.Ok | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
         )
         self._controls.button(QDialogButtonBox.Ok).clicked.connect(self.on_ok_clicked)
@@ -82,6 +82,7 @@ class PureConfigureDialog(_BaseDialog):
         self, target: coi.Configurable, parent: t.Optional[QWidget] = None
     ) -> None:
         super().__init__(target, parent)
+        assert self._cfgform is not None
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(self._cfgform)
         main_layout.addWidget(self._controls)
@@ -103,27 +104,28 @@ class ProblemConfigureDialog(_BaseDialog):
         skeleton_points: t.Optional[np.ndarray] = None,
         parent: t.Optional[QWidget] = None,
     ) -> None:
-        super().__init__(
-            target=target if isinstance(target.unwrapped, coi.Configurable) else None,
-            parent=parent,
-        )
+        if isinstance(target.unwrapped, coi.Configurable):
+            super().__init__(t.cast(coi.Configurable, target), parent)
+        else:
+            super().__init__(None, parent)
+        self._points_page: t.Optional[SkeletonPointsWidget]
         tab_widget = QTabWidget()
         if self._cfgform is not None:
             tab_widget.addTab(self._cfgform, "Configuration")
         if isinstance(target.unwrapped, coi_funcs.FunctionOptimizable):
-            self.points_page = SkeletonPointsWidget(skeleton_points)
-            tab_widget.addTab(self.points_page, "Skeleton points")
+            self._points_page = SkeletonPointsWidget(skeleton_points)
+            tab_widget.addTab(self._points_page, "Skeleton points")
         else:
-            self.points_page = None
+            self._points_page = None
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(tab_widget)
         main_layout.addWidget(self._controls)
 
     def on_ok_clicked(self) -> None:
         """Apply the configs and close the window."""
-        if self.points_page is not None:
+        if self._points_page is not None:
             try:
-                points = self.points_page.read_points()
+                points = self._points_page.read_points()
             except ValueError as exc:
                 _show_skeleton_points_failed(exc, parent=self)
                 return
@@ -133,9 +135,9 @@ class ProblemConfigureDialog(_BaseDialog):
 
     def on_apply_clicked(self) -> None:
         """Apply the configs."""
-        if self.points_page is not None:
+        if self._points_page is not None:
             try:
-                points = self.points_page.read_points()
+                points = self._points_page.read_points()
             except ValueError as exc:
                 _show_skeleton_points_failed(exc, parent=self)
                 return
@@ -157,17 +159,17 @@ class SkeletonPointsWidget(QWidget):
             "Enter skeleton points for optimization of LSA "
             "functions here. Enter one point in time for each "
             "point. Separate points with whitespace.",
-            wordWrap=True,
         )
+        description.setWordWrap(True)
         initial_text = " ".join(map(str, [] if points is None else points))
+        validator = WhitespaceDelimitedDoubleValidator()
+        validator.setBottom(0.0)
         self.edit = QLineEdit(initial_text)
-        self.edit.setValidator(WhitespaceDelimitedDoubleValidator(bottom=0.0))
-        reset = QPushButton(
-            "Reset",
-            enabled=False,
-            sizePolicy=QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed),
-            clicked=lambda: self.edit.setText(initial_text),
-        )
+        self.edit.setValidator(validator)
+        reset = QPushButton("Reset")
+        reset.setEnabled(False)
+        reset.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        reset.clicked.connect(lambda: self.edit.setText(initial_text))
         self.edit.textChanged.connect(
             lambda text: reset.setEnabled(text != initial_text)
         )
