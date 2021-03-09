@@ -177,10 +177,13 @@ class NumOptTab(QtWidgets.QWidget):
         )
         name = type(problem.unwrapped).__name__
         dialog.setWindowTitle(f"Configure {name} ...")
-        dialog.skeleton_points_updated.connect(self._set_skeleton_points)
+        dialog.config_applied.connect(
+            lambda: self._set_skeleton_points(dialog.skeletonPoints())
+        )
         dialog.open()
 
     def _set_skeleton_points(self, skeleton_points: np.ndarray) -> None:
+        LOG.info("new skeleton points: %s", skeleton_points)
         self._opt_builder.skeleton_points = skeleton_points
 
     def _on_algo_changed(self, name: str) -> None:

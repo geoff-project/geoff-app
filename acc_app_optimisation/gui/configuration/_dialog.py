@@ -28,6 +28,8 @@ class _BaseDialog(QDialog):
         _controls: The `QDialogButtonBox` to use in this dialog.
     """
 
+    config_applied = pyqtSignal()
+
     def __init__(
         self, target: t.Optional[coi.Configurable], parent: t.Optional[QWidget] = None
     ) -> None:
@@ -47,11 +49,13 @@ class _BaseDialog(QDialog):
         """Apply the configs and close the window."""
         # Only close the dialog if there was no error.
         if self.apply_config():
+            self.config_applied.emit()
             self.accept()
 
     def _on_apply_clicked(self) -> None:
         """Apply the configs."""
-        self.apply_config()
+        if self.apply_config():
+            self.config_applied.emit()
 
     def apply_config(self) -> bool:
         """Apply the currently chosen values to the configurable.
@@ -100,8 +104,6 @@ class OptimizableDialog(_BaseDialog):
         parent: The parent widget to attach to.
     """
 
-    skeleton_points_updated = pyqtSignal(np.ndarray)
-
     def __init__(
         self,
         target: t.Union[coi.Configurable, coi_funcs.FunctionOptimizable],
@@ -116,29 +118,43 @@ class OptimizableDialog(_BaseDialog):
         tab_widget = QTabWidget()
         if self._cfgform is not None:
             tab_widget.addTab(self._cfgform, "Configuration")
+        self._skeleton_points: t.Optional[np.ndarray]
         if isinstance(target.unwrapped, coi_funcs.FunctionOptimizable):
-            self._points_page = SkeletonPointsWidget(
-                skeleton_points or np.array([], dtype=float)
-            )
+            if skeleton_points is not None:
+                self._skeleton_points = np.array(skeleton_points, dtype=float)
+            else:
+                self._skeleton_points = np.array([], dtype=float)
+            self._points_page = SkeletonPointsWidget(self._skeleton_points)
             tab_widget.addTab(self._points_page, "Skeleton points")
         else:
             self._points_page = None
+            self._skeleton_points = None
         main_layout = QVBoxLayout(self)
         main_layout.addWidget(tab_widget)
         main_layout.addWidget(self._controls)
 
+    def skeletonPoints(self) -> t.Optional[np.ndarray]:  # pylint: disable=invalid-name
+        return self._skeleton_points
+
+    def setSkeletonPoints(  # pylint: disable=invalid-name
+        self, points: np.ndarray
+    ) -> None:
+        if self._points_page is not None:
+            self._skeleton_points = points
+            self._points_page.setSkeletonPoints(points)
+        else:
+            raise TypeError(
+                f"cannot set skeleton points, {self.target} is not FunctionOptimizable"
+            )
+
     def apply_config(self) -> bool:
         if self._points_page is not None:
             try:
-                points = self._points_page.skeletonPoints()
+                self._skeleton_points = self._points_page.skeletonPoints()
             except ValueError as exc:
                 _show_skeleton_points_failed(exc, parent=self)
                 return False
-        success = super().apply_config()
-        if success:
-            LOG.info("new skeleton points: %s", points)
-            self.skeleton_points_updated.emit(points)
-        return success
+        return super().apply_config()
 
 
 def _show_config_failed(
