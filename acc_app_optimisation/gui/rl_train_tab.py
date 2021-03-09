@@ -43,7 +43,13 @@ class RlTrainTab(QtWidgets.QWidget):
         self._current_train_job: t.Optional[train_rl.TrainJob] = None
         self._plot_manager = plot_manager
         # Bind the job factories signals to the outside world.
-        self._train_builder.signals.step_finished.connect(
+        self._train_builder.signals.objective_updated.connect(
+            self._plot_manager.set_objective_curve_data
+        )
+        self._train_builder.signals.actors_updated.connect(
+            self._plot_manager.set_actors_curve_data
+        )
+        self._train_builder.signals.reward_lists_updated.connect(
             self._plot_manager.set_reward_curve_data
         )
         self._train_builder.signals.training_finished.connect(

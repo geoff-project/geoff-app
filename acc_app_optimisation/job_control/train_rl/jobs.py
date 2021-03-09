@@ -29,7 +29,9 @@ class TrainingCancelled(Exception):
 
 
 class Signals(QtCore.QObject):
-    step_finished = QtCore.pyqtSignal(list)
+    objective_updated = QtCore.pyqtSignal(np.ndarray, np.ndarray)
+    actors_updated = QtCore.pyqtSignal(np.ndarray, np.ndarray)
+    reward_lists_updated = QtCore.pyqtSignal(list)
     training_finished = QtCore.pyqtSignal(bool)
 
 
@@ -140,6 +142,7 @@ class TrainJob(Job):
 
 class RenderWrapper(gym.Wrapper):
     def __init__(self, env: gym.Env, signals: Signals) -> None:
+        self.episode_actions: t.List[np.ndarray] = []
         self.reward_lists: t.List[t.List[float]] = []
         self.signals = signals
         self._cancelled = False
@@ -156,6 +159,7 @@ class RenderWrapper(gym.Wrapper):
         if self._cancelled:
             raise TrainingCancelled()
         self.reward_lists.append([])
+        self.episode_actions.clear()
         return super().reset(**kwargs)
 
     def step(
@@ -164,6 +168,12 @@ class RenderWrapper(gym.Wrapper):
         if self._cancelled:
             raise TrainingCancelled()
         obs, reward, done, info = super().step(action)
-        self.reward_lists[-1].append(reward)
-        self.signals.step_finished.emit(self.reward_lists)
+        episode_rewards = self.reward_lists[-1]
+        episode_rewards.append(reward)
+        self.episode_actions.append(np.array(action))
+        # Send signals.
+        xlist = np.arange(len(episode_rewards))
+        self.signals.reward_lists_updated.emit(self.reward_lists)
+        self.signals.objective_updated.emit(xlist, np.array(episode_rewards))
+        self.signals.actors_updated.emit(xlist, np.array(self.episode_actions))
         return obs, reward, done, info
