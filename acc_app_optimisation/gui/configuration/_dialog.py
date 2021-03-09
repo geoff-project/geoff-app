@@ -2,7 +2,9 @@
 
 import logging
 import typing as t
+from types import SimpleNamespace
 
+import gym
 import numpy as np
 from cernml import coi, coi_funcs
 from PyQt5.QtCore import pyqtSignal
@@ -155,6 +157,56 @@ class OptimizableDialog(_BaseDialog):
                 _show_skeleton_points_failed(exc, parent=self)
                 return False
         return super().apply_config()
+
+
+class EnvDialog(_BaseDialog):
+    """Qt dialog that allows configuring an RL environment.
+
+    Args:
+        target: The environment to be configured.
+        parent: The parent widget to attach to.
+    """
+
+    def __init__(
+        self, env: gym.Env, time_limit: int, parent: t.Optional[QWidget] = None
+    ) -> None:
+        self._configurable = ConfigTimeLimit(env, time_limit)
+        super().__init__(self._configurable, parent)
+        assert self._cfgform is not None
+        main_layout = QVBoxLayout(self)
+        main_layout.addWidget(self._cfgform)
+        main_layout.addWidget(self._controls)
+
+    def timeLimit(self) -> int:  # pylint: disable=invalid-name
+        return self._configurable.value
+
+
+class ConfigTimeLimit(gym.Wrapper, coi.Configurable):
+    def __init__(self, env: gym.Env, initial_limit: t.Optional[int] = None) -> None:
+        super().__init__(env)
+        spec = getattr(self, "spec", None)
+        self.default_value = getattr(spec, "max_episode_steps", 0)
+        self.value = initial_limit if initial_limit is not None else self.default_value
+
+    def get_config(self) -> coi.Config:
+        if isinstance(self.env, coi.Configurable):
+            config = self.env.get_config()
+        else:
+            config = coi.Config()
+        config.add(
+            "TimeLimit_max_episode_steps",
+            self.value,
+            range=(0, np.inf),
+            default=self.default_value,
+            label="Time limit",
+            help="Maximum number of steps per episode; set to 0 to disable time limit",
+        )
+        return config
+
+    def apply_config(self, values: SimpleNamespace) -> None:
+        self.value = values.TimeLimit_max_episode_steps
+        if isinstance(self.env, coi.Configurable):
+            self.env.apply_config(values)
 
 
 def _show_config_failed(

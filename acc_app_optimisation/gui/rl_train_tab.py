@@ -57,7 +57,6 @@ class RlTrainTab(QtWidgets.QWidget):
         self.env_combo = QtWidgets.QComboBox()
         self.env_combo.currentTextChanged.connect(self._on_env_changed)
         self.env_config_button = QtWidgets.QPushButton("Configure")
-        self.env_config_button.setEnabled(False)
         self.env_config_button.clicked.connect(self._on_env_config_clicked)
         algo_label = QtWidgets.QLabel("Algorithm")
         algo_label.setFont(large)
@@ -136,28 +135,26 @@ class RlTrainTab(QtWidgets.QWidget):
     def _on_env_changed(self, name: str) -> None:
         self._train_builder.env_id = name
         self._clear_job()
-        if name:
-            env_spec = coi.spec(name)
-            # TODO: This does not work well with wrappers.
-            env_class = env_spec.entry_point
-            is_configurable = issubclass(env_class, coi.Configurable)
-        else:
-            is_configurable = False
-        self.env_config_button.setEnabled(is_configurable)
-        LOG.debug("configurable: %s", is_configurable)
 
     def _on_env_config_clicked(self) -> None:
-        problem = self.get_or_load_env()
-        if problem is None:
+        env = self.get_or_load_env()
+        if env is None:
             # Initialization failed, logs already made.
             return
-        if not isinstance(problem.unwrapped, coi.Configurable):
-            LOG.error("not configurable: %s", problem)
-            return
-        dialog = configuration.PureDialog(problem, parent=self.window())
-        name = type(problem.unwrapped).__name__
+        dialog = configuration.EnvDialog(
+            env, self._train_builder.time_limit, parent=self.window()
+        )
+        if hasattr(env, "spec"):
+            name = env.spec.id
+        else:
+            name = type(env.unwrapped).__name__
         dialog.setWindowTitle(f"Configure {name} ...")
+        dialog.config_applied.connect(lambda: self._set_time_limit(dialog.timeLimit()))
         dialog.open()
+
+    def _set_time_limit(self, time_limit: int) -> None:
+        LOG.info("new time limit: %s", time_limit)
+        self._train_builder.time_limit = time_limit
 
     def _on_algo_changed(self, name: str) -> None:
         factory = train_rl.ALL_AGENTS[name]
