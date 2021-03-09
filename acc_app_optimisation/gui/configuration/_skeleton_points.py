@@ -42,7 +42,7 @@ class SkeletonPointsWidget(QtWidgets.QWidget):
         """Pre-select the line edit upon becoming visible."""
         self.edit.setFocus()
 
-    def read_points(self) -> np.ndarray:
+    def skeletonPoints(self) -> np.ndarray:
         """Parse the skeleton points entered by the user."""
         locale = self.edit.validator().locale()
         points: t.MutableSet[float] = set()
@@ -52,6 +52,10 @@ class SkeletonPointsWidget(QtWidgets.QWidget):
                 raise ValueError(f"could not convert string to float: {word!r}")
             points.add(point)
         return np.array(sorted(points))
+
+    def setSkeletonPoints(self, points: np.ndarray) -> None:
+        """Update the control to display the given points."""
+        self.edit.setText(" ".join(str(point) for point in points))
 
 
 class WhitespaceDelimitedDoubleValidator(QtGui.QDoubleValidator):

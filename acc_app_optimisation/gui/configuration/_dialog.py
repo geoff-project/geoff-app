@@ -131,7 +131,7 @@ class OptimizableDialog(_BaseDialog):
         """Apply the configs and close the window."""
         if self._points_page is not None:
             try:
-                points = self._points_page.read_points()
+                points = self._points_page.skeletonPoints()
             except ValueError as exc:
                 _show_skeleton_points_failed(exc, parent=self)
                 return
@@ -143,7 +143,7 @@ class OptimizableDialog(_BaseDialog):
         """Apply the configs."""
         if self._points_page is not None:
             try:
-                points = self._points_page.read_points()
+                points = self._points_page.skeletonPoints()
             except ValueError as exc:
                 _show_skeleton_points_failed(exc, parent=self)
                 return
