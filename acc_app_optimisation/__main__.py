@@ -45,10 +45,23 @@ def get_parser() -> argparse.ArgumentParser:
         default="gpn",
         help="The LSA server to connect to (default: gpn)",
     )
+    parser.add_argument(
+        "--builtins",
+        action="store_true",
+        default=True,
+        dest="builtins",
+        help="Load several built-in optimization problems (this is the default)",
+    )
+    parser.add_argument(
+        "--no-builtins",
+        action="store_false",
+        dest="builtins",
+        help="Disable loading of built-in optimization problems",
+    )
     return parser
 
 
-def main(argv) -> int:
+def main(argv: list) -> int:
     """Main function. Pass sys.argv."""
     model = init_logging()
     args = get_parser().parse_args(argv[1:])
@@ -59,6 +72,11 @@ def main(argv) -> int:
 
         for path in args.foreign_imports:
             foreign_imports.import_from_path(path)
+
+        # Tricky ordering: foreign imports may override builtins.
+        if args.builtins:
+            from acc_app_optimisation.envs import builtin_envs as _
+
         app = QtWidgets.QApplication(argv)
         window = gui.MainWindow(lsa=lsa, model=model)
         window.show()

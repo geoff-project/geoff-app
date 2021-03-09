@@ -7,7 +7,7 @@ import numpy as np
 from cernml import coi, coi_funcs
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from ..envs import builtin_envs  # pylint: disable=unused-import
+from ..envs import iter_env_names
 from ..job_control.single_objective import OptJob, OptJobBuilder, optimizers
 from . import configuration
 from .plot_manager import PlotManager
@@ -136,14 +136,12 @@ class NumOptTab(QtWidgets.QWidget):
     def setMachine(self, machine: coi.Machine) -> None:  # pylint: disable=invalid-name
         self._machine = machine
         self.env_combo.clear()
-        for env_spec in coi.registry.all():
-            env_class = env_spec.entry_point
-            env_machine = env_class.metadata.get("cern.machine", coi.Machine.NoMachine)
-            is_optimizable = issubclass(
-                env_class, (coi.SingleOptimizable, coi_funcs.FunctionOptimizable)
+        self.env_combo.addItems(
+            iter_env_names(
+                machine=machine,
+                superclass=(coi.SingleOptimizable, coi_funcs.FunctionOptimizable),
             )
-            if machine == env_machine and is_optimizable:
-                self.env_combo.addItem(env_spec.id)
+        )
 
     def _on_env_changed(self, name: str) -> None:
         self._opt_builder.problem_id = name
