@@ -172,7 +172,7 @@ Of course, if you have installed the application into your own environment, you
 need to replace `acc-py app run acc-app-optimisation` with `python -m
 acc_app_optimisation`.
 
-Step 3: (Deprecated) Adding Your Problem to the Built-In List
+Step 4: (Deprecated) Adding Your Problem to the Built-In List
 -------------------------------------------------------------
 
 If the recommended procedure in step 3 doesn't work for you, it is also
