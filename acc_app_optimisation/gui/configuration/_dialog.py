@@ -79,7 +79,7 @@ class _BaseDialog(QDialog):
 
 
 class PureDialog(_BaseDialog):
-    """Qt dialog that allows configuring an environment.
+    """Qt dialog that allows configuring a `coi.Configurable`.
 
     Args:
         target: The environment to be configured.
@@ -97,7 +97,7 @@ class PureDialog(_BaseDialog):
 
 
 class OptimizableDialog(_BaseDialog):
-    """Qt dialog that allows configuring a FunctionOptimizable.
+    """Qt dialog that allows configuring a `FunctionOptimizable`.
 
     Args:
         target: The environment to be configured.
@@ -106,7 +106,7 @@ class OptimizableDialog(_BaseDialog):
 
     def __init__(
         self,
-        target: t.Union[coi.Configurable, coi_funcs.FunctionOptimizable],
+        target: t.Union[coi.SingleOptimizable, coi_funcs.FunctionOptimizable],
         skeleton_points: t.Optional[np.ndarray] = None,
         parent: t.Optional[QWidget] = None,
     ) -> None:
