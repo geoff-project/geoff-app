@@ -1,38 +1,9 @@
-"""Provide the base class of all single-objective optimizers."""
-
 import typing as t
 
 import numpy as np
-from cernml import coi
 from scipy.optimize import LinearConstraint, NonlinearConstraint
 
 Constraint = t.Union[LinearConstraint, NonlinearConstraint]
-
-
-class BaseOptimizer(coi.Configurable):
-    """Base class of all single-objective optimizers.
-
-    At the moment, this serves three purposes:
-    - define the interface of all optimizers;
-    - keep the `SingleOptimizable` problem around;
-    - keep a list of `CachedNonlinearConstraint` around.
-
-    The `CachedNonlinearConstraint` is used by the `OptimizerRunner` to
-    send the values of the constraint functions to the GUI without
-    executing the constraints a second time. This is necessary because
-    constraint functions might potentially be expensive.
-    """
-
-    def __init__(self, env: coi.SingleOptimizable):
-        self.env = env
-        self.x_0: t.Optional[np.ndarray] = None
-        self.wrapped_constraints = [
-            CachedNonlinearConstraint.from_any_constraint(c) for c in env.constraints
-        ]
-
-    def solve(self, func, x_0):
-        """Solve the optimization problem."""
-        raise NotImplementedError()
 
 
 class CachedNonlinearConstraint(NonlinearConstraint):

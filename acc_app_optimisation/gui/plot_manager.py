@@ -68,18 +68,31 @@ class PlotManager:
         self._constraints_plot = _make_plot_widget_with_margins()
         self._constraints_plot.setTitle("Constraints")
         self._constraints_plot.hide()
-        objective_constraints_widget = QtWidgets.QWidget()
-        objective_constraints_widget.setWindowTitle("Objective and Constraints")
-        layout = QtWidgets.QVBoxLayout(objective_constraints_widget)
+        reward_episode_length_widget = QtWidgets.QWidget()
+        reward_episode_length_widget.setWindowTitle("Objective and Constraints")
+        layout = QtWidgets.QVBoxLayout(reward_episode_length_widget)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         layout.addWidget(self._objective_plot, stretch=1)
         layout.addWidget(self._constraints_plot, stretch=1)
-        self._mdi.addSubWindow(objective_constraints_widget)
+        self._mdi.addSubWindow(reward_episode_length_widget)
 
         self._actors_plot = _make_plot_widget_with_margins()
         self._actors_plot.setWindowTitle("Actors")
         self._mdi.addSubWindow(self._actors_plot)
+
+        self._episode_length_plot = _make_plot_widget_with_margins()
+        self._episode_length_plot.setTitle("Episode length")
+        self._reward_plot = _make_plot_widget_with_margins()
+        self._reward_plot.setTitle("Final reward")
+        reward_episode_length_widget = QtWidgets.QWidget()
+        reward_episode_length_widget.setWindowTitle("RL Training")
+        layout = QtWidgets.QVBoxLayout(reward_episode_length_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(self._episode_length_plot, stretch=1)
+        layout.addWidget(self._reward_plot, stretch=1)
+        self._mdi.addSubWindow(reward_episode_length_widget)
 
         self._mpl_canvases: t.List[FigureCanvas] = []
         # Running ID to prevent giving out the same title to two
@@ -272,6 +285,17 @@ class PlotManager:
             constraint.lower.setData(xlist, np.ones_like(values) * lower_value)
             constraint.upper.setData(xlist, np.ones_like(values) * upper_value)
 
+    def set_reward_curve_data(self, reward_lists: t.List[t.List[float]]) -> None:
+        reward_curve = self._reward_curve()
+        episode_length_curve = self._episode_length_curve()
+        xlist = np.arange(0, len(reward_lists))
+        rlist = np.array(
+            [rewards[-1] if rewards else np.nan for rewards in reward_lists]
+        )
+        llist = np.array([len(rewards) for rewards in reward_lists])
+        reward_curve.setData(xlist, rlist)
+        episode_length_curve.setData(xlist, llist)
+
     def _objective_curve(self) -> pyqtgraph.PlotDataItem:
         """The single curve inside `self._objective_plot.`"""
         curves = self._objective_plot.getPlotItem().items
@@ -322,6 +346,26 @@ class PlotManager:
                 result.append(curves)
                 _add_items_to_plot([curves.values, curves.lower, curves.upper], axes)
         return result
+
+    def _reward_curve(self) -> pyqtgraph.PlotDataItem:
+        """The single curve inside `self._reward_plot.`"""
+        curves = self._reward_plot.getPlotItem().items
+        if curves:
+            [reward_curve] = curves
+        else:
+            reward_curve = pyqtgraph.PlotDataItem(pen="b")
+            self._reward_plot.addItem(reward_curve)
+        return reward_curve
+
+    def _episode_length_curve(self) -> pyqtgraph.PlotDataItem:
+        """The single curve inside `self._reward_plot.`"""
+        curves = self._episode_length_plot.getPlotItem().items
+        if curves:
+            [episode_length_curve] = curves
+        else:
+            episode_length_curve = pyqtgraph.PlotDataItem(pen="b")
+            self._episode_length_plot.addItem(episode_length_curve)
+        return episode_length_curve
 
 
 def _make_curve_with_bounds(

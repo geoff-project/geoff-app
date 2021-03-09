@@ -77,10 +77,10 @@ def make_double_spinbox(value: float, range_: t.Tuple[float, float]) -> QDoubleS
     low, high = range_
     widget = QDoubleSpinBox()
     widget.setDecimals(_tu.guess_decimals(low, high))
-    widget.setValue(value)
     widget.setStepType(widget.AdaptiveDecimalStepType)
     widget.setGroupSeparatorShown(True)
     widget.setRange(low, high)
+    widget.setValue(value)
     return widget
 
 
@@ -91,10 +91,10 @@ def make_int_spinbox(value: int, range_: t.Tuple[int, int]) -> QSpinBox:
     low = np.clip(np.floor(low), -(2 << 30), (2 << 30) - 1)
     high = np.clip(np.ceil(high), -(2 << 30), (2 << 30) - 1)
     widget = QSpinBox()
-    widget.setValue(value)
     widget.setStepType(widget.AdaptiveDecimalStepType)
     widget.setGroupSeparatorShown(True)
     widget.setRange(low, high)
+    widget.setValue(value)
     return widget
 
 

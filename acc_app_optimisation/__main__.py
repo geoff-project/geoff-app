@@ -48,20 +48,19 @@ def get_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv):
+def main(argv) -> int:
     """Main function. Pass sys.argv."""
     model = init_logging()
     args = get_parser().parse_args(argv[1:])
     lsa = pjlsa.LSAClient(server=args.lsa_server)
     with lsa.java_api():
         # pylint: disable = import-outside-toplevel
-        from acc_app_optimisation import foreign_imports
-        from acc_app_optimisation.main_window import MainWindow
+        from acc_app_optimisation import foreign_imports, gui
 
         for path in args.foreign_imports:
             foreign_imports.import_from_path(path)
         app = QtWidgets.QApplication(argv)
-        window = MainWindow(lsa=lsa, model=model)
+        window = gui.MainWindow(lsa=lsa, model=model)
         window.show()
         return app.exec_()
 

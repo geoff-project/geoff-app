@@ -94,7 +94,7 @@ class PopinWindow(QtWidgets.QWidget):
 
     def mdiArea(self) -> QtWidgets.QMdiArea:
         """Return the MDI area that this window will return to."""
-        self._mdi
+        return self._mdi
 
     def setMdiArea(self, mdi: Optional[QtWidgets.QMdiArea]) -> None:
         """Set the MDI area that this window will return to.

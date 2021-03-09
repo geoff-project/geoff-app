@@ -1,0 +1,89 @@
+import typing as t
+from logging import getLogger
+
+import numpy as np
+from cernml import coi, coi_funcs
+
+from ..base import JobBuilder
+from . import jobs, optimizers
+
+if t.TYPE_CHECKING:
+    from pyjapc import PyJapc  # pylint: disable=import-error, unused-import
+
+LOG = getLogger(__name__)
+
+
+class CannotBuildJob(Exception):
+    """One or more parameters is missing to build the job."""
+
+
+class OptJobBuilder(JobBuilder):
+    japc: t.Optional["PyJapc"]
+    skeleton_points: t.Optional[np.ndarray]
+    optimizer_factory: t.Optional[optimizers.OptimizerFactory]
+    signals: jobs.Signals
+
+    def __init__(self) -> None:
+        self._problem: t.Optional[optimizers.Optimizable] = None
+        self._problem_id = ""
+        self.japc = None
+        self.skeleton_points = None
+        self.optimizer_factory = None
+        self.signals = jobs.Signals()
+
+    @property
+    def problem_id(self) -> str:
+        return self._problem_id
+
+    @problem_id.setter
+    def problem_id(self, new_value: str) -> None:
+        if new_value != self._problem_id:
+            self.unload_problem()
+        self._problem_id = new_value
+
+    @property
+    def problem(self) -> t.Optional[optimizers.Optimizable]:
+        return self._problem
+
+    def make_problem(self) -> optimizers.Optimizable:
+        if not self.problem_id:
+            raise CannotBuildJob("no optimization problem selected")
+        self.unload_problem()
+        spec = coi.spec(self.problem_id)
+        needs_japc = spec.entry_point.metadata.get("cern.japc", False)
+        kwargs: t.Dict[str, t.Any] = {}
+        if needs_japc:
+            if self.japc is None:
+                raise CannotBuildJob("no LSA context selected")
+            LOG.debug("Using selector %s", self.japc.getSelector())
+            kwargs["japc"] = self.japc
+        else:
+            LOG.debug("Using no JAPC")
+        self._problem = problem = spec.make(**kwargs)
+        return problem
+
+    def unload_problem(self) -> None:
+        if self._problem is not None:
+            LOG.debug("Closing %s", self.problem)
+            self._problem.close()
+            self._problem = None
+
+    def build_job(self) -> jobs.OptJob:
+        if self.optimizer_factory is None:
+            raise CannotBuildJob("no optimizer selected")
+        problem = self.make_problem() if self.problem is None else self.problem
+        if isinstance(problem, coi_funcs.FunctionOptimizable):
+            if self.skeleton_points is None or not np.shape(self.skeleton_points):
+                raise CannotBuildJob("no skeleton points selected")
+            return jobs.FunctionOptimizableJob(
+                signals=self.signals,
+                optimizer_factory=self.optimizer_factory,
+                problem=problem,
+                skeleton_points=self.skeleton_points,
+            )
+        assert isinstance(problem.unwrapped, coi.SingleOptimizable), problem
+        return jobs.SingleOptimizableJob(
+            signals=self.signals,
+            optimizer_factory=self.optimizer_factory,
+            problem=problem,
+        )
