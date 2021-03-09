@@ -4,9 +4,10 @@ from logging import getLogger
 
 import gym
 import numpy as np
-from cernml import coi
+from gym.envs.registration import EnvSpec
 from PyQt5 import QtCore
 
+from ...envs import make_env_by_name
 from ..base import Job, JobBuilder
 from . import agents
 
@@ -64,27 +65,23 @@ class TrainJobBuilder(JobBuilder):
         if not self._env_id:
             raise CannotBuildJob("no environment selected")
         self.unload_env()
-        spec = coi.spec(self._env_id)
-        needs_japc = spec.entry_point.metadata.get("cern.japc", False)
-        kwargs: t.Dict[str, t.Any] = {}
-        if needs_japc:
-            if self.japc is None:
-                raise CannotBuildJob("no LSA context selected")
-            LOG.debug("Using selector %s", self.japc.getSelector())
-            kwargs["japc"] = self.japc
-        else:
-            LOG.debug("Using no JAPC")
+        self._env = env = make_env_by_name(
+            self._env_id, make_japc=self._get_japc_or_raise
+        )
+        spec: EnvSpec = env.spec  # type: ignore
         if spec.max_episode_steps is not None:
             LOG.debug("Default time limit: %d", spec.max_episode_steps)
             self.time_limit = spec.max_episode_steps
         else:
             LOG.debug("No default time limit")
             self.time_limit = 0
-        LOG.debug("Making %s", self._env_id)
-        # Use spec.make instead of coi.make to avoid auto-wrapping in a
-        # gym.wrappers.TimeLimit.
-        self._env = env = spec.make(**kwargs)
         return env
+
+    def _get_japc_or_raise(self) -> "PyJapc":
+        if self.japc is None:
+            raise CannotBuildJob("no LSA context selected")
+        LOG.debug("Using selector %s", self.japc.getSelector())
+        return self.japc
 
     def unload_env(self) -> None:
         if self._env is not None:

@@ -7,6 +7,7 @@ import gym
 from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from ..envs import iter_env_names
 from ..job_control import train_rl
 from . import configuration
 from .plot_manager import PlotManager
@@ -125,11 +126,7 @@ class RlTrainTab(QtWidgets.QWidget):
     def setMachine(self, machine: coi.Machine) -> None:  # pylint: disable=invalid-name
         self._machine = machine
         self.env_combo.clear()
-        for env_spec in coi.registry.all():
-            env_class = env_spec.entry_point
-            env_machine = env_class.metadata.get("cern.machine", coi.Machine.NoMachine)
-            if machine == env_machine and issubclass(env_class, gym.Env):
-                self.env_combo.addItem(env_spec.id)
+        self.env_combo.addItems(iter_env_names(machine=machine, superclass=gym.Env))
 
     def _on_env_changed(self, name: str) -> None:
         self._train_builder.env_id = name

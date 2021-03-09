@@ -4,6 +4,7 @@ from logging import getLogger
 import numpy as np
 from cernml import coi, coi_funcs
 
+from ...envs import make_env_by_name
 from ..base import JobBuilder
 from . import jobs, optimizers
 
@@ -49,18 +50,16 @@ class OptJobBuilder(JobBuilder):
         if not self.problem_id:
             raise CannotBuildJob("no optimization problem selected")
         self.unload_problem()
-        spec = coi.spec(self.problem_id)
-        needs_japc = spec.entry_point.metadata.get("cern.japc", False)
-        kwargs: t.Dict[str, t.Any] = {}
-        if needs_japc:
-            if self.japc is None:
-                raise CannotBuildJob("no LSA context selected")
-            LOG.debug("Using selector %s", self.japc.getSelector())
-            kwargs["japc"] = self.japc
-        else:
-            LOG.debug("Using no JAPC")
-        self._problem = problem = spec.make(**kwargs)
+        self._problem = problem = make_env_by_name(
+            self.problem_id, make_japc=self._get_japc_or_raise
+        )
         return problem
+
+    def _get_japc_or_raise(self) -> "PyJapc":
+        if self.japc is None:
+            raise CannotBuildJob("no LSA context selected")
+        LOG.debug("Using selector %s", self.japc.getSelector())
+        return self.japc
 
     def unload_problem(self) -> None:
         if self._problem is not None:
