@@ -11,9 +11,7 @@ class SkeletonPointsWidget(QtWidgets.QWidget):
     """The tab page presented to set skeleton points."""
 
     def __init__(
-        self,
-        points: t.Optional[t.Iterable[float]] = None,
-        parent: t.Optional[QtWidgets.QWidget] = None,
+        self, points: np.ndarray, parent: t.Optional[QtWidgets.QWidget] = None
     ) -> None:
         super().__init__(parent)
         description = QtWidgets.QLabel(
@@ -22,7 +20,7 @@ class SkeletonPointsWidget(QtWidgets.QWidget):
             "point. Separate points with whitespace.",
         )
         description.setWordWrap(True)
-        initial_text = " ".join(map(str, [] if points is None else points))
+        initial_text = " ".join(str(point) for point in points)
         validator = WhitespaceDelimitedDoubleValidator()
         validator.setBottom(0.0)
         self.edit = QtWidgets.QLineEdit(initial_text)

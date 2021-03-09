@@ -117,7 +117,9 @@ class OptimizableDialog(_BaseDialog):
         if self._cfgform is not None:
             tab_widget.addTab(self._cfgform, "Configuration")
         if isinstance(target.unwrapped, coi_funcs.FunctionOptimizable):
-            self._points_page = SkeletonPointsWidget(skeleton_points)
+            self._points_page = SkeletonPointsWidget(
+                skeleton_points or np.array([], dtype=float)
+            )
             tab_widget.addTab(self._points_page, "Skeleton points")
         else:
             self._points_page = None
