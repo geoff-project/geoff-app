@@ -7,7 +7,6 @@ import numpy as np
 from cernml import coi, coi_funcs
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from ..envs import builtin_envs  # pylint: disable=unused-import
 from ..job_control.single_objective import OptJob, OptJobBuilder, optimizers
 from . import configuration
 from .plot_manager import PlotManager

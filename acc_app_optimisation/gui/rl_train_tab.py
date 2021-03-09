@@ -7,7 +7,6 @@ import gym
 from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from ..envs import builtin_envs  # pylint: disable=unused-import
 from ..job_control import train_rl
 from . import configuration
 from .plot_manager import PlotManager
