@@ -37,23 +37,23 @@ class _BaseDialog(QDialog):
         self._controls = QDialogButtonBox(  # type: ignore
             QDialogButtonBox.Ok | QDialogButtonBox.Apply | QDialogButtonBox.Cancel
         )
-        self._controls.button(QDialogButtonBox.Ok).clicked.connect(self.on_ok_clicked)
+        self._controls.button(QDialogButtonBox.Ok).clicked.connect(self._on_ok_clicked)
         self._controls.button(QDialogButtonBox.Apply).clicked.connect(
-            self.on_apply_clicked
+            self._on_apply_clicked
         )
         self._controls.button(QDialogButtonBox.Cancel).clicked.connect(self.reject)
 
-    def on_ok_clicked(self) -> None:
+    def _on_ok_clicked(self) -> None:
         """Apply the configs and close the window."""
         # Only close the dialog if there was no error.
-        if self._apply_config():
+        if self.apply_config():
             self.accept()
 
-    def on_apply_clicked(self) -> None:
+    def _on_apply_clicked(self) -> None:
         """Apply the configs."""
-        self._apply_config()
+        self.apply_config()
 
-    def _apply_config(self) -> bool:
+    def apply_config(self) -> bool:
         """Apply the currently chosen values to the configurable.
 
         Returns:
@@ -127,29 +127,18 @@ class OptimizableDialog(_BaseDialog):
         main_layout.addWidget(tab_widget)
         main_layout.addWidget(self._controls)
 
-    def on_ok_clicked(self) -> None:
-        """Apply the configs and close the window."""
+    def apply_config(self) -> bool:
         if self._points_page is not None:
             try:
                 points = self._points_page.skeletonPoints()
             except ValueError as exc:
                 _show_skeleton_points_failed(exc, parent=self)
-                return
+                return False
+        success = super().apply_config()
+        if success:
             LOG.info("new skeleton points: %s", points)
             self.skeleton_points_updated.emit(points)
-        super().on_ok_clicked()
-
-    def on_apply_clicked(self) -> None:
-        """Apply the configs."""
-        if self._points_page is not None:
-            try:
-                points = self._points_page.skeletonPoints()
-            except ValueError as exc:
-                _show_skeleton_points_failed(exc, parent=self)
-                return
-            LOG.info("new skeleton points: %s", points)
-            self.skeleton_points_updated.emit(points)
-        super().on_apply_clicked()
+        return success
 
 
 def _show_config_failed(
