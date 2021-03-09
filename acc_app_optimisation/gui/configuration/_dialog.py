@@ -104,7 +104,7 @@ class OptimizableDialog(_BaseDialog):
 
     def __init__(
         self,
-        target: coi.Problem,
+        target: t.Union[coi.Configurable, coi_funcs.FunctionOptimizable],
         skeleton_points: t.Optional[np.ndarray] = None,
         parent: t.Optional[QWidget] = None,
     ) -> None:

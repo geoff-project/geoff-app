@@ -152,7 +152,9 @@ class NumOptTab(QtWidgets.QWidget):
             env_spec = coi.spec(name)
             # TODO: This does not work well with wrappers.
             env_class = env_spec.entry_point
-            is_configurable = issubclass(env_class, coi.Configurable)
+            is_configurable = issubclass(
+                env_class, (coi.Configurable, coi_funcs.FunctionOptimizable)
+            )
         else:
             is_configurable = False
         self.env_config_button.setEnabled(is_configurable)
@@ -163,7 +165,9 @@ class NumOptTab(QtWidgets.QWidget):
         if problem is None:
             # Initialization failed, logs already made.
             return
-        if not isinstance(problem.unwrapped, coi.Configurable):
+        if not isinstance(
+            problem.unwrapped, (coi.Configurable, coi_funcs.FunctionOptimizable)
+        ):
             LOG.error("not configurable: %s", problem)
             return
         dialog = configuration.OptimizableDialog(
