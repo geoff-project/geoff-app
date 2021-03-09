@@ -175,8 +175,6 @@ class NumOptTab(QtWidgets.QWidget):
             skeleton_points=self._opt_builder.skeleton_points,
             parent=self.window(),
         )
-        name = type(problem.unwrapped).__name__
-        dialog.setWindowTitle(f"Configure {name} ...")
         dialog.config_applied.connect(
             lambda: self._set_skeleton_points(dialog.skeletonPoints())
         )
@@ -193,13 +191,11 @@ class NumOptTab(QtWidgets.QWidget):
         self.algo_config_button.setEnabled(isinstance(factory, coi.Configurable))
 
     def _on_algo_config_clicked(self) -> None:
-        name = self.algo_combo.currentText()
         factory = self._opt_builder.optimizer_factory
         if not isinstance(factory, coi.Configurable):
             LOG.error("not configurable: %s", factory)
             return
         dialog = configuration.PureDialog(factory, self.window())
-        dialog.setWindowTitle(f"Configure {name} ...")
         dialog.open()
 
     def _on_start_clicked(self) -> None:

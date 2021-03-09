@@ -144,11 +144,6 @@ class RlTrainTab(QtWidgets.QWidget):
         dialog = configuration.EnvDialog(
             env, self._train_builder.time_limit, parent=self.window()
         )
-        if hasattr(env, "spec"):
-            name = env.spec.id
-        else:
-            name = type(env.unwrapped).__name__
-        dialog.setWindowTitle(f"Configure {name} ...")
         dialog.config_applied.connect(lambda: self._set_time_limit(dialog.timeLimit()))
         dialog.open()
 
@@ -162,13 +157,11 @@ class RlTrainTab(QtWidgets.QWidget):
         self.algo_config_button.setEnabled(issubclass(factory, coi.Configurable))
 
     def _on_algo_config_clicked(self) -> None:
-        name = self.algo_combo.currentText()
         factory = self._train_builder.agent_factory
         if not isinstance(factory, coi.Configurable):
             LOG.error("not configurable: %s", factory)
             return
         dialog = configuration.PureDialog(factory, self.window())
-        dialog.setWindowTitle(f"Configure {name} ...")
         dialog.open()
 
     def _on_start_clicked(self) -> None:

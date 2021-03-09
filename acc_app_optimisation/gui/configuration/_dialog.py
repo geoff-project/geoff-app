@@ -46,6 +46,10 @@ class _BaseDialog(QDialog):
             self._on_apply_clicked
         )
         self._controls.button(QDialogButtonBox.Cancel).clicked.connect(self.reject)
+        if target is not None:
+            self.setWindowTitle(f"Configuring {_get_configurable_name(target)} …")
+        else:
+            self.setWindowTitle("Configuring …")
 
     def _on_ok_clicked(self) -> None:
         """Apply the configs and close the window."""
@@ -116,6 +120,7 @@ class OptimizableDialog(_BaseDialog):
             super().__init__(t.cast(coi.Configurable, target), parent)
         else:
             super().__init__(None, parent)
+            self.setWindowTitle(f"Configuring {_get_configurable_name(target)} …")
         self._points_page: t.Optional[SkeletonPointsWidget]
         tab_widget = QTabWidget()
         if self._cfgform is not None:
@@ -229,3 +234,13 @@ def _show_skeleton_points_failed(exc: Exception, parent: t.Optional[QWidget]) ->
         parent=parent,
     )
     dialog.show()
+
+
+def _get_configurable_name(configurable: t.Any) -> str:
+    spec = getattr(configurable, "spec", None)
+    if spec is not None:
+        return spec.id
+    unwrapped = getattr(configurable, "unwrapped", None)
+    if unwrapped is not None:
+        return type(unwrapped).__name__
+    return type(configurable).__name__
