@@ -39,7 +39,7 @@ def make_env_by_name(name: str, make_japc: t.Callable[[], "PyJapc"]) -> coi.Prob
         The instantiated COI problem. Unlike when using `coi.make()`,
         the problem is never wrapped in a `TimeLimit`.
     """
-    spec = coi.registry.spec(name)
+    spec = coi.spec(name)
     kwargs: t.Dict[str, t.Any] = {}
     if _get_needs_japc(spec):
         kwargs["japc"] = make_japc()

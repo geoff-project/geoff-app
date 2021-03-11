@@ -8,10 +8,10 @@
 import typing as t
 from unittest.mock import Mock
 
+import cernml.coi
 import gym
 import numpy as np
 import pytest
-from cernml import coi
 from PyQt5 import QtCore
 from pytest_mock import MockerFixture
 from scipy.optimize import NonlinearConstraint
@@ -35,8 +35,10 @@ def threadpool() -> QtCore.QThreadPool:
 
 
 @pytest.fixture
-def optimizable() -> coi.SingleOptimizable:
-    result = Mock(spec=coi.SingleOptimizable, autospec=coi.SingleOptimizable)
+def optimizable() -> cernml.coi.SingleOptimizable:
+    result = Mock(
+        spec=cernml.coi.SingleOptimizable, autospec=cernml.coi.SingleOptimizable
+    )
     result.unwrapped = result
     result.metadata = {"render.modes": []}
     result.constraints = [
@@ -48,6 +50,7 @@ def optimizable() -> coi.SingleOptimizable:
     result.get_initial_params.return_value = result.optimization_space.sample()
     result.return_value = result
     result.spec = Mock(id=f"MockEnv-{id(result)}-v0", entry_point=result)
+    result.spec.make.return_value = result
     return result
 
 
@@ -55,7 +58,7 @@ def optimizable() -> coi.SingleOptimizable:
 def test_runner(
     mocker: MockerFixture,
     threadpool: QtCore.QThreadPool,
-    optimizable: coi.SingleOptimizable,
+    optimizable: cernml.coi.SingleOptimizable,
     *,
     optimizer_factory_class: t.Type[OptimizerFactory],
 ) -> None:
@@ -77,8 +80,9 @@ def test_runner(
     threadpool.start(job_builder.build_job())
     threadpool.waitForDone()
     # Then:
+    coi_make.assert_not_called()  # type:ignore
     coi_spec.assert_called_once_with(optimizable.spec.id)  # type:ignore
-    coi_make.assert_called_once_with(optimizable.spec.id)  # type:ignore
+    optimizable.spec.make.assert_called_once_with()  # type:ignore
     optimizable.get_initial_params.assert_called_once_with()  # type:ignore
     steps = optimizable.compute_single_objective.call_count  # type:ignore
     assert steps >= 12
