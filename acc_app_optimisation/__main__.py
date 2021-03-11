@@ -34,8 +34,9 @@ def get_parser() -> argparse.ArgumentParser:
         type=str,
         metavar="PATH",
         help="Path to additional modules and packages that shall be "
-        "imported; child modules may be imported by appending them, "
-        "delimited by `::`",
+        "imported; zip and wheel files are treated like directories; "
+        "child modules may be imported by appending them, delimited "
+        "with `::`",
     )
     parser.add_argument(
         "-s",
