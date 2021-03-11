@@ -2,7 +2,8 @@ import typing as t
 
 import gym
 import numpy as np
-from PyQt5.QtCore import QObject, pyqtSignal
+from cernml.coi.mpl_utils import iter_matplotlib_figures
+from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 from ..base import CancellationToken
 
@@ -56,4 +57,18 @@ class RenderWrapper(gym.Wrapper):
         self.signals.reward_lists_updated.emit(self.reward_lists)
         self.signals.objective_updated.emit(xlist, np.array(episode_rewards))
         self.signals.actors_updated.emit(xlist, np.array(self.episode_actions))
+        self._render_env()
         return obs, reward, done, info
+
+    def _render_env(self) -> None:
+        if "matplotlib_figures" not in self.metadata.get("render.modes", []):
+            return
+        figures = self.render("matplotlib_figures")
+        # `draw()` refreshes the figures immediately on this thread. Do
+        # not use `draw_idle()`: it postpones drawing until the next
+        # time the (main thread) event loop runs. This leads to a race
+        # condition between the main thread drawing the figures and this
+        # thread modifying them.
+        for _, figure in iter_matplotlib_figures(figures):
+            QThread.yieldCurrentThread()
+            figure.canvas.draw()
