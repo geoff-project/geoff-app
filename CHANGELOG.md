@@ -1,5 +1,36 @@
 # Changelog
 
+## v0.1.0
+
+### Visible changes
+
+- Add initial, extremely fragile implementation of reinforcement learning (RL)
+  via [Stable Baselines 3](https://stable-baselines3.readthedocs.io/).
+- Add more built-in optimization problems:
+    - [SPS ZS Alignment](https://gitlab.cern.ch/be-op-ml-optimization/envs/sps-zs-alignment),
+    - [SPS Tune](https://gitlab.cern.ch/be-op-ml-optimization/envs/sps-tune/),
+    - [LEIR Transfer Line](https://gitlab.cern.ch/be-op-ml-optimization/envs/leir-transfer-line).
+- Add argument `--no-builtins` to start the app without loading the built-in
+  optimization problems. In this case, all optimization problems must be
+  provided as foreign imports. This mode is best used for debugging.
+- Logging messages are no longer printed to standard output nor standard error.
+  Instead, the app captures its out standard output/error and redirects them to
+  its log console widget.
+
+### Build changes
+
+- Add dependency on Stable Baselines 3 and, transitively, on PyTorch.
+- Complete rewrite of GUI code: drop Qt Designer and use hand-written PyQt5
+  code instead.
+
+### Bug fixes
+
+- Integer spinboxes in configuration dialogs no longer clip their initial
+  values into the range from 0 to 99 inclusive.
+- Foreign imports now can import packages from inside zip and wheel files. To
+  do so, treat the file as if it were a directory:
+  `path/to/archive.zip/package::child_module`.
+
 ## v0.0.9
 
 ### Visible changes
