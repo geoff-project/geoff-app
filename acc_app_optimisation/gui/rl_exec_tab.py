@@ -100,10 +100,8 @@ class RlExecTab(QtWidgets.QWidget):
         run_control.addWidget(self.stop_button)
         layout.addLayout(run_control)
         # Fill all GUI elements, fire any events based on that.
-        self.algo_combo.addItem("TD3")
+        self.algo_combo.addItems(rl.ALL_AGENTS.keys())
         self.setMachine(self._machine)
-        LOG.info("width: %d", self.algo_load_button.width())
-        self.algo_load_button.setMaximumWidth(self.algo_load_button.width())
 
     @contextlib.contextmanager
     def create_lsa_context(self, japc: "PyJapc") -> t.Iterator[None]:

@@ -97,7 +97,7 @@ class RlTrainTab(QtWidgets.QWidget):
         run_control.addWidget(self.save_button)
         layout.addLayout(run_control)
         # Fill all GUI elements, fire any events based on that.
-        self.algo_combo.addItem("TD3")
+        self.algo_combo.addItems(rl.ALL_AGENTS.keys())
         self.setMachine(self._machine)
 
     @contextlib.contextmanager

@@ -1,4 +1,5 @@
 import abc
+import inspect
 import typing as t
 from types import SimpleNamespace
 
@@ -17,7 +18,13 @@ class AgentFactory(coi.Configurable, metaclass=abc.ABCMeta):
 
     def get_config(self) -> coi.Config:
         config = coi.Config()
-        config.add("total_timesteps", self.total_timesteps, range=(0, np.inf))
+        config.add(
+            "total_timesteps",
+            self.total_timesteps,
+            range=(0, np.inf),
+            label="Total time steps",
+            help="Duration of training in number of steps on the environment",
+        )
         return config
 
     def apply_config(self, values: SimpleNamespace) -> None:
@@ -31,13 +38,58 @@ class AgentFactory(coi.Configurable, metaclass=abc.ABCMeta):
 class TD3(AgentFactory):
     def __init__(self) -> None:
         super().__init__()
-        self.learning_starts = 100
-        self.action_noise = 0.1
+        defaults = _get_default_args(sb3.TD3)
+        self.buffer_size: int = defaults["buffer_size"]
+        self.learning_starts: int = defaults["learning_starts"]
+        self.learning_rate: float = defaults["learning_rate"]
+        self.gamma: float = defaults["gamma"]
+        self.tau: float = defaults["tau"]
+        self.action_noise: float = 0.1
 
     def get_config(self) -> coi.Config:
         config = super().get_config()
-        config.add("learning_starts", self.learning_starts, range=(0, np.inf))
-        config.add("action_noise", self.action_noise, range=(0.0, 1.0))
+        config.add(
+            "learning_starts",
+            self.learning_starts,
+            range=(0, np.inf),
+            label="Learning starts",
+            help="Number of steps in the initial exploration phase",
+        )
+        config.add(
+            "buffer_size",
+            self.buffer_size,
+            range=(10, np.inf),
+            label="Buffer size",
+            help="Size of the replay buffer",
+        )
+        config.add(
+            "gamma",
+            self.gamma,
+            range=(0.0, 1.0),
+            label="Discount factor",
+            help="Lower values make the agent more short-sighted",
+        )
+        config.add(
+            "tau",
+            self.tau,
+            range=(0.0, 1.0),
+            label="Polyak update coefficient",
+            help="Higher values reduce the delay between main and target Q network",
+        )
+        config.add(
+            "action_noise",
+            self.action_noise,
+            range=(0.0, 1.0),
+            label="Action noise scale",
+            help="Amount of Gaussian noise to add on actions during training",
+        )
+        config.add(
+            "learning_rate",
+            self.learning_rate,
+            range=(1e-10, 1e0),
+            label="Learning rate",
+            help="Update step size during learning",
+        )
         return config
 
     def apply_config(self, values: SimpleNamespace) -> None:
@@ -48,6 +100,10 @@ class TD3(AgentFactory):
             )
         super().apply_config(values)
         self.learning_starts = values.learning_starts
+        self.buffer_size = values.buffer_size
+        self.learning_rate = values.learning_rate
+        self.gamma = values.gamma
+        self.tau = values.tau
         self.action_noise = values.action_noise
 
     def make_agent(self, env: gym.Env) -> BaseAlgorithm:
@@ -56,21 +112,123 @@ class TD3(AgentFactory):
             "MlpPolicy",
             env,
             learning_starts=self.learning_starts,
-            action_noise=self._make_action_noise(env.action_space),
+            buffer_size=self.buffer_size,
+            learning_rate=self.learning_rate,
+            gamma=self.gamma,
+            tau=self.tau,
+            action_noise=_make_action_noise(env.action_space, self.action_noise),
             verbose=1,
         )
 
-    def _make_action_noise(
-        self, ac_space: gym.spaces.Box
-    ) -> t.Optional[sb3.common.noise.ActionNoise]:
-        if self.action_noise:
-            return sb3.common.noise.NormalActionNoise(
-                mean=np.zeros(ac_space.shape),
-                sigma=self.action_noise * np.ones(ac_space.shape),
+
+class SAC(AgentFactory):
+    def __init__(self) -> None:
+        super().__init__()
+        defaults = _get_default_args(sb3.SAC)
+        self.buffer_size: int = defaults["buffer_size"]
+        self.learning_starts: int = defaults["learning_starts"]
+        self.learning_rate: float = defaults["learning_rate"]
+        self.gamma: float = defaults["gamma"]
+        self.tau: float = defaults["tau"]
+        self.action_noise: float = 0.1
+
+    def get_config(self) -> coi.Config:
+        config = super().get_config()
+        config.add(
+            "learning_starts",
+            self.learning_starts,
+            range=(0, np.inf),
+            label="Learning starts",
+            help="Number of steps in the initial exploration phase",
+        )
+        config.add(
+            "buffer_size",
+            self.buffer_size,
+            range=(10, np.inf),
+            label="Buffer size",
+            help="Size of the replay buffer",
+        )
+        config.add(
+            "gamma",
+            self.gamma,
+            range=(0.0, 1.0),
+            label="Discount factor",
+            help="Lower values make the agent more short-sighted",
+        )
+        config.add(
+            "tau",
+            self.tau,
+            range=(0.0, 1.0),
+            label="Polyak update coefficient",
+            help="Higher values reduce the delay between main and target Q network",
+        )
+        config.add(
+            "action_noise",
+            self.action_noise,
+            range=(0.0, 1.0),
+            label="Action noise scale",
+            help="Amount of Gaussian noise to add on actions during training",
+        )
+        config.add(
+            "learning_rate",
+            self.learning_rate,
+            range=(1e-10, 1e0),
+            label="Learning rate",
+            help="Update step size during learning",
+        )
+        return config
+
+    def apply_config(self, values: SimpleNamespace) -> None:
+        if not values.learning_starts < values.total_timesteps:
+            raise coi.BadConfig(
+                f"bad learning_starts: expected less than "
+                f"{self.total_timesteps}, got {values.learning_starts}"
             )
-        return None
+        super().apply_config(values)
+        self.learning_starts = values.learning_starts
+        self.buffer_size = values.buffer_size
+        self.learning_rate = values.learning_rate
+        self.gamma = values.gamma
+        self.tau = values.tau
+        self.action_noise = values.action_noise
+
+    def make_agent(self, env: gym.Env) -> BaseAlgorithm:
+        assert isinstance(env.action_space, gym.spaces.Box), env.action_space
+        return sb3.SAC(
+            "MlpPolicy",
+            env,
+            learning_starts=self.learning_starts,
+            buffer_size=self.buffer_size,
+            learning_rate=self.learning_rate,
+            gamma=self.gamma,
+            tau=self.tau,
+            action_noise=_make_action_noise(env.action_space, self.action_noise),
+            verbose=1,
+        )
 
 
 ALL_AGENTS: t.Mapping[str, t.Type[AgentFactory]] = {
     "TD3": TD3,
+    "SAC": SAC,
 }
+
+
+def _get_default_args(func: t.Callable) -> t.Dict[str, t.Any]:
+    signature = inspect.signature(func)
+    return {
+        name: param.default
+        for name, param in signature.parameters.items()
+        if param.default is not param.empty and not name.startswith("_")
+    }
+
+
+def _make_action_noise(
+    ac_space: gym.spaces.Box,
+    scale: float,
+) -> t.Optional[sb3.common.noise.ActionNoise]:
+    if scale:
+        return sb3.common.noise.NormalActionNoise(
+            mean=np.zeros(ac_space.shape),
+            sigma=np.ones(ac_space.shape) * scale,
+        )
+    return None
