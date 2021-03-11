@@ -10,16 +10,36 @@ from accwidgets.log_console import LogConsoleModel
 from PyQt5 import QtWidgets
 
 
+class StreamToLogger:
+    """Fake file-like stream object that redirects writes to a logger.
+
+    Class has been taken and adapted from `Stack Overflow`_ and `Ferry Boender`_.
+
+    .. _`Stack Overflow`: https://stackoverflow.com/a/39215961
+    .. _`Ferry Boender`: https://www.electricmonk.nl/log/2011/08/14/redirect-stdout-and-stderr-to-a-logger-in-python/
+    """
+
+    def __init__(self, logger: logging.Logger, level: int) -> None:
+        self.logger = logger
+        self.level = level
+        self.linebuf = ""
+
+    def write(self, buf: str) -> None:
+        for line in buf.rstrip().splitlines():
+            self.logger.log(self.level, line.rstrip())
+
+    def flush(self) -> None:
+        pass
+
+
 def init_logging() -> LogConsoleModel:
     """Configure the `logging` module."""
     basic_formatter = logging.Formatter(logging.BASIC_FORMAT)
-    stderr_handler = logging.StreamHandler()
-    stderr_handler.setLevel("INFO")
-    stderr_handler.setFormatter(basic_formatter)
-    logging.basicConfig(
-        level="NOTSET",
-        handlers=[stderr_handler],
-    )
+    sys.stdout = StreamToLogger(logging.getLogger("stdout"), logging.INFO)
+    sys.stderr = StreamToLogger(logging.getLogger("stderr"), logging.WARNING)
+    # No level-based filtering, no output. Instead, we let the
+    # LogConsole handle filtering and output for us.
+    logging.basicConfig(level="NOTSET", handlers=[])
     return LogConsoleModel()
 
 
