@@ -10,14 +10,10 @@ from cernml.coi_funcs import FunctionOptimizable
 from PyQt5 import QtCore
 
 from ...utils.bounded import BoundedArray
-from ..base import Job
+from ..base import Job, JobCancelled
 from . import constraints, optimizers
 
 LOG = getLogger(__name__)
-
-
-class OptimizationCancelled(Exception):
-    """The user clicked the Stop button to cancel optimization."""
 
 
 class Signals(QtCore.QObject):
@@ -53,7 +49,6 @@ class OptJob(Job):
         self._objectives_log: t.List[float] = []
         self._actions_log: t.List[np.ndarray] = []
         self._constraints_log: t.List[np.ndarray] = []
-        self._is_cancelled = False
 
     def get_optimization_space(self) -> gym.spaces.Box:
         """Extract the optimization space from the problem."""
@@ -71,22 +66,13 @@ class OptJob(Job):
         """Evaluate the problem at x_0."""
         raise NotImplementedError()
 
-    def cancel(self) -> None:
-        """Cancel optimization at the next step.
-
-        This function is typically called asynchronously. At the next
-        optimization step, it will raise an exception in the cost
-        function and thus hard-abort the optimization process.
-        """
-        self._is_cancelled = True
-
     @QtCore.pyqtSlot()
     def run(self) -> None:
         """Implementation of `QRunnable.run()`."""
         # pylint: disable = bare-except
         try:
             self.run_optimization()
-        except OptimizationCancelled:
+        except JobCancelled:
             LOG.info("Optimization cancelled")
         except:
             LOG.error(traceback.format_exc())
@@ -97,8 +83,7 @@ class OptJob(Job):
 
     def _env_callback(self, action: np.ndarray) -> float:
         """The callback function provided to BaseOptimizer.solve()."""
-        if self._is_cancelled:
-            raise OptimizationCancelled()
+        self.cancellation_token.raise_if_cancelled()
         # Yield at least once per optimization step. This releases
         # Python's Global Interpreter Lock (GIL) and gives the main
         # thread a chance to process GUI events.

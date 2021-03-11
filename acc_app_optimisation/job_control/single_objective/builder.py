@@ -5,17 +5,13 @@ import numpy as np
 from cernml import coi, coi_funcs
 
 from ...envs import make_env_by_name
-from ..base import JobBuilder
+from ..base import CannotBuildJob, JobBuilder
 from . import jobs, optimizers
 
 if t.TYPE_CHECKING:
     from pyjapc import PyJapc  # pylint: disable=import-error, unused-import
 
 LOG = getLogger(__name__)
-
-
-class CannotBuildJob(Exception):
-    """One or more parameters is missing to build the job."""
 
 
 class OptJobBuilder(JobBuilder):

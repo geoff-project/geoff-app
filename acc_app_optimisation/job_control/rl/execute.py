@@ -9,23 +9,13 @@ from gym.envs.registration import EnvSpec
 from PyQt5 import QtCore
 
 from ...envs import make_env_by_name
-from ..base import Job, JobBuilder
+from ..base import CancellationToken, CannotBuildJob, Job, JobBuilder, JobCancelled
 from . import agents
 
 if t.TYPE_CHECKING:
-    from io import BufferedIOBase  # pylint: disable=unused-import
-
     from pyjapc import PyJapc  # pylint: disable=import-error, unused-import
 
 LOG = getLogger(__name__)
-
-
-class CannotBuildJob(Exception):
-    """One or more parameters is missing to build the job."""
-
-
-class ExecutionCancelled(Exception):
-    """The user clicked the Stop button to cancel execution."""
 
 
 class Signals(QtCore.QObject):
@@ -111,8 +101,6 @@ class ExecJobBuilder(JobBuilder):
 
 
 class ExecJob(Job):
-    can_reset: t.ClassVar[bool] = False
-
     def __init__(
         self,
         env: gym.Env,
@@ -122,7 +110,7 @@ class ExecJob(Job):
     ) -> None:
         super().__init__()
         self._signals = signals
-        self._env = RenderWrapper(env, signals)
+        self._env = RenderWrapper(env, self.cancellation_token, signals)
         self._num_episodes = num_episodes
         self._agent = agent
         self._finished = False
@@ -138,7 +126,7 @@ class ExecJob(Job):
                 while not done:
                     action, state = self._agent.predict(obs, state)
                     obs, _, done, _ = self._env.step(action)
-        except ExecutionCancelled:
+        except JobCancelled:
             LOG.info("Training cancelled")
         except:
             LOG.error(traceback.format_exc())
@@ -148,36 +136,19 @@ class ExecJob(Job):
         self._signals.training_finished.emit(True)
         self._finished = True
 
-    def cancel(self) -> None:
-        self._env.cancel()
-
-    def save(self, path: t.Union[str, "Path", "BufferedIOBase"]) -> None:
-        if not self._finished:
-            raise RuntimeError("cannot save a model before or during training")
-        self._agent.save(path)
-
-    def reset(self) -> None:
-        raise NotImplementedError("cannot reset training jobs")
-
 
 class RenderWrapper(gym.Wrapper):
-    def __init__(self, env: gym.Env, signals: Signals) -> None:
+    def __init__(
+        self, env: gym.Env, cancellation_token: CancellationToken, signals: Signals
+    ) -> None:
+        super().__init__(env)
         self.episode_actions: t.List[np.ndarray] = []
         self.reward_lists: t.List[t.List[float]] = []
         self.signals = signals
-        self._cancelled = False
-        super().__init__(env)
-
-    @property
-    def cancelled(self) -> bool:
-        return self._cancelled
-
-    def cancel(self) -> None:
-        self._cancelled = True
+        self.cancellation_token = cancellation_token
 
     def reset(self, **kwargs: t.Any) -> np.ndarray:
-        if self._cancelled:
-            raise ExecutionCancelled()
+        self.cancellation_token.raise_if_cancelled()
         self.reward_lists.append([])
         self.episode_actions.clear()
         return super().reset(**kwargs)
@@ -185,8 +156,7 @@ class RenderWrapper(gym.Wrapper):
     def step(
         self, action: np.ndarray
     ) -> t.Tuple[np.ndarray, float, bool, t.Dict[str, t.Any]]:
-        if self._cancelled:
-            raise ExecutionCancelled()
+        self.cancellation_token.raise_if_cancelled()
         obs, reward, done, info = super().step(action)
         episode_rewards = self.reward_lists[-1]
         episode_rewards.append(reward)
