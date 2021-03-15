@@ -32,13 +32,20 @@ class StreamToLogger:
         pass
 
 
-def init_logging() -> LogConsoleModel:
+def init_logging(capture_stdout: bool) -> LogConsoleModel:
     """Configure the `logging` module."""
-    sys.stdout = StreamToLogger(logging.getLogger("stdout"), logging.INFO)
-    sys.stderr = StreamToLogger(logging.getLogger("stderr"), logging.WARNING)
-    # No level-based filtering, no output. Instead, we let the
-    # LogConsole handle filtering and output for us.
-    logging.basicConfig(level="NOTSET", handlers=[])
+    if capture_stdout:
+        sys.stdout = StreamToLogger(logging.getLogger("stdout"), logging.INFO)
+        sys.stderr = StreamToLogger(logging.getLogger("stderr"), logging.WARNING)
+        handlers = []
+    else:
+        stderr_handler = logging.StreamHandler()
+        stderr_handler.setLevel("INFO")
+        stderr_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+        handlers = [stderr_handler]
+    # No level-based filtering on the root logger; we leave that to the
+    # log console and to the stderr_handler.
+    logging.basicConfig(level="NOTSET", handlers=handlers)
     return LogConsoleModel()
 
 
@@ -74,6 +81,14 @@ def get_parser() -> argparse.ArgumentParser:
         "consider also passing -snext",
     )
     parser.add_argument(
+        "--no-capture-stdout",
+        dest="capture_stdout",
+        action="store_false",
+        default=True,
+        help="Do not capture all standard output/error; this is "
+        "for debugging crashes of the application",
+    )
+    parser.add_argument(
         "--builtins",
         action="store_true",
         default=True,
@@ -91,8 +106,8 @@ def get_parser() -> argparse.ArgumentParser:
 
 def main(argv: list) -> int:
     """Main function. Pass sys.argv."""
-    model = init_logging()
     args = get_parser().parse_args(argv[1:])
+    model = init_logging(args.capture_stdout)
     lsa = pjlsa.LSAClient(server=args.lsa_server)
     with lsa.java_api():
         # pylint: disable = import-outside-toplevel
