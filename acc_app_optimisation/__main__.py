@@ -96,6 +96,7 @@ def main(argv: list) -> int:
     lsa = pjlsa.LSAClient(server=args.lsa_server)
     with lsa.java_api():
         # pylint: disable = import-outside-toplevel
+        from acc_app_optimisation import __version__ as version
         from acc_app_optimisation import foreign_imports, gui
 
         for path in args.foreign_imports:
@@ -107,6 +108,10 @@ def main(argv: list) -> int:
 
         app = QtWidgets.QApplication(argv)
         window = gui.MainWindow(lsa=lsa, model=model, japc_no_set=args.japc_no_set)
+        window.setWindowTitle(
+            f"GeOFF v{version} (LSA {args.lsa_server.upper()}"
+            f'{", NO SET" if args.japc_no_set else ""})'
+        )
         window.show()
         return app.exec_()
 
