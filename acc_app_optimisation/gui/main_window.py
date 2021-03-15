@@ -115,6 +115,7 @@ class MainWindow(QtWidgets.QMainWindow):
         *,
         lsa: pjlsa.LSAClient,
         model: t.Optional[LogConsoleModel] = None,
+        japc_no_set: bool = False,
     ) -> None:
         super().__init__()
         mdi = MainMdiArea()
@@ -125,6 +126,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self._control_pane = ControlPane(
             lsa=lsa,
             plot_manager=self._plot_manager,
+            japc_no_set=japc_no_set,
         )
         dock = DumbDockWidget()
         dock.setWidget(self._control_pane)

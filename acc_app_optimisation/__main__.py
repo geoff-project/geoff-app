@@ -66,6 +66,14 @@ def get_parser() -> argparse.ArgumentParser:
         help="The LSA server to connect to (default: gpn)",
     )
     parser.add_argument(
+        "--japc-no-set",
+        action="store_true",
+        default=False,
+        help="Disable SET actions via JAPC; this is for debugging "
+        "purposes; note that trims may still be sent to LSA; "
+        "consider also passing -snext",
+    )
+    parser.add_argument(
         "--builtins",
         action="store_true",
         default=True,
@@ -98,7 +106,7 @@ def main(argv: list) -> int:
             from acc_app_optimisation.envs import builtin_envs as _
 
         app = QtWidgets.QApplication(argv)
-        window = gui.MainWindow(lsa=lsa, model=model)
+        window = gui.MainWindow(lsa=lsa, model=model, japc_no_set=args.japc_no_set)
         window.show()
         return app.exec_()
 
