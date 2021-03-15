@@ -34,7 +34,6 @@ class StreamToLogger:
 
 def init_logging() -> LogConsoleModel:
     """Configure the `logging` module."""
-    basic_formatter = logging.Formatter(logging.BASIC_FORMAT)
     sys.stdout = StreamToLogger(logging.getLogger("stdout"), logging.INFO)
     sys.stderr = StreamToLogger(logging.getLogger("stderr"), logging.WARNING)
     # No level-based filtering, no output. Instead, we let the
