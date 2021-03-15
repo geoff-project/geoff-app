@@ -6,6 +6,7 @@ import functools
 import importlib
 import logging
 import sys
+import traceback
 import typing as t
 from enum import Enum
 from pathlib import Path, PurePath
@@ -76,6 +77,21 @@ class BackupModules:
                 yield ChangeKind.MODIFICATION, name
         for name in set(new_modules).difference(old_modules):
             yield ChangeKind.ADDITION, name
+
+
+def import_all(paths: t.Iterable[str]) -> None:
+    """Call `import_from_path()` in a loop.
+
+    This is a convenience function that makes all given modules
+    available, but does not return them. It also stops on the first
+    exception and logs it.
+    """
+    try:
+        for path in paths:
+            import_from_path(path)
+    except Exception:  # pylint: disable=broad-except
+        LOG.error(traceback.format_exc())
+        LOG.error("Aborted foreign imports due to the above exception")
 
 
 def import_from_path(to_be_imported: str) -> ModuleType:

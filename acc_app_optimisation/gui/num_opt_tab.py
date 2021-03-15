@@ -203,7 +203,12 @@ class NumOptTab(QtWidgets.QWidget):
         problem = self.get_or_load_problem()
         if problem is None:
             return
-        self._current_opt_job = self._opt_builder.build_job()
+        try:
+            self._current_opt_job = self._opt_builder.build_job()
+        except:  # pylint: disable=bare-except
+            LOG.error(traceback.format_exc())
+            LOG.error("Aborted initialization due to the above exception")
+            return
         assert self._current_opt_job is not None
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)

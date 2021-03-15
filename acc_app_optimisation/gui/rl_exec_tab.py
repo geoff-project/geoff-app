@@ -180,7 +180,12 @@ class RlExecTab(QtWidgets.QWidget):
         env = self.get_or_load_env()
         if env is None:
             return
-        self._current_exec_job = self._exec_builder.build_job()
+        try:
+            self._current_exec_job = self._exec_builder.build_job()
+        except:  # pylint: disable=bare-except
+            LOG.error(traceback.format_exc())
+            LOG.error("Aborted initialization due to the above exception")
+            return
         assert self._current_exec_job is not None
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)

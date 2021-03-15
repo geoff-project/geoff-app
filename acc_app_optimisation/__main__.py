@@ -114,8 +114,7 @@ def main(argv: list) -> int:
         from acc_app_optimisation import __version__ as version
         from acc_app_optimisation import foreign_imports, gui
 
-        for path in args.foreign_imports:
-            foreign_imports.import_from_path(path)
+        foreign_imports.import_all(args.foreign_imports)
 
         # Tricky ordering: foreign imports may override builtins.
         if args.builtins:
