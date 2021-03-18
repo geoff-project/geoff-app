@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.1.1
+
+### Visible changes
+
+- Add CLI argument `--no-capture-stdout` for debugging purposes.
+- Add CLI argument `--japc-no-set` for debugging purposes.
+- Add a window title which shows the values of `--server` and `--japc-no-set`.
+
+### Bug fixes
+
+- Catch more plugin exceptions and log them instead of crashing.
+
 ## v0.1.0
 
 ### Visible changes
