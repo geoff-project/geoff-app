@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.2
+
+### Build changes
+
+- Upgrade `cern-leir-transfer-line-env` requirement to 0.1.1.
+
 ## v0.1.1
 
 ### Visible changes
