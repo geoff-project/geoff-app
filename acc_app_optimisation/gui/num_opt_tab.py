@@ -7,7 +7,7 @@ import numpy as np
 from cernml import coi, coi_funcs
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from ..envs import iter_env_names
+from .. import envs
 from ..job_control.single_objective import OptJob, OptJobBuilder, optimizers
 from . import configuration
 from .plot_manager import PlotManager
@@ -137,7 +137,7 @@ class NumOptTab(QtWidgets.QWidget):
         self._machine = machine
         self.env_combo.clear()
         self.env_combo.addItems(
-            iter_env_names(
+            envs.iter_env_names(
                 machine=machine,
                 superclass=(coi.SingleOptimizable, coi_funcs.FunctionOptimizable),
             )
@@ -237,7 +237,7 @@ class NumOptTab(QtWidgets.QWidget):
         LOG.debug("resetting ...")
         self._current_opt_job.reset()
         problem = self._current_opt_job.problem
-        if "matplotlib_figures" in problem.metadata.get("render.modes", []):
+        if "matplotlib_figures" in envs.Metadata(problem).render_modes:
             problem.render(mode="matplotlib_figures")
             self._plot_manager.redraw_mpl_figures()
 
@@ -248,8 +248,7 @@ class NumOptTab(QtWidgets.QWidget):
         self.reset_button.setEnabled(False)
 
     def _add_render_output(self, problem: coi.Problem) -> None:
-        render_modes = problem.metadata.get("render.modes", [])
-        if "matplotlib_figures" in render_modes:
+        if "matplotlib_figures" in envs.Metadata(problem).render_modes:
             figures = problem.render(mode="matplotlib_figures")
             self._plot_manager.replace_mpl_figures(figures)
         else:

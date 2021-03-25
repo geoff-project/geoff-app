@@ -9,6 +9,7 @@ from cernml.coi.mpl_utils import iter_matplotlib_figures
 from cernml.coi_funcs import FunctionOptimizable
 from PyQt5 import QtCore
 
+from ...envs import Metadata
 from ...utils.bounded import BoundedArray
 from ..base import Job, JobCancelled
 from . import constraints, optimizers
@@ -127,7 +128,7 @@ class OptJob(Job):
             )
 
     def _render_env(self) -> None:
-        if "matplotlib_figures" not in self.problem.metadata.get("render.modes", []):
+        if "matplotlib_figures" not in Metadata(self.problem).render_modes:
             return
         figures = self.problem.render(mode="matplotlib_figures")
         # `draw()` refreshes the figures immediately on this thread. Do

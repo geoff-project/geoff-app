@@ -8,7 +8,7 @@ import gym
 from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from ..envs import iter_env_names
+from .. import envs
 from ..job_control import rl
 from . import configuration
 from .plot_manager import PlotManager
@@ -135,7 +135,9 @@ class RlExecTab(QtWidgets.QWidget):
     def setMachine(self, machine: coi.Machine) -> None:  # pylint: disable=invalid-name
         self._machine = machine
         self.env_combo.clear()
-        self.env_combo.addItems(iter_env_names(machine=machine, superclass=gym.Env))
+        self.env_combo.addItems(
+            envs.iter_env_names(machine=machine, superclass=gym.Env)
+        )
 
     def _on_env_changed(self, name: str) -> None:
         self._exec_builder.env_id = name
@@ -215,8 +217,7 @@ class RlExecTab(QtWidgets.QWidget):
         self._exec_builder.num_episodes = value
 
     def _add_render_output(self, problem: coi.Problem) -> None:
-        render_modes = problem.metadata.get("render.modes", [])
-        if "matplotlib_figures" in render_modes:
+        if "matplotlib_figures" in envs.Metadata(problem).render_modes:
             figures = problem.render(mode="matplotlib_figures")
             self._plot_manager.replace_mpl_figures(figures)
         else:
