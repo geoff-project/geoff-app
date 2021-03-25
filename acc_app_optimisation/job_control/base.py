@@ -1,11 +1,8 @@
 import abc
 import typing as t
 
+from cernml import coi
 from PyQt5 import QtCore
-
-
-class JobCancelled(Exception):
-    """The caller has cancelled this job and it should exit cleanly."""
 
 
 class CannotBuildJob(Exception):
@@ -39,67 +36,11 @@ class JobBuilder(abc.ABC):
         raise NotImplementedError()
 
 
-class CancellationToken:
-    """Communication channel to request job cancellation.
-
-    This type is used to communicate from a job caller to the job that
-    the job should exit as soon as possible. Jobs can do so either by
-    regularly checking :py:attr:`cancelled` or calling
-    :py:meth:`raise_if_cancelled` in their execution loop.
-
-    Usage:
-
-        >>> import time
-        >>> def func(token: CancellationToken) -> None:
-        ...     while True:
-        ...         # Regularly check if we should exit.
-        ...         token.raise_if_cancelled()
-        ...         # Long-running job ...
-        ...         time.sleep(0.1)
-        >>> job = make_job(func)
-        >>> pool = QtCore.QThreadPool.globalInstance()
-        >>> pool.activeThreadCount()
-        0
-        >>> pool.start(job)
-        >>> pool.activeThreadCount()
-        1
-        >>> job.cancel()
-        >>> pool.waitForDone()
-        >>> pool.activeThreadCount()
-        0
-    """
-
-    __slots__ = ["_cancelled"]
-
-    def __init__(self) -> None:
-        self._cancelled = False
-
-    def cancel(self) -> None:
-        """Request the job to exit."""
-        self._cancelled = True
-
-    @property
-    def cancelled(self) -> bool:
-        """True if the job should exit."""
-        return self._cancelled
-
-    def raise_if_cancelled(self) -> None:
-        """Raise an exception if the job should exit.
-
-        Raises:
-            JobCancelled: If :py:attr:`cancelled` is True.
-        """
-        if self._cancelled:
-            raise JobCancelled("job cancelled by user")
-
-
 class Job(QtCore.QRunnable):
     """Extension of :py:class:`QRunnable` with cancellation.
 
     This simply extends the :py:class:`QRunnable` interface with the
-    ability to send *cancellation requests* via a
-    :py:class:`CancellationToken`. See its documentation for a usage
-    example.
+    ability to send *cancellation requests*.
 
     Attributes:
         token: The cancellation token used to communicate cancellation
@@ -108,12 +49,10 @@ class Job(QtCore.QRunnable):
             instead.
     """
 
-    __slots__ = ["token"]
-
-    def __init__(self) -> None:
+    def __init__(self, token_source: coi.CancellationTokenSource) -> None:
         super().__init__()
-        self.cancellation_token = CancellationToken()
+        self._token_source = token_source
 
     def cancel(self) -> None:
         """Send a cancellation request to the job."""
-        self.cancellation_token.cancel()
+        self._token_source.cancel()

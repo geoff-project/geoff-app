@@ -23,6 +23,7 @@ class OptJobBuilder(JobBuilder):
     def __init__(self) -> None:
         self._problem: t.Optional[optimizers.Optimizable] = None
         self._problem_id = ""
+        self._token_source = coi.CancellationTokenSource()
         self.japc = None
         self.skeleton_points = None
         self.optimizer_factory = None
@@ -46,9 +47,15 @@ class OptJobBuilder(JobBuilder):
         if not self.problem_id:
             raise CannotBuildJob("no optimization problem selected")
         self.unload_problem()
-        self._problem = problem = make_env_by_name(
-            self.problem_id, make_japc=self._get_japc_or_raise
+        problem = make_env_by_name(
+            self.problem_id,
+            make_japc=self._get_japc_or_raise,
+            token=self._token_source.token,
         )
+        assert isinstance(
+            problem.unwrapped, (coi.SingleOptimizable, coi_funcs.FunctionOptimizable)
+        ), type(problem.unwrapped)
+        self._problem = problem
         return problem
 
     def _get_japc_or_raise(self) -> "PyJapc":
@@ -71,6 +78,7 @@ class OptJobBuilder(JobBuilder):
             if self.skeleton_points is None or not np.shape(self.skeleton_points):
                 raise CannotBuildJob("no skeleton points selected")
             return jobs.FunctionOptimizableJob(
+                token_source=self._token_source,
                 signals=self.signals,
                 optimizer_factory=self.optimizer_factory,
                 problem=problem,
@@ -78,6 +86,7 @@ class OptJobBuilder(JobBuilder):
             )
         assert isinstance(problem.unwrapped, coi.SingleOptimizable), problem
         return jobs.SingleOptimizableJob(
+            token_source=self._token_source,
             signals=self.signals,
             optimizer_factory=self.optimizer_factory,
             problem=problem,

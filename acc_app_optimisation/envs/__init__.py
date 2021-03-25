@@ -27,6 +27,10 @@ class Metadata:
             self._metadata.update(metadata_holder.metadata)
 
     @property
+    def cancellable(self) -> bool:
+        return bool(self._metadata["cern.cancellable"])
+
+    @property
     def needs_japc(self) -> bool:
         return bool(self._metadata["cern.japc"])
 
@@ -54,7 +58,11 @@ def iter_env_names(
         yield spec.id
 
 
-def make_env_by_name(name: str, make_japc: t.Callable[[], "PyJapc"]) -> coi.Problem:
+def make_env_by_name(
+    name: str,
+    make_japc: t.Callable[[], "PyJapc"],
+    token: coi.CancellationToken,
+) -> coi.Problem:
     """Instantiate the environment with the given name.
 
     Args:
@@ -63,13 +71,18 @@ def make_env_by_name(name: str, make_japc: t.Callable[[], "PyJapc"]) -> coi.Prob
             the environment requires JAPC access. It is called without
             arguments and should return a `PyJapc` object, or raise an
             exception on error.
+        token: A cancellation token to pass to the environment if it is
+            cancellable. If it isn't cancellable, the token is ignored.
 
     Returns:
         The instantiated COI problem. Unlike when using `coi.make()`,
         the problem is never wrapped in a `TimeLimit`.
     """
     spec = coi.spec(name)
+    metadata = Metadata(spec)
     kwargs: t.Dict[str, t.Any] = {}
-    if Metadata(spec).needs_japc:
+    if metadata.needs_japc:
         kwargs["japc"] = make_japc()
+    if metadata.cancellable:
+        kwargs["cancellation_token"] = token
     return spec.make(**kwargs)

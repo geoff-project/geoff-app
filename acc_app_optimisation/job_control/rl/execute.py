@@ -4,10 +4,11 @@ from logging import getLogger
 from pathlib import Path
 
 import gym
+from cernml import coi
 from gym.envs.registration import EnvSpec
 
 from ...envs import make_env_by_name
-from ..base import CannotBuildJob, Job, JobBuilder, JobCancelled
+from ..base import CannotBuildJob, Job, JobBuilder
 from . import agents
 from .wrapper import RenderWrapper, Signals
 
@@ -28,6 +29,7 @@ class ExecJobBuilder(JobBuilder):
     def __init__(self) -> None:
         self._env: t.Optional[gym.Env] = None
         self._env_id = ""
+        self._token_source = coi.CancellationTokenSource()
         self.japc = None
         self.time_limit = 0
         self.num_episodes = 0
@@ -54,7 +56,9 @@ class ExecJobBuilder(JobBuilder):
             raise CannotBuildJob("no environment selected")
         self.unload_env()
         self._env = env = make_env_by_name(
-            self._env_id, make_japc=self._get_japc_or_raise
+            self._env_id,
+            make_japc=self._get_japc_or_raise,
+            token=self._token_source.token,
         )
         spec: EnvSpec = env.spec  # type: ignore
         if spec.max_episode_steps is not None:
@@ -88,21 +92,27 @@ class ExecJobBuilder(JobBuilder):
         agent = self.agent_factory.make_agent(env)
         agent = type(agent).load(self.agent_path)
         return ExecJob(
-            env=env, agent=agent, num_episodes=self.num_episodes, signals=self.signals
+            token_source=self._token_source,
+            env=env,
+            agent=agent,
+            num_episodes=self.num_episodes,
+            signals=self.signals,
         )
 
 
 class ExecJob(Job):
     def __init__(
         self,
+        *,
+        token_source: coi.CancellationTokenSource,
         env: gym.Env,
         agent: agents.BaseAlgorithm,
         num_episodes: int,
         signals: Signals,
     ) -> None:
-        super().__init__()
+        super().__init__(token_source)
         self._signals = signals
-        self._env = RenderWrapper(env, self.cancellation_token, signals)
+        self._env = RenderWrapper(env, self._token_source.token, signals)
         self._num_episodes = num_episodes
         self._agent = agent
         self._finished = False
@@ -118,7 +128,7 @@ class ExecJob(Job):
                 while not done:
                     action, state = self._agent.predict(obs, state)
                     obs, _, done, _ = self._env.step(action)
-        except JobCancelled:
+        except coi.CancelledError:
             LOG.info("Training cancelled")
         except:
             LOG.error(traceback.format_exc())

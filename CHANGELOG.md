@@ -18,6 +18,7 @@
 
 - Upgrade `cern-awake-env` requirement to 0.14.0.
 - Upgrade `cern-coi` requirement to 0.6.2.
+- Upgrade `cernml-coi` to 0.6.2. This enables `"cern.cancellable"`.
 
 ## v0.1.2
 

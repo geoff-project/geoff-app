@@ -2,10 +2,9 @@ import typing as t
 
 import gym
 import numpy as np
+from cernml.coi import CancellationToken
 from cernml.coi.mpl_utils import iter_matplotlib_figures
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
-
-from ..base import CancellationToken
 
 
 class Signals(QObject):
@@ -39,7 +38,7 @@ class RenderWrapper(gym.Wrapper):
         self.cancellation_token = cancellation_token
 
     def reset(self, **kwargs: t.Any) -> np.ndarray:
-        self.cancellation_token.raise_if_cancelled()
+        self.cancellation_token.raise_if_cancellation_requested()
         self.reward_lists.append([])
         self.episode_actions.clear()
         return super().reset(**kwargs)
@@ -47,7 +46,7 @@ class RenderWrapper(gym.Wrapper):
     def step(
         self, action: np.ndarray
     ) -> t.Tuple[np.ndarray, float, bool, t.Dict[str, t.Any]]:
-        self.cancellation_token.raise_if_cancelled()
+        self.cancellation_token.raise_if_cancellation_requested()
         obs, reward, done, info = super().step(action)
         episode_rewards = self.reward_lists[-1]
         episode_rewards.append(reward)
