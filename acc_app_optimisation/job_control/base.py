@@ -117,37 +117,3 @@ class Job(QtCore.QRunnable):
     def cancel(self) -> None:
         """Send a cancellation request to the job."""
         self.cancellation_token.cancel()
-
-
-def make_job(func: t.Callable[..., None], *args: t.Any, **kwargs: t.Any) -> Job:
-    """Turn a function into a :py:class:`Job`.
-
-    Args:
-        func: The function to run as a job. Its first argument is a
-            :py:class:`CancellationToken` used to send cancellation
-            requests.
-        args: Any further positional arguments to pass to ``func``.
-        kwargs: Any further keyword arguments to pass to ``func``.
-
-    Returns:
-        An instance of :py:class:`Job` that calls ``func`` upon being
-        started.
-    """
-    return _FunctionJob(func, *args, **kwargs)
-
-
-class _FunctionJob(Job):
-    """Return value of :py:func:`make_job()`."""
-
-    __slots__ = ["_func", "_args", "_kwargs"]
-
-    def __init__(
-        self, func: t.Callable[..., None], *args: t.Any, **kwargs: t.Any
-    ) -> None:
-        super().__init__()
-        self._func = func
-        self._args = args
-        self._kwargs = kwargs
-
-    def run(self) -> None:
-        self._func(self.cancellation_token, *self._args, **self._kwargs)
