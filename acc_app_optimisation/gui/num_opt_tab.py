@@ -29,6 +29,23 @@ class CreatingEnvDialog(QtWidgets.QDialog):
         )
 
 
+class ThreadPoolWorker(QtCore.QRunnable):
+    """Python function wrapper that can be submitted to `QThreadPool`.
+
+    This is necessary to support Qt versions <5.15, which don't allow
+    passing bare callables to `QThreadPool`.
+    """
+
+    def __init__(self, func: t.Callable, *args: t.Any, **kwargs: t.Any) -> None:
+        super().__init__()
+        self._func = func
+        self._args = args
+        self._kwargs = kwargs
+
+    def run(self) -> None:
+        self._func(*self._args, **self._kwargs)
+
+
 class NumOptTab(QtWidgets.QWidget):
     # pylint: disable = too-many-instance-attributes
 
@@ -235,11 +252,27 @@ class NumOptTab(QtWidgets.QWidget):
             LOG.error("cannot reset, no job has been run")
             return
         LOG.debug("resetting ...")
-        self._current_opt_job.reset()
-        problem = self._current_opt_job.problem
-        if "matplotlib_figures" in envs.Metadata(problem).render_modes:
-            problem.render(mode="matplotlib_figures")
-            self._plot_manager.redraw_mpl_figures()
+        self.start_button.setEnabled(False)
+        self.stop_button.setEnabled(False)
+        self.reset_button.setEnabled(False)
+
+        def _perform_reset(job: OptJob) -> None:
+            try:
+                job.reset()
+                if "matplotlib_figures" in envs.Metadata(job.problem).render_modes:
+                    job.problem.render(mode="matplotlib_figures")
+                    self._plot_manager.redraw_mpl_figures()
+            except:  # pylint: disable=bare-except
+                LOG.error(traceback.format_exc())
+                LOG.error("could not reset due to the above exception")
+            else:
+                LOG.info("problem successfully reset")
+            self.start_button.setEnabled(True)
+            self.stop_button.setEnabled(False)
+            self.reset_button.setEnabled(True)
+
+        threadpool = QtCore.QThreadPool.globalInstance()
+        threadpool.start(ThreadPoolWorker(_perform_reset, self._current_opt_job))
 
     def _clear_job(self) -> None:
         self._current_opt_job = None
