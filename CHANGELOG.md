@@ -8,6 +8,16 @@
   (SVD)](https://gitlab.cern.ch/be-op-ml-optimization/cernml-svd/) as an RL
   algorithm. It works best on linear problems that can be described by an
   invertible response matrix. Thanks to @ivojskov for the implementation!
+- Update the simulated AWAKE electron beam steering problem. It now provides a
+  new version v1, which does not include the first BPM (which cannot be
+  influenced) nor the last kicker (whose effect cannot be observed). This
+  removal makes the problem's response matrix invertible and thus compatible
+  with SVD.
+
+### Build changes
+
+- Upgrade `cern-awake-env` requirement to 0.14.0.
+- Upgrade `cern-coi` requirement to 0.6.2.
 
 ## v0.1.2
 
