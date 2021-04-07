@@ -1,5 +1,14 @@
 # Changelog
 
+## Upcoming
+
+### Visible changes
+
+- Add [Singular Value Decomposition
+  (SVD)](https://gitlab.cern.ch/be-op-ml-optimization/cernml-svd/) as an RL
+  algorithm. It works best on linear problems that can be described by an
+  invertible response matrix. Thanks to @ivojskov for the implementation!
+
 ## v0.1.2
 
 ### Build changes

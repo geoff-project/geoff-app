@@ -7,7 +7,11 @@ import gym
 import numpy as np
 import stable_baselines3 as sb3
 from cernml import coi
+from cernml.svd import SvdOptimizer
 from stable_baselines3.common.base_class import BaseAlgorithm
+
+# Mark SvdOptimizer as a virtual subclass of BaseAlgorithm.
+BaseAlgorithm.register(SvdOptimizer)
 
 
 class AgentFactory(coi.Configurable, metaclass=abc.ABCMeta):
@@ -207,9 +211,61 @@ class SAC(AgentFactory):
         )
 
 
+class SVD(AgentFactory):
+    def __init__(self) -> None:
+        super().__init__()
+        defaults = _get_default_args(SvdOptimizer)
+        self.action_scale: float = defaults["action_scale"]
+        self.max_action_value: float = defaults["max_action_value"]
+        self.verbose: bool = defaults["verbose"]
+
+    def get_config(self) -> coi.Config:
+        config = super().get_config()
+        config.add(
+            "action_scale",
+            self.action_scale,
+            range=(0, np.inf),
+            label="Training step size",
+            help="Size of the steps to take during training",
+        )
+        config.add(
+            "max_action_value",
+            self.max_action_value,
+            range=(0, np.inf),
+            label="Maximum prediction step size",
+            help="Limit on the step size during evaluation",
+        )
+        config.add(
+            "verbose",
+            self.verbose,
+            type=bool,
+            label="Verbose output",
+            help="Enable to produce more logging output",
+        )
+        return config
+
+    def apply_config(self, values: SimpleNamespace) -> None:
+        super().apply_config(values)
+        self.action_scale = values.action_scale
+        self.max_action_value = values.max_action_value
+        self.verbose = values.verbose
+
+    def make_agent(self, env: gym.Env) -> BaseAlgorithm:
+        agent = SvdOptimizer(
+            env,
+            action_scale=self.action_scale,
+            max_action_value=self.max_action_value,
+            verbose=self.verbose,
+        )
+        # This is fine – we've registered SvdOptimizer as a subclass of
+        # the ABC BaseAlgorithm and it fulfills enough of the API.
+        return t.cast(BaseAlgorithm, agent)
+
+
 ALL_AGENTS: t.Mapping[str, t.Type[AgentFactory]] = {
     "TD3": TD3,
     "SAC": SAC,
+    "SVD": SVD,
 }
 
 
