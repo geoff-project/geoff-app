@@ -18,6 +18,10 @@ from . import constraints, optimizers
 LOG = getLogger(__name__)
 
 
+class BenignCancelledError(cancellation.CancelledError):
+    """Cancellation error that we raise, not the :class:`SingleOptimizable`."""
+
+
 class Signals(QtCore.QObject):
     actors_updated = QtCore.pyqtSignal(np.ndarray, np.ndarray)
     constraints_updated = QtCore.pyqtSignal(np.ndarray, BoundedArray)
@@ -75,18 +79,23 @@ class OptJob(Job):
         # pylint: disable = bare-except
         try:
             self.run_optimization()
-        except cancellation.CancelledError:
+        except cancellation.CancelledError as exc:
+            if isinstance(exc, BenignCancelledError):
+                self._token_source.token.complete_cancellation()
             LOG.info("Optimization cancelled")
         except:
             LOG.error(traceback.format_exc())
-            LOG.error("Aborted optimization due to the above exception")
+            LOG.error("Optimization aborted due to the above exception")
         else:
             LOG.info("Optimization finished")
+        if self._token_source.can_reset_cancellation:
+            self._token_source.reset_cancellation()
         self._signals.optimisation_finished.emit(True)
 
     def _env_callback(self, action: np.ndarray) -> float:
         """The callback function provided to BaseOptimizer.solve()."""
-        self._token_source.token.raise_if_cancellation_requested()
+        if self._token_source.token.cancellation_requested:
+            raise BenignCancelledError()
         # Yield at least once per optimization step. This releases
         # Python's Global Interpreter Lock (GIL) and gives the main
         # thread a chance to process GUI events.
@@ -216,6 +225,8 @@ class FunctionOptimizableJob(OptJob):
 
     def run_optimization(self) -> None:
         for point, x_0 in zip(self.skeleton_points, self.all_x_0):
+            if self._token_source.token.cancellation_requested:
+                raise BenignCancelledError()
             self._current_point = point
             op_space = self.get_optimization_space()
             bounds = (op_space.low, op_space.high)

@@ -3,11 +3,12 @@ import typing as t
 import gym
 import numpy as np
 from cernml.coi.mpl_utils import iter_matplotlib_figures
+from cernml.coi.unstable import cancellation
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
-if t.TYPE_CHECKING:
-    # pylint: disable = ungrouped-imports, unused-import
-    from cernml.coi.unstable import cancellation
+
+class BenignCancelledError(cancellation.CancelledError):
+    """Cancellation error that we raise, not the :class:`SingleOptimizable`."""
 
 
 class Signals(QObject):
@@ -49,7 +50,8 @@ class RenderWrapper(gym.Wrapper):
     def step(
         self, action: np.ndarray
     ) -> t.Tuple[np.ndarray, float, bool, t.Dict[str, t.Any]]:
-        self.cancellation_token.raise_if_cancellation_requested()
+        if self.cancellation_token.cancellation_requested:
+            raise BenignCancelledError()
         obs, reward, done, info = super().step(action)
         episode_rewards = self.reward_lists[-1]
         episode_rewards.append(reward)

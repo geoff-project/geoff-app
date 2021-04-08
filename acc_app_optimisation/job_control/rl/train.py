@@ -9,7 +9,7 @@ from gym.envs.registration import EnvSpec
 from ...envs import make_env_by_name
 from ..base import CannotBuildJob, Job, JobBuilder
 from . import agents
-from .wrapper import RenderWrapper, Signals
+from .wrapper import BenignCancelledError, RenderWrapper, Signals
 
 if t.TYPE_CHECKING:
     from io import BufferedIOBase  # pylint: disable=unused-import
@@ -114,13 +114,17 @@ class TrainJob(Job):
         self._finished = False
         try:
             self._agent.learn(self._total_timesteps)
-        except cancellation.CancelledError:
+        except cancellation.CancelledError as exc:
+            if isinstance(exc, BenignCancelledError):
+                self._token_source.token.complete_cancellation()
             LOG.info("Training cancelled")
         except:
             LOG.error(traceback.format_exc())
-            LOG.error("Aborted training due to the above exception")
+            LOG.error("Training aborted due to the above exception")
         else:
             LOG.info("Training finished")
+        if self._token_source.can_reset_cancellation:
+            self._token_source.reset_cancellation()
         self._signals.training_finished.emit(True)
         self._finished = True
 

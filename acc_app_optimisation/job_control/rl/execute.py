@@ -10,7 +10,7 @@ from gym.envs.registration import EnvSpec
 from ...envs import make_env_by_name
 from ..base import CannotBuildJob, Job, JobBuilder
 from . import agents
-from .wrapper import RenderWrapper, Signals
+from .wrapper import BenignCancelledError, RenderWrapper, Signals
 
 if t.TYPE_CHECKING:
     from pyjapc import PyJapc  # pylint: disable=import-error, unused-import
@@ -128,12 +128,16 @@ class ExecJob(Job):
                 while not done:
                     action, state = self._agent.predict(obs, state)
                     obs, _, done, _ = self._env.step(action)
-        except cancellation.CancelledError:
-            LOG.info("Training cancelled")
+        except cancellation.CancelledError as exc:
+            if isinstance(exc, BenignCancelledError):
+                self._token_source.token.complete_cancellation()
+            LOG.info("Execution cancelled")
         except:
             LOG.error(traceback.format_exc())
-            LOG.error("Aborted training due to the above exception")
+            LOG.error("Execution aborted due to the above exception")
         else:
             LOG.info("Training finished")
+        if self._token_source.can_reset_cancellation:
+            self._token_source.reset_cancellation()
         self._signals.training_finished.emit(True)
         self._finished = True
