@@ -3,7 +3,7 @@ import typing as t
 from logging import getLogger
 
 import gym
-from cernml import coi
+from cernml.coi.unstable import cancellation
 from gym.envs.registration import EnvSpec
 
 from ...envs import make_env_by_name
@@ -29,7 +29,7 @@ class TrainJobBuilder(JobBuilder):
     def __init__(self) -> None:
         self._env: t.Optional[gym.Env] = None
         self._env_id = ""
-        self._token_source = coi.CancellationTokenSource()
+        self._token_source = cancellation.TokenSource()
         self.japc = None
         self.time_limit = 0
         self.agent_factory = None
@@ -97,7 +97,7 @@ class TrainJob(Job):
     def __init__(
         self,
         *,
-        token_source: coi.CancellationTokenSource,
+        token_source: cancellation.TokenSource,
         env: gym.Env,
         agent_factory: agents.AgentFactory,
         signals: Signals,
@@ -114,7 +114,7 @@ class TrainJob(Job):
         self._finished = False
         try:
             self._agent.learn(self._total_timesteps)
-        except coi.CancelledError:
+        except cancellation.CancelledError:
             LOG.info("Training cancelled")
         except:
             LOG.error(traceback.format_exc())

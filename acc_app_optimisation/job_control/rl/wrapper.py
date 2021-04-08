@@ -2,9 +2,12 @@ import typing as t
 
 import gym
 import numpy as np
-from cernml.coi import CancellationToken
 from cernml.coi.mpl_utils import iter_matplotlib_figures
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
+
+if t.TYPE_CHECKING:
+    # pylint: disable = ungrouped-imports, unused-import
+    from cernml.coi.unstable import cancellation
 
 
 class Signals(QObject):
@@ -29,7 +32,7 @@ class RenderWrapper(gym.Wrapper):
     """
 
     def __init__(
-        self, env: gym.Env, cancellation_token: CancellationToken, signals: Signals
+        self, env: gym.Env, cancellation_token: "cancellation.Token", signals: Signals
     ) -> None:
         super().__init__(env)
         self.episode_actions: t.List[np.ndarray] = []

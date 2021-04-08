@@ -8,6 +8,8 @@ from cernml import coi
 from gym.envs.registration import EnvSpec
 
 if t.TYPE_CHECKING:
+    # pylint: disable = ungrouped-imports, unused-import, import-error
+    from cernml.coi.unstable import cancellation
     from pyjapc import PyJapc
 
 
@@ -61,7 +63,7 @@ def iter_env_names(
 def make_env_by_name(
     name: str,
     make_japc: t.Callable[[], "PyJapc"],
-    token: coi.CancellationToken,
+    token: "cancellation.Token",
 ) -> coi.Problem:
     """Instantiate the environment with the given name.
 

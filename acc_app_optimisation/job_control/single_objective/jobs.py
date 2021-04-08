@@ -4,9 +4,9 @@ from logging import getLogger
 
 import gym
 import numpy as np
-from cernml import coi
 from cernml.coi import SingleOptimizable
 from cernml.coi.mpl_utils import iter_matplotlib_figures
+from cernml.coi.unstable import cancellation
 from cernml.coi_funcs import FunctionOptimizable
 from PyQt5 import QtCore
 
@@ -38,7 +38,7 @@ class OptJob(Job):
     def __init__(
         self,
         *,
-        token_source: coi.CancellationTokenSource,
+        token_source: cancellation.TokenSource,
         signals: Signals,
         problem: optimizers.Optimizable,
     ) -> None:
@@ -75,7 +75,7 @@ class OptJob(Job):
         # pylint: disable = bare-except
         try:
             self.run_optimization()
-        except coi.CancelledError:
+        except cancellation.CancelledError:
             LOG.info("Optimization cancelled")
         except:
             LOG.error(traceback.format_exc())
@@ -151,7 +151,7 @@ class SingleOptimizableJob(OptJob):
     def __init__(
         self,
         *,
-        token_source: coi.CancellationTokenSource,
+        token_source: cancellation.TokenSource,
         signals: Signals,
         problem: SingleOptimizable,
         optimizer_factory: optimizers.OptimizerFactory,
@@ -185,7 +185,7 @@ class FunctionOptimizableJob(OptJob):
     def __init__(
         self,
         *,
-        token_source: coi.CancellationTokenSource,
+        token_source: cancellation.TokenSource,
         signals: Signals,
         problem: FunctionOptimizable,
         optimizer_factory: optimizers.OptimizerFactory,

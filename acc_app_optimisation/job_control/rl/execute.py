@@ -4,7 +4,7 @@ from logging import getLogger
 from pathlib import Path
 
 import gym
-from cernml import coi
+from cernml.coi.unstable import cancellation
 from gym.envs.registration import EnvSpec
 
 from ...envs import make_env_by_name
@@ -29,7 +29,7 @@ class ExecJobBuilder(JobBuilder):
     def __init__(self) -> None:
         self._env: t.Optional[gym.Env] = None
         self._env_id = ""
-        self._token_source = coi.CancellationTokenSource()
+        self._token_source = cancellation.TokenSource()
         self.japc = None
         self.time_limit = 0
         self.num_episodes = 0
@@ -104,7 +104,7 @@ class ExecJob(Job):
     def __init__(
         self,
         *,
-        token_source: coi.CancellationTokenSource,
+        token_source: cancellation.TokenSource,
         env: gym.Env,
         agent: agents.BaseAlgorithm,
         num_episodes: int,
@@ -128,7 +128,7 @@ class ExecJob(Job):
                 while not done:
                     action, state = self._agent.predict(obs, state)
                     obs, _, done, _ = self._env.step(action)
-        except coi.CancelledError:
+        except cancellation.CancelledError:
             LOG.info("Training cancelled")
         except:
             LOG.error(traceback.format_exc())

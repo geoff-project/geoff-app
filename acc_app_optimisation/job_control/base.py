@@ -1,8 +1,11 @@
 import abc
 import typing as t
 
-from cernml import coi
 from PyQt5 import QtCore
+
+if t.TYPE_CHECKING:
+    # pylint: disable = unused-import
+    from cernml.coi.unstable import cancellation
 
 
 class CannotBuildJob(Exception):
@@ -49,7 +52,7 @@ class Job(QtCore.QRunnable):
             instead.
     """
 
-    def __init__(self, token_source: coi.CancellationTokenSource) -> None:
+    def __init__(self, token_source: "cancellation.TokenSource") -> None:
         super().__init__()
         self._token_source = token_source
 
