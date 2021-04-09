@@ -62,13 +62,7 @@ Installation
 The information in this section is only relevant if you want to install this
 application into your own environment. You typically want to do this when
 developing a plugin for your own optimization problem. This section is
-up-to-date as of December 2020.
-
-This application currently vendors the [Qt LSA Selector][] widget (to be
-published as part of [Accwidgets][] 0.5). This project in turn depends on
-[Pjlsa 0.2][Pjlsa]. This is _not_ part of the current Acc-Py release (19.5.2),
-which only provides [Pjlsa 0.0.14][Pjlsa]. Due to this, installing this package
-is a bit awkward at the moment.
+up-to-date as of April 2021.
 
 Step 1: Acc-Py and Venv
 -----------------------
