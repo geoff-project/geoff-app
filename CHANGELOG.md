@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v0.1.3
 
 ### Visible changes
 
