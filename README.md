@@ -28,14 +28,15 @@ To use [acc-py-deploy][], run either of these lines in your shell. You don't
 have to run them if you have already set up Acc-Py in your init script:
 
 ```bash
-# Activate Acc-Py.
-# This is the "full" distribution with lots of pre-installed packages.
-source /acc/local/share/python/acc-py/pro/setup.sh
-
 # Activate Acc-Py Base.
 # This is the "base" distribution containing only the bare minimum of
 # pre-installed packages.
 source /acc/local/share/python/acc-py/base/pro/setup.sh
+
+# Activate Acc-Py.
+# This is the "full" distribution with lots of pre-installed packages. As of
+# April 2021, this still lags behind Acc-Py Base by one Python release.
+source /acc/local/share/python/acc-py/pro/setup.sh
 ```
 
 Running
@@ -48,7 +49,7 @@ Once this setup is done, you can run the GUI by executing the following line:
 acc-py app run acc-app-optimisation
 
 # Run a specific version.
-acc-py appp run acc-app-optimisation --version 0.0.1 
+acc-py app run --version 0.1.3 acc-app-optimisation
 ```
 
 This runs the GUI in a completely sealed virtual environment. This means that
@@ -89,7 +90,7 @@ mkdir -p ~/venvs
 
 # Make a virtual environment based on Acc-Py base and activate it.
 python -m venv --system-site-packages ~/venvs/acc-app-optimisation
-source ~/venvs/acc-app-optimisation
+source ~/venvs/acc-app-optimisation/bin/activate
 ```
 
 If you use Acc-Py 19.5.2, the setup is very similar, but you need to *isolate*
