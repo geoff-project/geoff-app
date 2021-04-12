@@ -9,7 +9,7 @@ import typing as t
 from unittest.mock import Mock
 
 import cernml.coi
-import gym
+import gym.envs.registration
 import numpy as np
 import pytest
 from PyQt5 import QtCore
@@ -49,7 +49,11 @@ def optimizable() -> cernml.coi.SingleOptimizable:
     result.optimization_space = gym.spaces.Box(-1.0, 1.0, shape=(3,))
     result.get_initial_params.return_value = result.optimization_space.sample()
     result.return_value = result
-    result.spec = Mock(id=f"MockEnv-{id(result)}-v0", entry_point=result)
+    result.spec = Mock(
+        id=f"MockEnv-{id(result)}-v0",
+        entry_point=result,
+        spec=gym.envs.registration.EnvSpec,
+    )
     result.spec.make.return_value = result
     return result
 
