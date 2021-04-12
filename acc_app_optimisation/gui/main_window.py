@@ -166,6 +166,7 @@ class MainWindow(ApplicationFrame):
         self._control_pane.machine_combo.currentTextChanged.connect(
             self._on_machine_changed
         )
+        LOG.info("Setting up timing bar, which uses its own PyJapc instance")
         self._on_machine_changed(self._control_pane.machine_combo.currentText())
 
         console = LogConsole(model=model)
