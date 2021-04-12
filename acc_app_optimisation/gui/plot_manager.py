@@ -212,11 +212,11 @@ class PlotManager:
         parent = figure.parent().parent()
         if isinstance(parent, PopinWindow):
             t.cast(PopoutMdiArea, self._mdi).removePopinWindow(parent)
-            parent.setParent(None)
+            parent.setParent(None)  # type: ignore
             parent.deleteLater()
         elif isinstance(parent, QtWidgets.QMdiSubWindow):
             self._mdi.removeSubWindow(parent)
-            parent.setParent(None)
+            parent.setParent(None)  # type: ignore
             parent.deleteLater()
         else:
             raise TypeError("unknown plot parent: " + repr(parent))
@@ -377,9 +377,9 @@ def _make_curve_with_bounds(
     This only creates the curve items; you still need to add them to a
     plot. (and add a layer if you use any)
     """
-    color = pyqtgraph.mkColor(color)
-    solid_pen = QtGui.QPen(color, 0.0, Qt.SolidLine)
-    dashed_pen = QtGui.QPen(color, 0.0, Qt.DashLine)
+    parsed_color: QtGui.QColor = pyqtgraph.mkColor(color)
+    solid_pen = QtGui.QPen(parsed_color, 0.0, Qt.SolidLine)
+    dashed_pen = QtGui.QPen(parsed_color, 0.0, Qt.DashLine)
     curves = Bounded(
         values=pyqtgraph.PlotDataItem(pen=solid_pen, layer=layer),
         lower=pyqtgraph.PlotDataItem(pen=dashed_pen, layer=layer),

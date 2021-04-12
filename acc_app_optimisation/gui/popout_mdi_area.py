@@ -4,7 +4,7 @@
 
 # pylint: disable = invalid-name
 
-from typing import Optional, Union
+import typing as t
 
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
@@ -15,16 +15,15 @@ class PopoutSubwindow(QtWidgets.QMdiSubWindow):
 
     def __init__(
         self,
-        parent: Optional[QtWidgets.QWidget] = None,
+        parent: t.Optional[QtWidgets.QWidget] = None,
         flags: Qt.WindowFlags = Qt.WindowFlags(),
-        **kwargs,
+        **kwargs: t.Any,
     ) -> None:
-        super().__init__(parent, flags, **kwargs)
+        super().__init__(parent, flags, **kwargs)  # type: ignore
         # Add "Popout" either before "Close" or as the only entry.
         icon = QtGui.QIcon.fromTheme("window-new")
-        popout_action = QtWidgets.QAction(
-            icon, "&Pop out", self, triggered=self._onPopout
-        )
+        popout_action = QtWidgets.QAction(icon, "&Pop out", self)
+        popout_action.triggered.connect(self._onPopout)
         menu = self.systemMenu()
         if menu.actions():
             close_action = menu.actions()[-1]
@@ -74,9 +73,9 @@ class PopinWindow(QtWidgets.QWidget):
     ) -> None:
         super().__init__(
             parent=subwindow.window(),
-            flags=flags | Qt.Tool,
-            windowTitle=subwindow.windowTitle(),
+            flags=flags | Qt.Tool,  # type: ignore
         )
+        self.setWindowTitle(subwindow.windowTitle())
         # Emulate behavior of widgets like `QMdiSubWindow` that contain
         # one and only one "inner widget".
         layout = QtWidgets.QHBoxLayout(self)
@@ -84,19 +83,19 @@ class PopinWindow(QtWidgets.QWidget):
         # Steal the inner widget.
         if subwindow.widget():
             layout.addWidget(subwindow.widget())
-            subwindow.setWidget(None)
+            subwindow.setWidget(None)  # type: ignore
         # Detach the subwindow from its MDI area, but remember both.
         mdi = subwindow.mdiArea()
         if mdi:
             mdi.removeSubWindow(subwindow)
         self._subwindow = subwindow
-        self._mdi = mdi
+        self._mdi: t.Optional[QtWidgets.QMdiArea] = mdi
 
-    def mdiArea(self) -> QtWidgets.QMdiArea:
+    def mdiArea(self) -> t.Optional[QtWidgets.QMdiArea]:
         """Return the MDI area that this window will return to."""
         return self._mdi
 
-    def setMdiArea(self, mdi: Optional[QtWidgets.QMdiArea]) -> None:
+    def setMdiArea(self, mdi: t.Optional[QtWidgets.QMdiArea]) -> None:
         """Set the MDI area that this window will return to.
 
         If set to None, this window will not return anywhere. Closing it
@@ -116,12 +115,12 @@ class PopinWindow(QtWidgets.QWidget):
                 self._subwindow.close()
         event.accept()
 
-    def widget(self) -> Optional[QtWidgets.QWidget]:
+    def widget(self) -> t.Optional[QtWidgets.QWidget]:
         """Return the inner widget managed by this window."""
         item = self.layout().itemAt(0)
-        return item and item.widget()
+        return None if item is None else item.widget()
 
-    def setWidget(self, widget: Optional[QtWidgets.QWidget]) -> None:
+    def setWidget(self, widget: t.Optional[QtWidgets.QWidget]) -> None:
         """Replace the inner widget with a given one.
 
         Passing None removes the inner widget. If there already is an
@@ -133,7 +132,7 @@ class PopinWindow(QtWidgets.QWidget):
         while layout.count():
             old_widget = layout.takeAt(0).widget()
             if old_widget:
-                old_widget.setParent(None)
+                old_widget.setParent(None)  # type: ignore
         # Re-add the given widget if there is one.
         if widget:
             layout.addWidget(widget)
@@ -154,7 +153,7 @@ class PopoutMdiArea(QtWidgets.QMdiArea):
     def addSubWindow(
         self,
         widget: QtWidgets.QWidget,
-        flags: Union[Qt.WindowFlags, Qt.WindowType] = Qt.WindowFlags(),
+        flags: t.Union[Qt.WindowFlags, Qt.WindowType] = Qt.WindowFlags(),
     ) -> PopoutSubwindow:
         """Add `widget` as a new subwindow to the MDI area.
 
@@ -182,7 +181,7 @@ class PopoutMdiArea(QtWidgets.QMdiArea):
             subwindow = PopoutSubwindow()
             subwindow.setAttribute(Qt.WA_DeleteOnClose, True)
             subwindow.setWidget(widget.widget())
-            widget.setWidget(None)
+            widget.setWidget(None)  # type: ignore
         else:
             subwindow = PopoutSubwindow()
             subwindow.setAttribute(Qt.WA_DeleteOnClose, True)

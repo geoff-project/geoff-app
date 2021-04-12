@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 """Utilities that help debug Qt issues."""
 
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QObject, Qt
 from PyQt5.QtWidgets import QWidget
 
 Printer = Callable[[str], Any]
 
 
-def print_parent_chain(widget: QWidget, printer: Printer = print) -> None:
-    """Print a widget and all its parents.
+def print_parent_chain(widget: QObject, printer: Printer = print) -> None:
+    """Print a QObject and all its parents.
 
     By default, `print` is used to output the parent chain, but any
     function that accepts a single string may be passed as the
@@ -34,5 +34,5 @@ def print_window_type(widget: QWidget, printer: Printer = print) -> None:
     print(f"{widget}: 0x{int(flags):x}")
     for name, value in vars(Qt).items():
         if isinstance(value, Qt.WindowType):
-            if flags & value:
+            if flags & value:  # type: ignore
                 printer(f"    {name}")

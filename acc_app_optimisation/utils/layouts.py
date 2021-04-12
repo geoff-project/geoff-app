@@ -72,5 +72,5 @@ def clear_children(widget: QtWidgets.QWidget) -> None:
                 # This seems to be the safest way to remove a widget
                 # permanently.
                 widget = item.widget()
-                widget.setParent(None)
+                widget.setParent(None)  # type: ignore
                 widget.deleteLater()

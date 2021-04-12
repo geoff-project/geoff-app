@@ -18,9 +18,9 @@ class CachedNonlinearConstraint(NonlinearConstraint):
     """
 
     def __init__(self, constraint: NonlinearConstraint) -> None:
-        self.cache = {}
+        self.cache: t.Dict = {}
 
-        def fun(params):
+        def fun(params: t.Any) -> t.Any:
             key = tuple(params)
             result = self.cache.get(key)
             if result is None:
@@ -46,7 +46,7 @@ class CachedNonlinearConstraint(NonlinearConstraint):
         assert isinstance(constraint, NonlinearConstraint)
         return cls(constraint)
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         """Clear the cache of this constraint."""
         self.cache.clear()
 

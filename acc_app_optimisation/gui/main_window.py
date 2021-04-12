@@ -41,7 +41,9 @@ class DumbDockWidget(QtWidgets.QDockWidget):
     It just provides a nice sidebar for the main window.
     """
 
-    def __init__(self, parent: t.Optional[QtWidgets.QWidget] = None, **kwargs) -> None:
+    def __init__(
+        self, parent: t.Optional[QtWidgets.QWidget] = None, **kwargs: t.Any
+    ) -> None:
         super().__init__(parent, **kwargs)
         self.setFeatures(self.NoDockWidgetFeatures)
         empty_titlebar = QtWidgets.QWidget(self)
@@ -62,14 +64,14 @@ class MdiViewMenu(QtWidgets.QMenu):
         view_mode = mdi_area.viewMode()
 
         view_mode_group = QtWidgets.QActionGroup(self)
-        QtWidgets.QAction(
+        QtWidgets.QAction(  # type: ignore
             "&Windows",
             parent=view_mode_group,
             checkable=True,
             checked=view_mode == QtWidgets.QMdiArea.SubWindowView,
             triggered=lambda: self._on_change_view(QtWidgets.QMdiArea.SubWindowView),
         )
-        QtWidgets.QAction(
+        QtWidgets.QAction(  # type: ignore
             "&Tabs",
             parent=view_mode_group,
             checkable=True,
@@ -79,12 +81,12 @@ class MdiViewMenu(QtWidgets.QMenu):
 
         self._arrange_group = QtWidgets.QActionGroup(self)
         self._arrange_group.setEnabled(view_mode == QtWidgets.QMdiArea.SubWindowView)
-        QtWidgets.QAction(
+        QtWidgets.QAction(  # type: ignore
             "&Cascade windows",
             parent=self._arrange_group,
             triggered=mdi_area.cascadeSubWindows,
         )
-        QtWidgets.QAction(
+        QtWidgets.QAction(  # type: ignore
             "Ti&le windows",
             parent=self._arrange_group,
             triggered=mdi_area.tileSubWindows,
@@ -104,13 +106,11 @@ class MainMdiArea(PopoutMdiArea):
     """Subclass of `PopoutMdiArea` for customization."""
 
     def __init__(self, parent: t.Optional[QtWidgets.QWidget] = None) -> None:
-        super().__init__(
-            parent,
-            viewMode=QtWidgets.QMdiArea.TabbedView,
-            frameShape=QtWidgets.QFrame.StyledPanel,
-            frameShadow=QtWidgets.QFrame.Plain,
-            tabsMovable=True,
-        )
+        super().__init__(parent)
+        self.setViewMode(QtWidgets.QMdiArea.TabbedView)
+        self.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.setTabsMovable(True)
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         """Event handler to ensure that the first tab is selected upon startup."""
@@ -126,7 +126,7 @@ class MainMdiArea(PopoutMdiArea):
         # created.
         windows = self.subWindowList(self.CreationOrder)
         first_window = windows[0] if windows else None
-        self.setActiveSubWindow(first_window)
+        self.setActiveSubWindow(first_window)  # type: ignore
 
 
 class MainWindow(ApplicationFrame):

@@ -2,8 +2,10 @@
 """Main entry point of this package."""
 
 import argparse
+import io
 import logging
 import sys
+import typing as t
 
 import pjlsa
 from accwidgets.log_console import LogConsoleModel
@@ -11,7 +13,7 @@ from cernml import coi
 from PyQt5 import QtWidgets
 
 
-class StreamToLogger:
+class StreamToLogger(io.TextIOBase):
     """Fake file-like stream object that redirects writes to a logger.
 
     Class has been taken and adapted from `Stack Overflow`_ and `Ferry Boender`_.
@@ -25,19 +27,32 @@ class StreamToLogger:
         self.level = level
         self.linebuf = ""
 
-    def write(self, buf: str) -> None:
+    def write(self, buf: t.AnyStr) -> int:
         for line in buf.rstrip().splitlines():
             self.logger.log(self.level, line.rstrip())
+        return len(buf)
 
     def flush(self) -> None:
+        pass
+
+    def __enter__(self) -> "StreamToLogger":
+        return self
+
+    def __exit__(self, *args: t.Any) -> None:
         pass
 
 
 def init_logging(capture_stdout: bool) -> LogConsoleModel:
     """Configure the `logging` module."""
     if capture_stdout:
-        sys.stdout = StreamToLogger(logging.getLogger("stdout"), logging.INFO)
-        sys.stderr = StreamToLogger(logging.getLogger("stderr"), logging.WARNING)
+        sys.stdout = StreamToLogger(  # type: ignore
+            logging.getLogger("stdout"),
+            logging.INFO,
+        )
+        sys.stderr = StreamToLogger(  # type: ignore
+            logging.getLogger("stderr"),
+            logging.WARNING,
+        )
         handlers = []
     else:
         stderr_handler = logging.StreamHandler()

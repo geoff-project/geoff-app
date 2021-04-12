@@ -39,7 +39,7 @@ class RlExecTab(QtWidgets.QWidget):
         # pylint: disable = too-many-statements
         super().__init__(parent)
         # Set up internal attributes.
-        self._machine = coi.Machine.NoMachine
+        self._machine = coi.Machine.NO_MACHINE
         self._exec_builder = rl.ExecJobBuilder()
         self._current_exec_job: t.Optional[rl.ExecJob] = None
         self._plot_manager = plot_manager

@@ -38,7 +38,7 @@ class RlTrainTab(QtWidgets.QWidget):
         # pylint: disable = too-many-statements
         super().__init__(parent)
         # Set up internal attributes.
-        self._machine = coi.Machine.NoMachine
+        self._machine = coi.Machine.NO_MACHINE
         self._train_builder = rl.TrainJobBuilder()
         self._current_train_job: t.Optional[rl.TrainJob] = None
         self._plot_manager = plot_manager

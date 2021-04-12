@@ -99,12 +99,12 @@ class ControlPane(QtWidgets.QWidget):
     def rbac_login(self, pyrbac_token: "AccWidgetsRbaToken") -> None:
         # pylint: disable = import-error, import-outside-toplevel
         from cern.rbac.common import RbaToken
-        from cern.rbac.util.holder import ClientTierTokenHolder as TokenHolder
+        from cern.rbac.util.holder import ClientTierTokenHolder  # type: ignore
         from java.nio import ByteBuffer
 
         byte_buffer = ByteBuffer.wrap(pyrbac_token.get_encoded())
         java_token = RbaToken.parseAndValidate(byte_buffer)
-        TokenHolder.setRbaToken(java_token)
+        ClientTierTokenHolder.setRbaToken(java_token)
         japc_token = self._japc.rbacGetToken()
         user_name = japc_token and japc_token.getUser().getName()
         LOG.info("JAPC login via RBAC, user: %s", user_name)

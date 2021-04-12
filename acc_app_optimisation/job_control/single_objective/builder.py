@@ -49,10 +49,13 @@ class OptJobBuilder(JobBuilder):
         if not self.problem_id:
             raise CannotBuildJob("no optimization problem selected")
         self.unload_problem()
-        problem = make_env_by_name(
-            self.problem_id,
-            make_japc=self._get_japc_or_raise,
-            token=self._token_source.token,
+        problem = t.cast(
+            optimizers.Optimizable,
+            make_env_by_name(
+                self.problem_id,
+                make_japc=self._get_japc_or_raise,
+                token=self._token_source.token,
+            ),
         )
         assert isinstance(
             problem.unwrapped, (SingleOptimizable, FunctionOptimizable)

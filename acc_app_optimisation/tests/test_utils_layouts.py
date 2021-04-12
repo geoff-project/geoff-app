@@ -23,13 +23,19 @@ def app() -> QtWidgets.QApplication:
 
 @pytest.fixture
 def mock_layout() -> QtWidgets.QLayout:
-    child_layout = QtWidgets.QHBoxLayout(objectName="childLayout")
+    child_layout = QtWidgets.QHBoxLayout()
+    child_layout.setObjectName("childLayout")
     for i in range(1, 4):
-        child_layout.addWidget(QtWidgets.QWidget(objectName=f"grandChild_{i}"))
-    parent_layout = QtWidgets.QVBoxLayout(objectName="parentLayout")
+        widget = QtWidgets.QWidget()
+        widget.setObjectName(f"grandChild_{i}")
+        child_layout.addWidget(widget)
+    parent_layout = QtWidgets.QVBoxLayout()
+    parent_layout.setObjectName("parentLayout")
     parent_layout.addLayout(child_layout)
     parent_layout.addSpacerItem(QtWidgets.QSpacerItem(10, 10))
-    parent_layout.addWidget(QtWidgets.QWidget(objectName="childWidget"))
+    widget = QtWidgets.QWidget()
+    widget.setObjectName("childWidget")
+    parent_layout.addWidget(widget)
     return parent_layout
 
 
@@ -40,7 +46,8 @@ def test_iter_layout(mock_layout: QtWidgets.QLayout) -> None:
             assert item.widget().objectName() == "childWidget"
         elif item.layout():
             assert ["grandChild_1", "grandChild_2", "grandChild_3"] == [
-                item.widget().objectName() for item in layout_utils.iter_layout(item)
+                item.widget().objectName()
+                for item in layout_utils.iter_layout(item.layout())
             ]
         else:
             assert isinstance(item, QtWidgets.QSpacerItem)

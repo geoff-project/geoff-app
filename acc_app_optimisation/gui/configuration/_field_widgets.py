@@ -44,9 +44,9 @@ def make_field_widget(field: Config.Field, values: UnparsedDict) -> QWidget:
             spinbox.valueChanged.connect(setter)
             return spinbox
         if _tu.is_float(field.value) and not _tu.is_range_huge(*field.range):
-            spinbox = make_double_spinbox(field.value, field.range)
-            spinbox.valueChanged.connect(setter)
-            return spinbox
+            double_spinbox = make_double_spinbox(field.value, field.range)
+            double_spinbox.valueChanged.connect(setter)
+            return double_spinbox
     lineedit = make_lineedit(field.value)
     lineedit.editingFinished.connect(lambda: setter(lineedit.text()))
     return lineedit

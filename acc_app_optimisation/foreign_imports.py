@@ -197,10 +197,11 @@ def _import_module_from_spec(spec: importlib.machinery.ModuleSpec) -> ModuleType
         module = sys.modules[spec.name]
     else:
         LOG.info("importing: %s", spec.name)
+        assert spec.loader is not None
         if hasattr(spec.loader, "exec_module"):
             module = importlib.util.module_from_spec(spec)
             sys.modules[spec.name] = module
-            spec.loader.exec_module(module)
+            spec.loader.exec_module(module)  # type: ignore
         else:
             # zipimport.zipimporter does not provide `exec_module()`,
             # only the legacy `load_module()` API.

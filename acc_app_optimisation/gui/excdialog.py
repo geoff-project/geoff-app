@@ -27,7 +27,7 @@ def exception_dialog(
         text,
         parent=parent,
         buttons=QtWidgets.QMessageBox.Close,
-        informativeText="".join(tbexc.format_exception_only()),
-        detailedText="".join(tbexc.format()),
     )
+    dialog.setInformativeText("".join(tbexc.format_exception_only()))
+    dialog.setDetailedText("".join(tbexc.format()))
     return dialog
