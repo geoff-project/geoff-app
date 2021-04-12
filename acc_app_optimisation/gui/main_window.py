@@ -149,10 +149,13 @@ class MainWindow(ApplicationFrame):
         toolbar.setAllowedAreas(Qt.TopToolBarArea)
 
         self.rba_widget.loginSucceeded.connect(self._on_rba_login)
+        self.rba_widget.logoutFinished.connect(self._on_rba_logout)
         self.rba_widget.loginFailed.connect(
             lambda error: LOG.error("RBAC error: %s", error)
         )
-        self.rba_widget.logoutFinished.connect(self._on_rba_logout)
+        self.rba_widget.tokenExpired.connect(
+            lambda _: LOG.warning("RBAC token expired")
+        )
 
         self._control_pane = ControlPane(
             initial_machine=initial_machine,
