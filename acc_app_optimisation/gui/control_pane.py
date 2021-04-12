@@ -25,11 +25,9 @@ if t.TYPE_CHECKING:
 LOG = getLogger(__name__)
 
 
-def translate_machine(machine: coi.Machine) -> t.Optional[LsaSelectorAccelerator]:
+def translate_machine(machine: coi.Machine) -> LsaSelectorAccelerator:
     """Fetch the LSA accelerator for a given CERN machine."""
     return {
-        coi.Machine.NO_MACHINE: None,
-        coi.Machine.LINAC_2: None,
         coi.Machine.LINAC_3: LsaSelectorAccelerator.LEIR,
         coi.Machine.LINAC_4: LsaSelectorAccelerator.PSB,
         coi.Machine.LEIR: LsaSelectorAccelerator.LEIR,
@@ -38,7 +36,7 @@ def translate_machine(machine: coi.Machine) -> t.Optional[LsaSelectorAccelerator
         coi.Machine.SPS: LsaSelectorAccelerator.SPS,
         coi.Machine.AWAKE: LsaSelectorAccelerator.AWAKE,
         coi.Machine.LHC: LsaSelectorAccelerator.LHC,
-    }.get(machine)
+    }.get(machine, LsaSelectorAccelerator.LHC)
 
 
 class ControlPane(QtWidgets.QWidget):
@@ -49,6 +47,7 @@ class ControlPane(QtWidgets.QWidget):
         self,
         parent: t.Optional[QtWidgets.QWidget] = None,
         *,
+        initial_machine: coi.Machine,
         lsa: "pjlsa.LSAClient",
         plot_manager: "PlotManager",
         japc_no_set: bool = False,
@@ -65,9 +64,7 @@ class ControlPane(QtWidgets.QWidget):
         machine_label = QtWidgets.QLabel("Machine:")
         machine_label.setFont(large)
         self.machine_combo = QtWidgets.QComboBox()
-        self.machine_combo.addItems(
-            machine.name for machine in coi.Machine if translate_machine(machine)
-        )
+        self.machine_combo.addItems(machine.value for machine in coi.Machine)
         self.machine_combo.currentTextChanged.connect(self._on_machine_changed)
         self.lsa_selector = LsaSelector(
             model=LsaSelectorModel(LsaSelectorAccelerator.SPS, lsa, resident_only=True),
@@ -91,7 +88,7 @@ class ControlPane(QtWidgets.QWidget):
         layout.addWidget(self.lsa_selector, stretch=1)
         layout.addWidget(self.tabs)
         # Fill all GUI elements, fire any events based on that.
-        self.machine_combo.setCurrentText("SPS")
+        self.machine_combo.setCurrentText(initial_machine.value)
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         # pylint: disable = invalid-name
@@ -100,6 +97,7 @@ class ControlPane(QtWidgets.QWidget):
         super().closeEvent(event)
 
     def rbac_login(self, pyrbac_token: "AccWidgetsRbaToken") -> None:
+        # pylint: disable = import-error, import-outside-toplevel
         from cern.rbac.common import RbaToken
         from cern.rbac.util.holder import ClientTierTokenHolder as TokenHolder
         from java.nio import ByteBuffer
@@ -115,10 +113,10 @@ class ControlPane(QtWidgets.QWidget):
         self._japc.rbacLogout()
         LOG.info("JAPC logout via RBAC")
 
-    def _on_machine_changed(self, name: str) -> None:
-        LOG.debug("machine changed: %s", name)
-        machine = coi.Machine[name]
-        last_selection = self._last_lsa_selection.get(name, None)
+    def _on_machine_changed(self, value: str) -> None:
+        LOG.debug("machine changed: %s", value)
+        machine = coi.Machine(value)
+        last_selection = self._last_lsa_selection.get(value, None)
         self.lsa_selector.accelerator = translate_machine(machine)
         if last_selection:
             self.lsa_selector.select_user(last_selection)

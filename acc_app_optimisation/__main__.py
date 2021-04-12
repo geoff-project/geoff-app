@@ -7,6 +7,7 @@ import sys
 
 import pjlsa
 from accwidgets.log_console import LogConsoleModel
+from cernml import coi
 from PyQt5 import QtWidgets
 
 
@@ -65,6 +66,15 @@ def get_parser() -> argparse.ArgumentParser:
         "with `::`",
     )
     parser.add_argument(
+        "-m",
+        "--machine",
+        type=str,
+        metavar="NAME",
+        default="SPS",
+        choices=[machine.name for machine in coi.Machine],
+        help="The CERN machine to select initially (default: SPS)",
+    )
+    parser.add_argument(
         "-s",
         "--lsa-server",
         type=str,
@@ -121,7 +131,12 @@ def main(argv: list) -> int:
             from acc_app_optimisation.envs import builtin_envs as _
 
         app = QtWidgets.QApplication(argv)
-        window = gui.MainWindow(lsa=lsa, model=model, japc_no_set=args.japc_no_set)
+        window = gui.MainWindow(
+            initial_machine=coi.Machine[args.machine],
+            lsa=lsa,
+            model=model,
+            japc_no_set=args.japc_no_set,
+        )
         window.setWindowTitle(
             f"GeOFF v{version} (LSA {args.lsa_server.upper()}"
             f'{", NO SET" if args.japc_no_set else ""})'

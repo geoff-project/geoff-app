@@ -22,7 +22,6 @@ LOG = getLogger(__name__)
 def translate_machine(machine: coi.Machine) -> t.Optional[TimingBarDomain]:
     """Fetch the timing domain for a given CERN machine."""
     return {
-        coi.Machine.NO_MACHINE: None,
         coi.Machine.LINAC_2: TimingBarDomain.PSB,
         coi.Machine.LINAC_3: TimingBarDomain.LEI,
         coi.Machine.LINAC_4: TimingBarDomain.PSB,
@@ -30,7 +29,7 @@ def translate_machine(machine: coi.Machine) -> t.Optional[TimingBarDomain]:
         coi.Machine.PS: TimingBarDomain.CPS,
         coi.Machine.PSB: TimingBarDomain.PSB,
         coi.Machine.SPS: TimingBarDomain.SPS,
-        coi.Machine.AWAKE: None,
+        coi.Machine.AWAKE: TimingBarDomain.SPS,
         coi.Machine.LHC: TimingBarDomain.LHC,
     }.get(machine)
 
@@ -136,6 +135,7 @@ class MainWindow(ApplicationFrame):
     def __init__(
         self,
         *,
+        initial_machine: coi.Machine,
         lsa: pjlsa.LSAClient,
         model: t.Optional[LogConsoleModel] = None,
         japc_no_set: bool = False,
@@ -148,23 +148,25 @@ class MainWindow(ApplicationFrame):
 
         toolbar = self.main_toolbar()
         toolbar.setAllowedAreas(Qt.TopToolBarArea)
-        self.timing_bar.model.domain = TimingBarDomain.SPS
 
         self.rba_widget.loginSucceeded.connect(self._on_rba_login)
         self.rba_widget.loginFailed.connect(self._on_rba_error)
         self.rba_widget.logoutFinished.connect(self._on_rba_logout)
 
         self._control_pane = ControlPane(
+            initial_machine=initial_machine,
             lsa=lsa,
             plot_manager=self._plot_manager,
             japc_no_set=japc_no_set,
         )
-        self._control_pane.machine_combo.currentTextChanged.connect(
-            self._on_machine_changed
-        )
         dock = DumbDockWidget()
         dock.setWidget(self._control_pane)
         self.addDockWidget(Qt.LeftDockWidgetArea, dock)
+
+        self._control_pane.machine_combo.currentTextChanged.connect(
+            self._on_machine_changed
+        )
+        self._on_machine_changed(self._control_pane.machine_combo.currentText())
 
         console = LogConsole(model=model)
         console.expanded = False
