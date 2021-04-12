@@ -9,7 +9,7 @@ from accwidgets.log_console import LogConsole, LogConsoleDock, LogConsoleModel
 from accwidgets.rbac import RbaToken
 from accwidgets.timing_bar import TimingBarDomain
 from cernml import coi
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
 from .control_pane import ControlPane
@@ -182,9 +182,18 @@ class MainWindow(ApplicationFrame):
         # We must keep ownership of this QMenu to keep the GC from
         # reclaiming it.
         self._view_menu = MdiViewMenu("&View", mdi)
-        menubar = QtWidgets.QMenuBar(self)
+        self._view_menu.addSeparator()
+        self._fullscreen_action = self._view_menu.addAction("&Fullscreen")
+        self._fullscreen_action.setCheckable(True)
+        self._fullscreen_action.setShortcut(QtGui.QKeySequence("F11"))
+        self._fullscreen_action.triggered.connect(self.toggleFullScreen)
+        menubar = self.menuBar()
         menubar.addMenu(self._view_menu)
-        self.setMenuBar(menubar)
+
+    def changeEvent(self, event: QtCore.QEvent) -> None:
+        if isinstance(event, QtGui.QWindowStateChangeEvent):
+            is_fullscreen = self.windowState() & Qt.WindowFullScreen  # type: ignore
+            self._fullscreen_action.setChecked(bool(is_fullscreen))
 
     def _on_machine_changed(self, value: str) -> None:
         machine = coi.Machine(value)
