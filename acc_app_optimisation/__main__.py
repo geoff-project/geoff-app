@@ -23,6 +23,7 @@ class StreamToLogger(io.TextIOBase):
     """
 
     def __init__(self, logger: logging.Logger, level: int) -> None:
+        super().__init__()
         self.logger = logger
         self.level = level
         self.linebuf = ""

@@ -52,7 +52,7 @@ class BackupModules:
         return self
 
     def __exit__(
-        self, exc_type: type, exc_value: Exception, traceback: TracebackType
+        self, exc_type: type, exc_value: Exception, exc_tb: TracebackType
     ) -> None:
         modules = self._modules_stack.pop()
         if exc_type or not self._keep_on_success:

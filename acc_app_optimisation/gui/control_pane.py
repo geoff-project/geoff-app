@@ -16,7 +16,7 @@ from .rl_exec_tab import RlExecTab
 from .rl_train_tab import RlTrainTab
 
 if t.TYPE_CHECKING:
-    # pylint: disable=import-error, unused-import
+    # pylint: disable = import-error, ungrouped-imports, unused-import
     import pjlsa
     from accwidgets.rbac import RbaToken as AccWidgetsRbaToken
 
@@ -40,9 +40,6 @@ def translate_machine(machine: coi.Machine) -> LsaSelectorAccelerator:
 
 
 class ControlPane(QtWidgets.QWidget):
-
-    # pylint: disable = too-many-instance-attributes
-
     def __init__(
         self,
         parent: t.Optional[QtWidgets.QWidget] = None,

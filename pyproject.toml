@@ -24,7 +24,10 @@ reports = false
 output-format = 'colorized'
 
 [tool.pylint.FORMAT]
-ignore-long-lines = '^\s+\.\._`[^`]*`: https?://\S+$'
+ignore-long-lines = '<?https?://\S+>?$'
+
+[tool.pylint.DESIGN]
+max-attributes = 14
 
 [tool.pylint.'MESSAGES CONTROL']
 disable = [

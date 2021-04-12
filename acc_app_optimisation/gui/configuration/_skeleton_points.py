@@ -10,6 +10,8 @@ from ...utils.split_words import split_words_and_spaces
 class SkeletonPointsWidget(QtWidgets.QWidget):
     """The tab page presented to set skeleton points."""
 
+    # pylint: disable = invalid-name
+
     def __init__(
         self, points: np.ndarray, parent: t.Optional[QtWidgets.QWidget] = None
     ) -> None:

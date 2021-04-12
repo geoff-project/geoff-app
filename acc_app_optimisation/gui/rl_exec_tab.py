@@ -31,8 +31,6 @@ class CreatingEnvDialog(QtWidgets.QDialog):
 
 
 class RlExecTab(QtWidgets.QWidget):
-    # pylint: disable = too-many-instance-attributes
-
     def __init__(
         self, parent: t.Optional[QtWidgets.QWidget] = None, *, plot_manager: PlotManager
     ) -> None:

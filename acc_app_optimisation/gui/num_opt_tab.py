@@ -47,8 +47,6 @@ class ThreadPoolWorker(QtCore.QRunnable):
 
 
 class NumOptTab(QtWidgets.QWidget):
-    # pylint: disable = too-many-instance-attributes
-
     def __init__(
         self, parent: t.Optional[QtWidgets.QWidget] = None, *, plot_manager: PlotManager
     ) -> None:

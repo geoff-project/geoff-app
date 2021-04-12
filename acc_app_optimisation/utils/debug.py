@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """Utilities that help debug Qt issues."""
 
-from typing import Any, Callable, cast
+import typing as t
 
 from PyQt5.QtCore import QObject, Qt
 from PyQt5.QtWidgets import QWidget
 
-Printer = Callable[[str], Any]
+Printer = t.Callable[[str], t.Any]
 
 
 def print_parent_chain(widget: QObject, printer: Printer = print) -> None:

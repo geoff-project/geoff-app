@@ -150,7 +150,9 @@ class MainWindow(ApplicationFrame):
         toolbar.setAllowedAreas(Qt.TopToolBarArea)
 
         self.rba_widget.loginSucceeded.connect(self._on_rba_login)
-        self.rba_widget.loginFailed.connect(self._on_rba_error)
+        self.rba_widget.loginFailed.connect(
+            lambda error: LOG.error("RBAC error: %s", error)
+        )
         self.rba_widget.logoutFinished.connect(self._on_rba_logout)
 
         self._control_pane = ControlPane(
@@ -196,9 +198,6 @@ class MainWindow(ApplicationFrame):
 
     def _on_rba_login(self, token: RbaToken) -> None:
         self._control_pane.rbac_login(token)
-
-    def _on_rba_error(self, error: t.Any) -> None:
-        LOG.error("RBAC error: %s", error)
 
     def _on_rba_logout(self) -> None:
         self._control_pane.rbac_logout()

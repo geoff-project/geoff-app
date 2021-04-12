@@ -13,11 +13,15 @@ T = TypeVar("T")  # pylint: disable=invalid-name
 class Bounded(Generic[T]):
     """A dataclass with a nominal value, upper and lower bounds.
 
-        >>> c: BoundedCurve[str]
-        >>> c = BoundedCurve(values='V', lower='L', upper='U')
+
+    Usage:
+
+        >>> c: Bounded[str]
+        >>> c = Bounded(values='V', lower='L', upper='U')
         >>> c.values, c.lower, c.upper
         ('V', 'L', 'U')
     """
+
     values: T
     lower: T
     upper: T
