@@ -16,9 +16,11 @@ from .rl_exec_tab import RlExecTab
 from .rl_train_tab import RlTrainTab
 
 if t.TYPE_CHECKING:
-    import pjlsa  # pylint: disable=import-error, unused-import
+    # pylint: disable=import-error, unused-import
+    import pjlsa
+    from accwidgets.rbac import RbaToken as AccWidgetsRbaToken
 
-    from .plot_manager import PlotManager  # pylint: disable=unused-import
+    from .plot_manager import PlotManager
 
 LOG = getLogger(__name__)
 
@@ -94,7 +96,24 @@ class ControlPane(QtWidgets.QWidget):
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         # pylint: disable = invalid-name
         self._finalizers.close()
+        self._japc.rbacLogout()
         super().closeEvent(event)
+
+    def rbac_login(self, pyrbac_token: "AccWidgetsRbaToken") -> None:
+        from cern.rbac.common import RbaToken
+        from cern.rbac.util.holder import ClientTierTokenHolder as TokenHolder
+        from java.nio import ByteBuffer
+
+        byte_buffer = ByteBuffer.wrap(pyrbac_token.get_encoded())
+        java_token = RbaToken.parseAndValidate(byte_buffer)
+        TokenHolder.setRbaToken(java_token)
+        japc_token = self._japc.rbacGetToken()
+        user_name = japc_token and japc_token.getUser().getName()
+        LOG.info("JAPC login via RBAC, user: %s", user_name)
+
+    def rbac_logout(self) -> None:
+        self._japc.rbacLogout()
+        LOG.info("JAPC logout via RBAC")
 
     def _on_machine_changed(self, name: str) -> None:
         LOG.debug("machine changed: %s", name)

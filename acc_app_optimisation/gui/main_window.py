@@ -1,15 +1,38 @@
 """Definition of the main window for the app."""
 
 import typing as t
+from logging import getLogger
 
 import pjlsa
+from accwidgets.app_frame import ApplicationFrame
 from accwidgets.log_console import LogConsole, LogConsoleDock, LogConsoleModel
+from accwidgets.rbac import RbaToken
+from accwidgets.timing_bar import TimingBarDomain
+from cernml import coi
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
 from .control_pane import ControlPane
 from .plot_manager import PlotManager
 from .popout_mdi_area import PopoutMdiArea
+
+LOG = getLogger(__name__)
+
+
+def translate_machine(machine: coi.Machine) -> t.Optional[TimingBarDomain]:
+    """Fetch the timing domain for a given CERN machine."""
+    return {
+        coi.Machine.NO_MACHINE: None,
+        coi.Machine.LINAC_2: TimingBarDomain.PSB,
+        coi.Machine.LINAC_3: TimingBarDomain.LEI,
+        coi.Machine.LINAC_4: TimingBarDomain.PSB,
+        coi.Machine.LEIR: TimingBarDomain.LEI,
+        coi.Machine.PS: TimingBarDomain.CPS,
+        coi.Machine.PSB: TimingBarDomain.PSB,
+        coi.Machine.SPS: TimingBarDomain.SPS,
+        coi.Machine.AWAKE: None,
+        coi.Machine.LHC: TimingBarDomain.LHC,
+    }.get(machine)
 
 
 class DumbDockWidget(QtWidgets.QDockWidget):
@@ -107,7 +130,7 @@ class MainMdiArea(PopoutMdiArea):
         self.setActiveSubWindow(first_window)
 
 
-class MainWindow(QtWidgets.QMainWindow):
+class MainWindow(ApplicationFrame):
     """The main window."""
 
     def __init__(
@@ -117,16 +140,27 @@ class MainWindow(QtWidgets.QMainWindow):
         model: t.Optional[LogConsoleModel] = None,
         japc_no_set: bool = False,
     ) -> None:
-        super().__init__()
+        super().__init__(use_timing_bar=True, use_rbac=True)
         mdi = MainMdiArea()
         self.setCentralWidget(mdi)
         self._plot_manager = PlotManager(mdi)
         self.runner = None
 
+        toolbar = self.main_toolbar()
+        toolbar.setAllowedAreas(Qt.TopToolBarArea)
+        self.timing_bar.model.domain = TimingBarDomain.SPS
+
+        self.rba_widget.loginSucceeded.connect(self._on_rba_login)
+        self.rba_widget.loginFailed.connect(self._on_rba_error)
+        self.rba_widget.logoutFinished.connect(self._on_rba_logout)
+
         self._control_pane = ControlPane(
             lsa=lsa,
             plot_manager=self._plot_manager,
             japc_no_set=japc_no_set,
+        )
+        self._control_pane.machine_combo.currentTextChanged.connect(
+            self._on_machine_changed
         )
         dock = DumbDockWidget()
         dock.setWidget(self._control_pane)
@@ -138,7 +172,8 @@ class MainWindow(QtWidgets.QMainWindow):
             console=console, allowed_areas=Qt.BottomDockWidgetArea
         )
         log_dock.setFeatures(log_dock.DockWidgetFloatable)
-        self.addDockWidget(Qt.BottomDockWidgetArea, log_dock)
+        # Attach the dock to the window via ApplicationFrame.
+        self.log_console = log_dock
 
         # We must keep ownership of this QMenu to keep the GC from
         # reclaiming it.
@@ -147,4 +182,20 @@ class MainWindow(QtWidgets.QMainWindow):
         menubar.addMenu(self._view_menu)
         self.setMenuBar(menubar)
 
-        # self.setStatusBar(QtWidgets.QStatusBar(self))
+    def _on_machine_changed(self, name: str) -> None:
+        machine = coi.Machine[name]
+        timing_domain = translate_machine(machine)
+        if timing_domain is not None:
+            self.useTimingBar = True
+            self.timing_bar.model.domain = timing_domain
+        else:
+            self.useTimingBar = False
+
+    def _on_rba_login(self, token: RbaToken) -> None:
+        self._control_pane.rbac_login(token)
+
+    def _on_rba_error(self, error: t.Any) -> None:
+        LOG.error("RBAC error: %s", error)
+
+    def _on_rba_logout(self) -> None:
+        self._control_pane.rbac_logout()
