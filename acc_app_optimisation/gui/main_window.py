@@ -186,8 +186,8 @@ class MainWindow(ApplicationFrame):
         menubar.addMenu(self._view_menu)
         self.setMenuBar(menubar)
 
-    def _on_machine_changed(self, name: str) -> None:
-        machine = coi.Machine[name]
+    def _on_machine_changed(self, value: str) -> None:
+        machine = coi.Machine(value)
         timing_domain = translate_machine(machine)
         if timing_domain is not None:
             self.useTimingBar = True
