@@ -29,7 +29,6 @@ def translate_machine(machine: coi.Machine) -> t.Optional[TimingBarDomain]:
         coi.Machine.PS: TimingBarDomain.CPS,
         coi.Machine.PSB: TimingBarDomain.PSB,
         coi.Machine.SPS: TimingBarDomain.SPS,
-        coi.Machine.AWAKE: TimingBarDomain.SPS,
         coi.Machine.LHC: TimingBarDomain.LHC,
     }.get(machine)
 
