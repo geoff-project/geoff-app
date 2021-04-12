@@ -3,12 +3,13 @@ import typing as t
 from logging import getLogger
 
 import gym
+from cernml.coi.unstable import cancellation
 from gym.envs.registration import EnvSpec
 
 from ...envs import make_env_by_name
-from ..base import CannotBuildJob, Job, JobBuilder, JobCancelled
+from ..base import CannotBuildJob, Job, JobBuilder
 from . import agents
-from .wrapper import RenderWrapper, Signals
+from .wrapper import BenignCancelledError, RenderWrapper, Signals
 
 if t.TYPE_CHECKING:
     from io import BufferedIOBase  # pylint: disable=unused-import
@@ -28,6 +29,7 @@ class TrainJobBuilder(JobBuilder):
     def __init__(self) -> None:
         self._env: t.Optional[gym.Env] = None
         self._env_id = ""
+        self._token_source = cancellation.TokenSource()
         self.japc = None
         self.time_limit = 0
         self.agent_factory = None
@@ -52,7 +54,9 @@ class TrainJobBuilder(JobBuilder):
             raise CannotBuildJob("no environment selected")
         self.unload_env()
         self._env = env = make_env_by_name(
-            self._env_id, make_japc=self._get_japc_or_raise
+            self._env_id,
+            make_japc=self._get_japc_or_raise,
+            token=self._token_source.token,
         )
         spec: EnvSpec = env.spec  # type: ignore
         if spec.max_episode_steps is not None:
@@ -81,16 +85,26 @@ class TrainJobBuilder(JobBuilder):
         env = self._env if self._env is not None else self.make_env()
         if self.time_limit:
             env = gym.wrappers.TimeLimit(env, max_episode_steps=self.time_limit)
-        return TrainJob(env=env, agent_factory=self.agent_factory, signals=self.signals)
+        return TrainJob(
+            token_source=self._token_source,
+            env=env,
+            agent_factory=self.agent_factory,
+            signals=self.signals,
+        )
 
 
 class TrainJob(Job):
     def __init__(
-        self, env: gym.Env, agent_factory: agents.AgentFactory, signals: Signals
+        self,
+        *,
+        token_source: cancellation.TokenSource,
+        env: gym.Env,
+        agent_factory: agents.AgentFactory,
+        signals: Signals,
     ) -> None:
-        super().__init__()
+        super().__init__(token_source)
         self._signals = signals
-        self._env = RenderWrapper(env, self.cancellation_token, signals)
+        self._env = RenderWrapper(env, self._token_source.token, signals)
         self._total_timesteps = agent_factory.total_timesteps
         self._agent = agent_factory.make_agent(self._env)
         self._finished = False
@@ -100,13 +114,17 @@ class TrainJob(Job):
         self._finished = False
         try:
             self._agent.learn(self._total_timesteps)
-        except JobCancelled:
+        except cancellation.CancelledError as exc:
+            if isinstance(exc, BenignCancelledError):
+                self._token_source.token.complete_cancellation()
             LOG.info("Training cancelled")
         except:
             LOG.error(traceback.format_exc())
-            LOG.error("Aborted training due to the above exception")
+            LOG.error("Training aborted due to the above exception")
         else:
             LOG.info("Training finished")
+        if self._token_source.can_reset_cancellation:
+            self._token_source.reset_cancellation()
         self._signals.training_finished.emit(True)
         self._finished = True
 

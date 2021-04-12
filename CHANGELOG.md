@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.1.4
+
+### Visible changes
+
+- Much improved cancellation support. Compatible environments are now able to
+  be stopped in the middle of an optimization step.
+
+### Build changes
+
+This upgrades cernml-coi to 0.7.0, which is a backwards-incompatible change.
+Consequently, all dependent packages are upgraded as well:
+
+- Upgrade cernml-coi requirement to 0.7.0.
+- Upgrade cernml-coi-funcs requirement to 0.2.1.
+- Upgrade cern-awake-env requirement to 0.15.0.
+- Upgrade cern-leir-transfer-line-env requirement to 0.2.0.
+- Upgrade cern-sps-tune-env requirement to 0.2.0.
+- Upgrade cern-sps-zs-alignment-env requirement to 0.2.0.
+
 ## v0.1.3
 
 ### Visible changes
@@ -18,6 +37,7 @@
 
 - Upgrade `cern-awake-env` requirement to 0.14.0.
 - Upgrade `cern-coi` requirement to 0.6.2.
+- Upgrade `cernml-coi` to 0.6.2. This enables `"cern.cancellable"`.
 
 ## v0.1.2
 

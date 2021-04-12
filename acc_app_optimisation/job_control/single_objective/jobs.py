@@ -6,14 +6,20 @@ import gym
 import numpy as np
 from cernml.coi import SingleOptimizable
 from cernml.coi.mpl_utils import iter_matplotlib_figures
+from cernml.coi.unstable import cancellation
 from cernml.coi_funcs import FunctionOptimizable
 from PyQt5 import QtCore
 
+from ...envs import Metadata
 from ...utils.bounded import BoundedArray
-from ..base import Job, JobCancelled
+from ..base import Job
 from . import constraints, optimizers
 
 LOG = getLogger(__name__)
+
+
+class BenignCancelledError(cancellation.CancelledError):
+    """Cancellation error that we raise, not the :class:`SingleOptimizable`."""
 
 
 class Signals(QtCore.QObject):
@@ -36,10 +42,11 @@ class OptJob(Job):
     def __init__(
         self,
         *,
+        token_source: cancellation.TokenSource,
         signals: Signals,
         problem: optimizers.Optimizable,
     ) -> None:
-        super().__init__()
+        super().__init__(token_source)
         self.problem = problem
         self.wrapped_constraints = [
             constraints.CachedNonlinearConstraint.from_any_constraint(c)
@@ -72,18 +79,23 @@ class OptJob(Job):
         # pylint: disable = bare-except
         try:
             self.run_optimization()
-        except JobCancelled:
+        except cancellation.CancelledError as exc:
+            if isinstance(exc, BenignCancelledError):
+                self._token_source.token.complete_cancellation()
             LOG.info("Optimization cancelled")
         except:
             LOG.error(traceback.format_exc())
-            LOG.error("Aborted optimization due to the above exception")
+            LOG.error("Optimization aborted due to the above exception")
         else:
             LOG.info("Optimization finished")
+        if self._token_source.can_reset_cancellation:
+            self._token_source.reset_cancellation()
         self._signals.optimisation_finished.emit(True)
 
     def _env_callback(self, action: np.ndarray) -> float:
         """The callback function provided to BaseOptimizer.solve()."""
-        self.cancellation_token.raise_if_cancelled()
+        if self._token_source.token.cancellation_requested:
+            raise BenignCancelledError()
         # Yield at least once per optimization step. This releases
         # Python's Global Interpreter Lock (GIL) and gives the main
         # thread a chance to process GUI events.
@@ -127,7 +139,7 @@ class OptJob(Job):
             )
 
     def _render_env(self) -> None:
-        if "matplotlib_figures" not in self.problem.metadata.get("render.modes", []):
+        if "matplotlib_figures" not in Metadata(self.problem).render_modes:
             return
         figures = self.problem.render(mode="matplotlib_figures")
         # `draw()` refreshes the figures immediately on this thread. Do
@@ -148,11 +160,12 @@ class SingleOptimizableJob(OptJob):
     def __init__(
         self,
         *,
+        token_source: cancellation.TokenSource,
         signals: Signals,
         problem: SingleOptimizable,
         optimizer_factory: optimizers.OptimizerFactory,
     ) -> None:
-        super().__init__(signals=signals, problem=problem)
+        super().__init__(token_source=token_source, signals=signals, problem=problem)
         self.x_0 = self.problem.get_initial_params()
         bounds = (problem.optimization_space.low, problem.optimization_space.high)
         self._solve = optimizer_factory.make_solve_func(
@@ -181,12 +194,13 @@ class FunctionOptimizableJob(OptJob):
     def __init__(
         self,
         *,
+        token_source: cancellation.TokenSource,
         signals: Signals,
         problem: FunctionOptimizable,
         optimizer_factory: optimizers.OptimizerFactory,
         skeleton_points: t.Iterable[float],
     ) -> None:
-        super().__init__(signals=signals, problem=problem)
+        super().__init__(token_source=token_source, signals=signals, problem=problem)
         self.skeleton_points = tuple(skeleton_points)
         self.all_x_0 = [
             problem.get_initial_params(point) for point in self.skeleton_points
@@ -211,6 +225,8 @@ class FunctionOptimizableJob(OptJob):
 
     def run_optimization(self) -> None:
         for point, x_0 in zip(self.skeleton_points, self.all_x_0):
+            if self._token_source.token.cancellation_requested:
+                raise BenignCancelledError()
             self._current_point = point
             op_space = self.get_optimization_space()
             bounds = (op_space.low, op_space.high)

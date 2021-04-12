@@ -3,9 +3,12 @@ import typing as t
 import gym
 import numpy as np
 from cernml.coi.mpl_utils import iter_matplotlib_figures
+from cernml.coi.unstable import cancellation
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
-from ..base import CancellationToken
+
+class BenignCancelledError(cancellation.CancelledError):
+    """Cancellation error that we raise, not the :class:`SingleOptimizable`."""
 
 
 class Signals(QObject):
@@ -30,7 +33,7 @@ class RenderWrapper(gym.Wrapper):
     """
 
     def __init__(
-        self, env: gym.Env, cancellation_token: CancellationToken, signals: Signals
+        self, env: gym.Env, cancellation_token: "cancellation.Token", signals: Signals
     ) -> None:
         super().__init__(env)
         self.episode_actions: t.List[np.ndarray] = []
@@ -39,7 +42,7 @@ class RenderWrapper(gym.Wrapper):
         self.cancellation_token = cancellation_token
 
     def reset(self, **kwargs: t.Any) -> np.ndarray:
-        self.cancellation_token.raise_if_cancelled()
+        self.cancellation_token.raise_if_cancellation_requested()
         self.reward_lists.append([])
         self.episode_actions.clear()
         return super().reset(**kwargs)
@@ -47,7 +50,8 @@ class RenderWrapper(gym.Wrapper):
     def step(
         self, action: np.ndarray
     ) -> t.Tuple[np.ndarray, float, bool, t.Dict[str, t.Any]]:
-        self.cancellation_token.raise_if_cancelled()
+        if self.cancellation_token.cancellation_requested:
+            raise BenignCancelledError()
         obs, reward, done, info = super().step(action)
         episode_rewards = self.reward_lists[-1]
         episode_rewards.append(reward)

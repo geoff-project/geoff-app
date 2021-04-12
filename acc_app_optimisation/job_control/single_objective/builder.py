@@ -2,7 +2,9 @@ import typing as t
 from logging import getLogger
 
 import numpy as np
-from cernml import coi, coi_funcs
+from cernml.coi import SingleOptimizable
+from cernml.coi.unstable import cancellation
+from cernml.coi_funcs import FunctionOptimizable
 
 from ...envs import make_env_by_name
 from ..base import CannotBuildJob, JobBuilder
@@ -23,6 +25,7 @@ class OptJobBuilder(JobBuilder):
     def __init__(self) -> None:
         self._problem: t.Optional[optimizers.Optimizable] = None
         self._problem_id = ""
+        self._token_source = cancellation.TokenSource()
         self.japc = None
         self.skeleton_points = None
         self.optimizer_factory = None
@@ -46,9 +49,15 @@ class OptJobBuilder(JobBuilder):
         if not self.problem_id:
             raise CannotBuildJob("no optimization problem selected")
         self.unload_problem()
-        self._problem = problem = make_env_by_name(
-            self.problem_id, make_japc=self._get_japc_or_raise
+        problem = make_env_by_name(
+            self.problem_id,
+            make_japc=self._get_japc_or_raise,
+            token=self._token_source.token,
         )
+        assert isinstance(
+            problem.unwrapped, (SingleOptimizable, FunctionOptimizable)
+        ), type(problem.unwrapped)
+        self._problem = problem
         return problem
 
     def _get_japc_or_raise(self) -> "PyJapc":
@@ -67,17 +76,19 @@ class OptJobBuilder(JobBuilder):
         if self.optimizer_factory is None:
             raise CannotBuildJob("no optimizer selected")
         problem = self.make_problem() if self.problem is None else self.problem
-        if isinstance(problem, coi_funcs.FunctionOptimizable):
+        if isinstance(problem, FunctionOptimizable):
             if self.skeleton_points is None or not np.shape(self.skeleton_points):
                 raise CannotBuildJob("no skeleton points selected")
             return jobs.FunctionOptimizableJob(
+                token_source=self._token_source,
                 signals=self.signals,
                 optimizer_factory=self.optimizer_factory,
                 problem=problem,
                 skeleton_points=self.skeleton_points,
             )
-        assert isinstance(problem.unwrapped, coi.SingleOptimizable), problem
+        assert isinstance(problem.unwrapped, SingleOptimizable), problem
         return jobs.SingleOptimizableJob(
+            token_source=self._token_source,
             signals=self.signals,
             optimizer_factory=self.optimizer_factory,
             problem=problem,
