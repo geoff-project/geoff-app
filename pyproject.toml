@@ -23,6 +23,9 @@ score = false
 reports = false
 output-format = 'colorized'
 
+[tool.pylint.FORMAT]
+ignore-long-lines = '^\s+\.\._`[^`]*`: https?://\S+$'
+
 [tool.pylint.'MESSAGES CONTROL']
 disable = [
     'duplicate-code',
