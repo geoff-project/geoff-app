@@ -26,15 +26,15 @@ LOG = getLogger(__name__)
 def translate_machine(machine: coi.Machine) -> t.Optional[LsaSelectorAccelerator]:
     """Fetch the LSA accelerator for a given CERN machine."""
     return {
-        coi.Machine.NoMachine: None,
-        coi.Machine.Linac2: None,
-        coi.Machine.Linac3: LsaSelectorAccelerator.LEIR,
-        coi.Machine.Linac4: LsaSelectorAccelerator.PSB,
-        coi.Machine.Leir: LsaSelectorAccelerator.LEIR,
+        coi.Machine.NO_MACHINE: None,
+        coi.Machine.LINAC_2: None,
+        coi.Machine.LINAC_3: LsaSelectorAccelerator.LEIR,
+        coi.Machine.LINAC_4: LsaSelectorAccelerator.PSB,
+        coi.Machine.LEIR: LsaSelectorAccelerator.LEIR,
         coi.Machine.PS: LsaSelectorAccelerator.PS,
         coi.Machine.PSB: LsaSelectorAccelerator.PSB,
         coi.Machine.SPS: LsaSelectorAccelerator.SPS,
-        coi.Machine.Awake: LsaSelectorAccelerator.AWAKE,
+        coi.Machine.AWAKE: LsaSelectorAccelerator.AWAKE,
         coi.Machine.LHC: LsaSelectorAccelerator.LHC,
     }.get(machine)
 
