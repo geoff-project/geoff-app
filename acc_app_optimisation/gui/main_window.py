@@ -12,6 +12,7 @@ from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
+from .. import __version__ as VERSION
 from .control_pane import ControlPane
 from .plot_manager import PlotManager
 from .popout_mdi_area import PopoutMdiArea
@@ -141,6 +142,7 @@ class MainWindow(ApplicationFrame):
     ) -> None:
         super().__init__(use_timing_bar=True, use_rbac=True)
         mdi = MainMdiArea()
+        self.appVersion = VERSION
         self.setCentralWidget(mdi)
         self._plot_manager = PlotManager(mdi)
         self.runner = None
@@ -192,6 +194,7 @@ class MainWindow(ApplicationFrame):
         self._fullscreen_action.triggered.connect(self.toggleFullScreen)
         menubar = self.menuBar()
         menubar.addMenu(self._view_menu)
+        menubar.addAction("Info").triggered.connect(self.showAboutDialog)
 
     def changeEvent(self, event: QtCore.QEvent) -> None:
         if isinstance(event, QtGui.QWindowStateChangeEvent):
