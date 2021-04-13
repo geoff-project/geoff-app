@@ -11,6 +11,7 @@ from .. import envs
 from ..job_control.single_objective import OptJob, OptJobBuilder, optimizers
 from . import configuration
 from .plot_manager import PlotManager
+from .task import ThreadPoolTask
 
 if t.TYPE_CHECKING:
     from pyjapc import PyJapc  # pylint: disable=import-error, unused-import
@@ -27,23 +28,6 @@ class CreatingEnvDialog(QtWidgets.QDialog):
         layout.addWidget(
             QtWidgets.QLabel("Environment is being initialized, please wait ...")
         )
-
-
-class ThreadPoolWorker(QtCore.QRunnable):
-    """Python function wrapper that can be submitted to `QThreadPool`.
-
-    This is necessary to support Qt versions <5.15, which don't allow
-    passing bare callables to `QThreadPool`.
-    """
-
-    def __init__(self, func: t.Callable, *args: t.Any, **kwargs: t.Any) -> None:
-        super().__init__()
-        self._func = func
-        self._args = args
-        self._kwargs = kwargs
-
-    def run(self) -> None:
-        self._func(*self._args, **self._kwargs)
 
 
 class NumOptTab(QtWidgets.QWidget):
@@ -270,7 +254,7 @@ class NumOptTab(QtWidgets.QWidget):
             self.reset_button.setEnabled(True)
 
         threadpool = QtCore.QThreadPool.globalInstance()
-        threadpool.start(ThreadPoolWorker(_perform_reset, self._current_opt_job))
+        threadpool.start(ThreadPoolTask(_perform_reset, self._current_opt_job))
 
     def _clear_job(self) -> None:
         self._current_opt_job = None
