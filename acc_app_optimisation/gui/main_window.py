@@ -142,7 +142,7 @@ class MainWindow(ApplicationFrame):
     ) -> None:
         super().__init__(use_timing_bar=True, use_rbac=True)
         mdi = MainMdiArea()
-        self.appVersion = VERSION
+        self.appVersion = VERSION  # pylint: disable=invalid-name
         self.setCentralWidget(mdi)
         self._plot_manager = PlotManager(mdi)
         self.runner = None
@@ -196,7 +196,15 @@ class MainWindow(ApplicationFrame):
         menubar.addMenu(self._view_menu)
         menubar.addAction("Info").triggered.connect(self.showAboutDialog)
 
-    def changeEvent(self, event: QtCore.QEvent) -> None:
+        # Ordering: This may only be done once the ControlPane has been
+        # created.
+        LOG.info("RBAC: Attempting automatic location-based login")
+        self.rba_widget.model.login_by_location(interactively_select_roles=False)
+
+    def changeEvent(self, event: QtCore.QEvent) -> None:  # pylint: disable=invalid-name
+        # The window manager is able to put our window into fullscreen
+        # mode without going through our "fullscreen" menu item. If this
+        # happens, we need to manually update the menu item's checkbox.
         if isinstance(event, QtGui.QWindowStateChangeEvent):
             is_fullscreen = self.windowState() & Qt.WindowFullScreen  # type: ignore
             self._fullscreen_action.setChecked(bool(is_fullscreen))
@@ -204,11 +212,10 @@ class MainWindow(ApplicationFrame):
     def _on_machine_changed(self, value: str) -> None:
         machine = coi.Machine(value)
         timing_domain = translate_machine(machine)
-        if timing_domain is not None:
-            self.useTimingBar = True
+        # This line automatically creates or destroys the timing bar.
+        self.useTimingBar = bool(timing_domain)
+        if timing_domain:
             self.timing_bar.model.domain = timing_domain
-        else:
-            self.useTimingBar = False
 
     def _on_rba_login(self, token: RbaToken) -> None:
         self._control_pane.rbac_login(token)

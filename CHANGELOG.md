@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Visible changes
+
+- Always attempt a location-based RBAC login at startup.
+
 ## v0.1.4
 
 ### Visible changes
