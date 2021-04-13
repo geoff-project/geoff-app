@@ -64,9 +64,13 @@ class PlotManager:
         pyqtgraph.setConfigOptions(foreground="k", background="w")
 
         self._objective_plot = _make_plot_widget_with_margins()
-        self._objective_plot.setTitle("Objective")
+        self._objective_plot.setTitle("Objective function")
+        self._objective_plot.setLabels(bottom="Step", left="Cost (norm. u.)")
+        self._objective_plot.showGrid(x=True, y=True)
         self._constraints_plot = _make_plot_widget_with_margins()
         self._constraints_plot.setTitle("Constraints")
+        self._constraints_plot.setLabels(bottom="Step", left="Constraint (a. u.)")
+        self._constraints_plot.showGrid(x=True, y=True)
         self._constraints_plot.hide()
         reward_episode_length_widget = QtWidgets.QWidget()
         reward_episode_length_widget.setWindowTitle("Objective and Constraints")
@@ -79,12 +83,18 @@ class PlotManager:
 
         self._actors_plot = _make_plot_widget_with_margins()
         self._actors_plot.setWindowTitle("Actors")
+        self._actors_plot.setLabels(bottom="Step", left="Actor values (norm. u.)")
+        self._actors_plot.showGrid(x=True, y=True)
         self._mdi.addSubWindow(self._actors_plot)
 
         self._episode_length_plot = _make_plot_widget_with_margins()
         self._episode_length_plot.setTitle("Episode length")
+        self._episode_length_plot.setLabels(bottom="Episode", left="Steps")
+        self._episode_length_plot.showGrid(x=True, y=True)
         self._reward_plot = _make_plot_widget_with_margins()
         self._reward_plot.setTitle("Final reward")
+        self._reward_plot.setLabels(bottom="Episode", left="Reward (a.u.)")
+        self._reward_plot.showGrid(x=True, y=True)
         reward_episode_length_widget = QtWidgets.QWidget()
         reward_episode_length_widget.setWindowTitle("RL Training")
         layout = QtWidgets.QVBoxLayout(reward_episode_length_widget)
@@ -302,7 +312,7 @@ class PlotManager:
         if curves:
             [objective_curve] = curves
         else:
-            objective_curve = pyqtgraph.PlotDataItem(pen="b")
+            objective_curve = pyqtgraph.PlotDataItem(pen="b", symbol="+", symbolPen="b")
             self._objective_plot.addItem(objective_curve)
         return objective_curve
 
@@ -316,7 +326,9 @@ class PlotManager:
         if len(axes.items) != num:
             self._actors_plot.clear()
             for i in range(num):
-                curve = pyqtgraph.PlotDataItem(pen=(i, num))
+                curve = pyqtgraph.PlotDataItem(
+                    pen=(i, num), symbol="+", symbolPen=(i, num)
+                )
                 self._actors_plot.addItem(curve)
         return list(axes.items)
 
@@ -342,7 +354,9 @@ class PlotManager:
             for color, layer_name in _iter_colored_layers(num):
                 if layer_name:
                     self._constraints_plot.add_layer(layer_name, pen=color)
-                curves = _make_curve_with_bounds(color=color, layer=layer_name)
+                curves = _make_curve_with_bounds(
+                    color=color, layer=layer_name, symbol="+"
+                )
                 result.append(curves)
                 _add_items_to_plot([curves.values, curves.lower, curves.upper], axes)
         return result
@@ -353,7 +367,9 @@ class PlotManager:
         if curves:
             [reward_curve] = curves
         else:
-            reward_curve = pyqtgraph.PlotDataItem(pen="b")
+            reward_curve = pyqtgraph.PlotDataItem(
+                pen="#00F3", symbol="o", symbolPen=None, symbolBrush="b"
+            )
             self._reward_plot.addItem(reward_curve)
         return reward_curve
 
@@ -363,7 +379,12 @@ class PlotManager:
         if curves:
             [episode_length_curve] = curves
         else:
-            episode_length_curve = pyqtgraph.PlotDataItem(pen="b")
+            episode_length_curve = pyqtgraph.PlotDataItem(
+                pen="#00F3",
+                symbol="o",
+                symbolPen=None,
+                symbolBrush="b",
+            )
             self._episode_length_plot.addItem(episode_length_curve)
         return episode_length_curve
 
@@ -371,6 +392,7 @@ class PlotManager:
 def _make_curve_with_bounds(
     color: ColorSpec,
     layer: t.Optional[str],
+    symbol: t.Optional[str] = None,
 ) -> Bounded[pyqtgraph.PlotDataItem]:
     """Create three curves; one with a solid-line, two with a dashed-line pen.
 
@@ -381,7 +403,9 @@ def _make_curve_with_bounds(
     solid_pen = QtGui.QPen(parsed_color, 0.0, Qt.SolidLine)
     dashed_pen = QtGui.QPen(parsed_color, 0.0, Qt.DashLine)
     curves = Bounded(
-        values=pyqtgraph.PlotDataItem(pen=solid_pen, layer=layer),
+        values=pyqtgraph.PlotDataItem(
+            pen=solid_pen, layer=layer, symbol=symbol, symbolPen=solid_pen
+        ),
         lower=pyqtgraph.PlotDataItem(pen=dashed_pen, layer=layer),
         upper=pyqtgraph.PlotDataItem(pen=dashed_pen, layer=layer),
     )
