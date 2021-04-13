@@ -5,7 +5,8 @@
 ### Visible changes
 
 - Always attempt a location-based RBAC login at startup.
-- Restyled built-in graphs of optimization/training progress.
+- Restyle built-in graphs of optimization/training progress.
+- Make the accelerator-selection box a little less janky.
 
 ## v0.1.4
 

@@ -169,7 +169,7 @@ class MainWindow(ApplicationFrame):
         dock.setWidget(self._control_pane)
         self.addDockWidget(Qt.LeftDockWidgetArea, dock)
 
-        self._control_pane.machine_combo.currentTextChanged.connect(
+        self._control_pane.machine_combo.stableTextChanged.connect(
             self._on_machine_changed
         )
         LOG.info("Setting up timing bar, which uses its own PyJapc instance")

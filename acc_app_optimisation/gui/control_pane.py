@@ -11,6 +11,7 @@ from cernml import coi
 from pyjapc import PyJapc
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from .delayed_combo_box import DelayedComboBox
 from .num_opt_tab import NumOptTab
 from .rl_exec_tab import RlExecTab
 from .rl_train_tab import RlTrainTab
@@ -60,9 +61,10 @@ class ControlPane(QtWidgets.QWidget):
         large.setPointSize(12)
         machine_label = QtWidgets.QLabel("Machine:")
         machine_label.setFont(large)
-        self.machine_combo = QtWidgets.QComboBox()
+        self.machine_combo = DelayedComboBox()
         self.machine_combo.addItems(machine.value for machine in coi.Machine)
-        self.machine_combo.currentTextChanged.connect(self._on_machine_changed)
+        self.machine_combo.setCurrentText(initial_machine.value)
+        self.machine_combo.stableTextChanged.connect(self._on_machine_changed)
         self.lsa_selector = LsaSelector(
             model=LsaSelectorModel(LsaSelectorAccelerator.SPS, lsa, resident_only=True),
             parent=self,
@@ -85,7 +87,7 @@ class ControlPane(QtWidgets.QWidget):
         layout.addWidget(self.lsa_selector, stretch=1)
         layout.addWidget(self.tabs)
         # Fill all GUI elements, fire any events based on that.
-        self.machine_combo.setCurrentText(initial_machine.value)
+        self._on_machine_changed(self.machine_combo.currentText())
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         # pylint: disable = invalid-name
