@@ -7,7 +7,7 @@ import pjlsa
 from accwidgets.app_frame import ApplicationFrame
 from accwidgets.log_console import LogConsole, LogConsoleDock, LogConsoleModel
 from accwidgets.rbac import RbaToken
-from accwidgets.timing_bar import TimingBarDomain
+from accwidgets.timing_bar import TimingBar, TimingBarDomain
 from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
@@ -209,11 +209,19 @@ class MainWindow(ApplicationFrame):
             is_fullscreen = self.windowState() & Qt.WindowFullScreen  # type: ignore
             self._fullscreen_action.setChecked(bool(is_fullscreen))
 
+    def timingBarAction(self) -> QtWidgets.QAction:  # pylint: disable=invalid-name
+        toolbar = self.main_toolbar()
+        [timing_bar_action] = (
+            action
+            for action in toolbar.actions()
+            if isinstance(toolbar.widgetForAction(action), TimingBar)
+        )
+        return timing_bar_action
+
     def _on_machine_changed(self, value: str) -> None:
         machine = coi.Machine(value)
         timing_domain = translate_machine(machine)
-        # This line automatically creates or destroys the timing bar.
-        self.useTimingBar = bool(timing_domain)
+        self.timingBarAction().setVisible(bool(timing_domain))
         if timing_domain:
             self.timing_bar.model.domain = timing_domain
 
