@@ -179,7 +179,112 @@ class Cobyla(OptimizerFactory, Configurable):
         self.rhoend = values.rhoend
 
 
+class NelderMead(OptimizerFactory, Configurable):
+    """Adapter for the Nelder–Mead algorithm."""
+
+    DELTA_IF_ZERO: t.ClassVar[float] = 0.001
+    DELTA_IF_NONZERO: t.ClassVar[float] = 0.05
+
+    def __init__(self) -> None:
+        self.maxfun = 100
+        self.adaptive = False
+        self.tolerance = 0.05
+        self.delta_if_zero = self.DELTA_IF_ZERO
+        self.delta_if_nonzero = self.DELTA_IF_NONZERO
+
+    def make_solve_func(
+        self,
+        bounds: t.Tuple[np.ndarray, np.ndarray],
+        constraints: t.Sequence[Constraint],
+    ) -> SolveFunc:
+        def solve(objective: Objective, x_0: np.ndarray) -> np.ndarray:
+            result = scipy.optimize.minimize(
+                objective,
+                method="Nelder-Mead",
+                x0=x_0,
+                tol=self.tolerance,
+                bounds=bounds,
+                options=dict(
+                    maxfev=self.maxfun,
+                    adaptive=self.adaptive,
+                    initial_simplex=self._build_simplex(x_0),
+                ),
+            )
+            if result.success:
+                LOG.info(result.message)
+            else:
+                LOG.error(result.message)
+                raise OptimizationFailed(result.message)
+            return result.x
+
+        return solve
+
+    def get_config(self) -> Config:
+        config = Config()
+        config.add(
+            "maxfun",
+            self.maxfun,
+            range=(0, np.inf),
+            help="Maximum number of function evaluations",
+        )
+        config.add(
+            "adaptive",
+            self.adaptive,
+            help="Adapt algorithm parameters to dimensionality of problem",
+        )
+        config.add(
+            "tolerance",
+            self.tolerance,
+            range=(0.0, 1.0),
+            help="Convergence tolerance",
+        )
+        config.add(
+            "delta_if_nonzero",
+            self.delta_if_nonzero,
+            range=(-1.0, 1.0),
+            default=self.DELTA_IF_NONZERO,
+            help="Relative change to nonzero entries to get initial simplex",
+        )
+        config.add(
+            "delta_if_zero",
+            self.delta_if_zero,
+            range=(-1.0, 1.0),
+            default=self.DELTA_IF_ZERO,
+            help="Absolute addition to zero entries to get initial simplex",
+        )
+        return config
+
+    def apply_config(self, values: SimpleNamespace) -> None:
+        self.maxfun = values.maxfun
+        self.adaptive = values.adaptive
+        self.tolerance = values.tolerance
+        self.delta_if_nonzero = values.delta_if_nonzero
+        self.delta_if_zero = values.delta_if_zero
+
+    def _build_simplex(self, x_0: np.ndarray) -> np.ndarray:
+        """Build an initial simplex based on an initial point.
+
+        This is identical to the simplex construction in Scipy, but
+        makes the two scaling factors (``nonzdelt`` and ``zdelt``)
+        configurable.
+
+        See https://github.com/scipy/scipy/blob/master/scipy/optimize/optimize.py
+        """
+        dim = len(x_0)
+        simplex = np.empty((dim + 1, dim), dtype=x_0.dtype)
+        simplex[0] = x_0
+        for i in range(dim):
+            point = x_0.copy()
+            if point[i] != 0.0:
+                point[i] *= 1 + self.delta_if_nonzero
+            else:
+                point[i] = self.delta_if_zero
+            simplex[i + 1] = point
+        return simplex
+
+
 ALL_OPTIMIZERS: t.Mapping[str, t.Type[OptimizerFactory]] = {
     "BOBYQA": Bobyqa,
     "COBYLA": Cobyla,
+    "Nelder–Mead": NelderMead,
 }
