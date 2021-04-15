@@ -4,6 +4,7 @@ from logging import getLogger
 
 import gym
 import numpy as np
+import scipy.optimize
 from cernml.coi import SingleOptimizable
 from cernml.coi.mpl_utils import iter_matplotlib_figures
 from cernml.coi.unstable import cancellation
@@ -167,9 +168,11 @@ class SingleOptimizableJob(OptJob):
     ) -> None:
         super().__init__(token_source=token_source, signals=signals, problem=problem)
         self.x_0 = self.problem.get_initial_params()
-        bounds = (problem.optimization_space.low, problem.optimization_space.high)
         self._solve = optimizer_factory.make_solve_func(
-            bounds, self.wrapped_constraints
+            scipy.optimize.Bounds(
+                problem.optimization_space.low, problem.optimization_space.high
+            ),
+            self.wrapped_constraints,
         )
 
     def reset(self) -> None:
@@ -229,8 +232,10 @@ class FunctionOptimizableJob(OptJob):
                 raise BenignCancelledError()
             self._current_point = point
             op_space = self.get_optimization_space()
-            bounds = (op_space.low, op_space.high)
-            solve = self._factory.make_solve_func(bounds, self.wrapped_constraints)
+            solve = self._factory.make_solve_func(
+                scipy.optimize.Bounds(op_space.low, op_space.high),
+                self.wrapped_constraints,
+            )
             optimum = solve(self._env_callback, x_0.copy())
             self._env_callback(optimum)
 

@@ -27,7 +27,7 @@ class OptimizerFactory(abc.ABC):
     @abc.abstractmethod
     def make_solve_func(
         self,
-        bounds: t.Tuple[np.ndarray, np.ndarray],
+        bounds: scipy.optimize.Bounds,
         constraints: t.Sequence[Constraint],
     ) -> SolveFunc:
         raise NotImplementedError()
@@ -43,14 +43,14 @@ class Bobyqa(OptimizerFactory, Configurable):
 
     def make_solve_func(
         self,
-        bounds: t.Tuple[np.ndarray, np.ndarray],
+        bounds: scipy.optimize.Bounds,
         constraints: t.Sequence[Constraint],
     ) -> SolveFunc:
         def solve(objective: Objective, x_0: np.ndarray) -> np.ndarray:
             opt_result = pybobyqa.solve(
                 objective,
                 x0=x_0,
-                bounds=bounds,
+                bounds=(bounds.lb, bounds.ub),
                 rhobeg=self.rhobeg,
                 rhoend=self.rhoend,
                 maxfun=self.maxfun,
@@ -123,11 +123,11 @@ class Cobyla(OptimizerFactory, Configurable):
 
     def make_solve_func(
         self,
-        bounds: t.Tuple[np.ndarray, np.ndarray],
+        bounds: scipy.optimize.Bounds,
         constraints: t.Sequence[Constraint],
     ) -> SolveFunc:
         constraints = list(constraints)
-        constraints.append(self._make_bounds_constraint(bounds))
+        constraints.append(NonlinearConstraint(lambda x: x, bounds.lb, bounds.ub))
 
         def solve(objective: Objective, x_0: np.ndarray) -> np.ndarray:
             result = scipy.optimize.minimize(
@@ -145,11 +145,6 @@ class Cobyla(OptimizerFactory, Configurable):
             return result.x
 
         return solve
-
-    @staticmethod
-    def _make_bounds_constraint(bounds: t.Tuple[np.ndarray, np.ndarray]) -> Constraint:
-        lower, upper = bounds
-        return NonlinearConstraint(lambda x: x, lower, upper)
 
     def get_config(self) -> Config:
         config = Config()
@@ -194,7 +189,7 @@ class NelderMead(OptimizerFactory, Configurable):
 
     def make_solve_func(
         self,
-        bounds: t.Tuple[np.ndarray, np.ndarray],
+        bounds: scipy.optimize.Bounds,
         constraints: t.Sequence[Constraint],
     ) -> SolveFunc:
         def solve(objective: Objective, x_0: np.ndarray) -> np.ndarray:
