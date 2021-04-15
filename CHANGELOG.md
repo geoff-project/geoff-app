@@ -8,6 +8,7 @@
 - Restyle built-in graphs of optimization/training progress.
 - Make the accelerator-selection box a little less janky.
 - Add Nelder–Mead algorithm for single-objective optimization.
+- Add Powell's method for single-objective optimization.
 
 ## v0.1.4
 

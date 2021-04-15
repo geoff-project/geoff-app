@@ -278,8 +278,71 @@ class NelderMead(OptimizerFactory, Configurable):
         return simplex
 
 
+class Powell(OptimizerFactory, Configurable):
+    """Adapter for the Powell's conjugate-direction method."""
+
+    def __init__(self) -> None:
+        self.maxfun = 100
+        self.tolerance = 0.05
+        self.initial_step_size = 1.0
+
+    def make_solve_func(
+        self,
+        bounds: scipy.optimize.Bounds,
+        constraints: t.Sequence[Constraint],
+    ) -> SolveFunc:
+        def solve(objective: Objective, x_0: np.ndarray) -> np.ndarray:
+            result = scipy.optimize.minimize(
+                objective,
+                method="Powell",
+                x0=x_0,
+                tol=self.tolerance,
+                bounds=bounds,
+                options=dict(
+                    maxfev=self.maxfun,
+                    direc=self.initial_step_size * np.eye(len(x_0)),
+                ),
+            )
+            if result.success:
+                LOG.info(result.message)
+            else:
+                LOG.error(result.message)
+                raise OptimizationFailed(result.message)
+            return result.x
+
+        return solve
+
+    def get_config(self) -> Config:
+        config = Config()
+        config.add(
+            "maxfun",
+            self.maxfun,
+            range=(0, np.inf),
+            help="Maximum number of function evaluations",
+        )
+        config.add(
+            "tolerance",
+            self.tolerance,
+            range=(0.0, 1.0),
+            help="Convergence tolerance",
+        )
+        config.add(
+            "initial_step_size",
+            self.initial_step_size,
+            range=(1e-3, 1.0),
+            help="Step size for the first iteration",
+        )
+        return config
+
+    def apply_config(self, values: SimpleNamespace) -> None:
+        self.maxfun = values.maxfun
+        self.tolerance = values.tolerance
+        self.initial_step_size = values.initial_step_size
+
+
 ALL_OPTIMIZERS: t.Mapping[str, t.Type[OptimizerFactory]] = {
     "BOBYQA": Bobyqa,
     "COBYLA": Cobyla,
     "Nelder–Mead": NelderMead,
+    "Powell": Powell,
 }
