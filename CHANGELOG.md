@@ -5,6 +5,8 @@
 ### Bug fixes
 
 - Add ISOLDE support.
+- Avoid using JAPC selectors for machine A when instantiating an optimization
+  problem for machine B.
 
 ## v0.1.5
 

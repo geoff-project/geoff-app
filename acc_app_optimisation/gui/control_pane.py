@@ -115,6 +115,13 @@ class ControlPane(QtWidgets.QWidget):
 
     def _on_machine_changed(self, value: str) -> None:
         LOG.debug("machine changed: %s", value)
+        # Unload JAPC. This avoids JAPC with selector for machine A to
+        # an env for machine B if the user never selected a context for
+        # machine B (and thus _on_lsa_user_changed() was never called
+        # for machine B).
+        self._finalizers.close()
+        # Switch LSA widget to new machine. If the user previously
+        # selected a context for this machine, re-select it.
         machine = coi.Machine(value)
         last_selection = self._last_lsa_selection.get(value, None)
         self.lsa_selector.accelerator = translate_machine(machine)
