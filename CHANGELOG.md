@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Bug fixes
+
+- Add ISOLDE support.
+
 ## v0.1.5
 
 ### Visible changes

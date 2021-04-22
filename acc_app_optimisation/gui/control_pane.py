@@ -37,6 +37,7 @@ def translate_machine(machine: coi.Machine) -> LsaSelectorAccelerator:
         coi.Machine.SPS: LsaSelectorAccelerator.SPS,
         coi.Machine.AWAKE: LsaSelectorAccelerator.AWAKE,
         coi.Machine.LHC: LsaSelectorAccelerator.LHC,
+        coi.Machine.ISOLDE: LsaSelectorAccelerator.ISOLDE,
     }.get(machine, LsaSelectorAccelerator.LHC)
 
 
