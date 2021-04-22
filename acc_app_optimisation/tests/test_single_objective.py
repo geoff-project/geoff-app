@@ -89,4 +89,4 @@ def test_runner(
     optimizable.spec.make.assert_called_once_with()  # type:ignore
     optimizable.get_initial_params.assert_called_once_with()  # type:ignore
     steps = optimizable.compute_single_objective.call_count  # type:ignore
-    assert steps >= 12
+    assert steps >= 5
