@@ -172,9 +172,10 @@ class NumOptTab(QtWidgets.QWidget):
             skeleton_points=self._opt_builder.skeleton_points,
             parent=self.window(),
         )
-        dialog.config_applied.connect(
-            lambda: self._set_skeleton_points(dialog.skeletonPoints())
-        )
+        if isinstance(problem.unwrapped, coi_funcs.FunctionOptimizable):
+            dialog.config_applied.connect(
+                lambda: self._set_skeleton_points(dialog.skeletonPoints())
+            )
         dialog.open()
 
     def _set_skeleton_points(self, skeleton_points: np.ndarray) -> None:

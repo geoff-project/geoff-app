@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Visible changes
+
+- Only print message about skeleton points when configuring FunctionOptimizable
+  problems.
+
 ### Bug fixes
 
 - Add ISOLDE support.
