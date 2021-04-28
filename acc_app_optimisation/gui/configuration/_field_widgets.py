@@ -4,22 +4,14 @@ import typing as t
 
 import numpy as np
 from cernml.coi import Config
-from PyQt5.QtGui import QDoubleValidator, QIntValidator
-from PyQt5.QtWidgets import (
-    QCheckBox,
-    QComboBox,
-    QDoubleSpinBox,
-    QLineEdit,
-    QSpinBox,
-    QWidget,
-)
+from PyQt5 import QtGui, QtWidgets
 
 from . import _type_utils as _tu
 
 UnparsedDict = t.Dict[str, str]
 
 
-def make_field_widget(field: Config.Field, values: UnparsedDict) -> QWidget:
+def make_field_widget(field: Config.Field, values: UnparsedDict) -> QtWidgets.QWidget:
     """Given a field, pick the best widget to configure it."""
     # pylint: disable = too-many-return-statements
     setter = itemsetter(values, field.dest)
@@ -52,30 +44,32 @@ def make_field_widget(field: Config.Field, values: UnparsedDict) -> QWidget:
     return lineedit
 
 
-def make_combobox(initial: str, choices: t.Iterable[str]) -> QComboBox:
+def make_combobox(initial: str, choices: t.Iterable[str]) -> QtWidgets.QComboBox:
     """Create a combo box."""
-    widget = QComboBox()
+    widget = QtWidgets.QComboBox()
     widget.addItems(choices)
     widget.setCurrentText(initial)
     return widget
 
 
-def make_lineedit(value: t.Any) -> QLineEdit:
+def make_lineedit(value: t.Any) -> QtWidgets.QLineEdit:
     """Create a line edit."""
-    widget = QLineEdit(str(value))
+    widget = QtWidgets.QLineEdit(str(value))
     if _tu.is_int(value):
-        widget.setValidator(QIntValidator())
+        widget.setValidator(QtGui.QIntValidator())
     elif _tu.is_float(value):
-        widget.setValidator(QDoubleValidator())
+        widget.setValidator(QtGui.QDoubleValidator())
     else:
         pass
     return widget
 
 
-def make_double_spinbox(value: float, range_: t.Tuple[float, float]) -> QDoubleSpinBox:
+def make_double_spinbox(
+    value: float, range_: t.Tuple[float, float]
+) -> QtWidgets.QDoubleSpinBox:
     """Create either an integer or a floating-point spin box."""
     low, high = range_
-    widget = QDoubleSpinBox()
+    widget = QtWidgets.QDoubleSpinBox()
     widget.setDecimals(_tu.guess_decimals(low, high))
     widget.setStepType(widget.AdaptiveDecimalStepType)
     widget.setGroupSeparatorShown(True)
@@ -84,13 +78,13 @@ def make_double_spinbox(value: float, range_: t.Tuple[float, float]) -> QDoubleS
     return widget
 
 
-def make_int_spinbox(value: int, range_: t.Tuple[int, int]) -> QSpinBox:
+def make_int_spinbox(value: int, range_: t.Tuple[int, int]) -> QtWidgets.QSpinBox:
     """Create either an integer or a floating-point spin box."""
     # Ensure that the range limits are valid integers.
     low, high = range_
     low = np.clip(np.floor(low), -(2 << 30), (2 << 30) - 1)
     high = np.clip(np.ceil(high), -(2 << 30), (2 << 30) - 1)
-    widget = QSpinBox()
+    widget = QtWidgets.QSpinBox()
     widget.setStepType(widget.AdaptiveDecimalStepType)
     widget.setGroupSeparatorShown(True)
     widget.setRange(low, high)
@@ -98,9 +92,9 @@ def make_int_spinbox(value: int, range_: t.Tuple[int, int]) -> QSpinBox:
     return widget
 
 
-def make_checkbox(checked: bool) -> QCheckBox:
+def make_checkbox(checked: bool) -> QtWidgets.QCheckBox:
     """Create a check box."""
-    widget = QCheckBox()
+    widget = QtWidgets.QCheckBox()
     widget.setChecked(checked)
     return widget
 
@@ -110,7 +104,7 @@ V = t.TypeVar("V")  # pylint: disable=invalid-name
 
 
 def itemsetter(mapping: t.MutableMapping[K, V], key: K) -> t.Callable[[V], None]:
-    """Return a callable that takes ``values`` and runs ``mapping[key] = value``."""
+    """Return a callable that takes ``value`` and runs ``mapping[key] = value``."""
 
     def _setter(value: V) -> None:
         """Run ``{mapping}[{key}] = value``."""
