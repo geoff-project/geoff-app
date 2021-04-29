@@ -1,11 +1,14 @@
 """Helpers to concisely create form widgets."""
 
+import os
 import typing as t
+from pathlib import Path
 
 import numpy as np
 from cernml.coi import Config
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
+from ..file_selector import FileSelector
 from . import _type_utils as _tu
 
 UnparsedDict = t.Dict[str, str]
@@ -24,6 +27,11 @@ def make_field_widget(field: Config.Field, values: UnparsedDict) -> QtWidgets.QW
             lambda _state: setter(_tu.str_boolsafe(checkbox.isChecked()))
         )
         return checkbox
+    # Path-like fields take precedence over range and choices.
+    if isinstance(field.value, os.PathLike):
+        selector = make_file_selector(field.value, field.choices)
+        selector.fileChanged.connect(setter)
+        return selector
     if field.choices is not None:
         combobox = make_combobox(str(field.value), map(str, field.choices))
         combobox.currentTextChanged.connect(setter)
@@ -42,6 +50,24 @@ def make_field_widget(field: Config.Field, values: UnparsedDict) -> QtWidgets.QW
     lineedit = make_lineedit(field.value)
     lineedit.editingFinished.connect(lambda: setter(lineedit.text()))
     return lineedit
+
+
+def make_file_selector(
+    value: Path, choices: t.Optional[t.Iterable[str]]
+) -> FileSelector:
+    """Create a button that opens a file selection widget."""
+    if value == Path():
+        config_dir = ensure_config_dir()
+        widget = FileSelector("", dialogDirectory=config_dir)
+    else:
+        widget = FileSelector(value)
+    if choices:
+        filters = list(choices)
+        if any("*" in filter_ for filter_ in filters):
+            widget.setNameFilters(filters)
+        else:
+            widget.setMimeTypeFilters(filters)
+    return widget
 
 
 def make_combobox(initial: str, choices: t.Iterable[str]) -> QtWidgets.QComboBox:
@@ -113,3 +139,19 @@ def itemsetter(mapping: t.MutableMapping[K, V], key: K) -> t.Callable[[V], None]
     assert _setter.__doc__ is not None
     _setter.__doc__ = _setter.__doc__.format(**locals())
     return _setter
+
+
+def ensure_config_dir() -> t.Optional[Path]:
+    """Find/Create the directory for application configuration files.
+
+    This uses the first configuration directory in the list of known
+    directories. If it doesn't exist yet, it is created.
+    """
+    all_config_dirs = QtCore.QStandardPaths.standardLocations(
+        QtCore.QStandardPaths.AppConfigLocation
+    )
+    if not all_config_dirs:
+        return None
+    config_dir = Path(all_config_dirs[0])
+    config_dir.mkdir(parents=True, exist_ok=True)
+    return config_dir
