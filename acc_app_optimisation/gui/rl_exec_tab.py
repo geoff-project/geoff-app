@@ -11,6 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from .. import envs
 from ..job_control import rl
 from . import configuration
+from .file_selector import FileSelector
 from .plot_manager import PlotManager
 
 if t.TYPE_CHECKING:
@@ -65,8 +66,11 @@ class RlExecTab(QtWidgets.QWidget):
         algo_label.setFont(large)
         self.algo_combo = QtWidgets.QComboBox()
         self.algo_combo.currentTextChanged.connect(self._on_algo_changed)
-        self.algo_load_button = QtWidgets.QPushButton("Load")
-        self.algo_load_button.clicked.connect(self._on_algo_load_clicked)
+        self.algo_file_selector = FileSelector()
+        self.algo_file_selector.setMimeTypeFilters(
+            ["application/zip", "application/octet-stream"]
+        )
+        self.algo_file_selector.fileChanged.connect(self._on_model_file_changed)
         separator = QtWidgets.QFrame()
         separator.setFrameStyle(QtWidgets.QFrame.HLine | QtWidgets.QFrame.Sunken)
         episodes_label = QtWidgets.QLabel("Episodes:")
@@ -86,7 +90,7 @@ class RlExecTab(QtWidgets.QWidget):
         layout.addWidget(self.env_config_button)
         layout.addWidget(algo_label)
         layout.addWidget(self.algo_combo)
-        layout.addWidget(self.algo_load_button)
+        layout.addWidget(self.algo_file_selector)
         layout.addWidget(separator)
         episodes_control = QtWidgets.QHBoxLayout()
         episodes_control.addWidget(episodes_label)
@@ -160,21 +164,15 @@ class RlExecTab(QtWidgets.QWidget):
         factory = rl.ALL_AGENTS[name]
         self._exec_builder.agent_factory = factory()
         self._exec_builder.agent_path = None
-        self.algo_load_button.setText("Load")
+        self.algo_file_selector.setFilePath("")
 
-    def _on_algo_load_clicked(self) -> None:
-        dialog = QtWidgets.QFileDialog(self.window())
-        dialog.setAcceptMode(dialog.AcceptOpen)
-        dialog.setFileMode(dialog.ExistingFile)
-        dialog.setModal(True)
-        dialog.accepted.connect(lambda: self._on_load_model_accepted(dialog))
-        dialog.show()
-
-    def _on_load_model_accepted(self, dialog: QtWidgets.QFileDialog) -> None:
-        [path] = map(Path, dialog.selectedFiles())
-        LOG.info("setting model path: %s", path)
-        self.algo_load_button.setText(path.name)
-        self._exec_builder.agent_path = path
+    def _on_model_file_changed(self, path: str) -> None:
+        if path:
+            LOG.info("selected model file: %r", path)
+            self._exec_builder.agent_path = Path(path)
+        else:
+            LOG.info("no model file selected")
+            self._exec_builder.agent_path = None
 
     def _on_start_clicked(self) -> None:
         env = self.get_or_load_env()
@@ -202,7 +200,6 @@ class RlExecTab(QtWidgets.QWidget):
         self._current_exec_job.cancel()
 
     def _on_training_finished(self) -> None:
-        self.algo_load_button.setEnabled(True)
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
 

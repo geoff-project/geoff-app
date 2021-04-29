@@ -6,6 +6,8 @@
 
 - Only print message about skeleton points when configuring FunctionOptimizable
   problems.
+- Replace load-file button for RL agent execution with a widget that displays
+  the full path of the file.
 
 ### Bug fixes
 
