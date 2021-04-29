@@ -147,6 +147,7 @@ def main(argv: list) -> int:
             from acc_app_optimisation.envs import builtin_envs as _
 
         app = QtWidgets.QApplication(argv)
+        app.setApplicationName(__package__)
         window = gui.MainWindow(
             initial_machine=coi.Machine[args.machine],
             lsa=lsa,
