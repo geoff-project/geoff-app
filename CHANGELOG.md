@@ -8,6 +8,7 @@
   problems.
 - Replace load-file button for RL agent execution with a widget that displays
   the full path of the file.
+- Support file paths in Configurable interface.
 
 ### Bug fixes
 
