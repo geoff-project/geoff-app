@@ -203,8 +203,10 @@ def _import_module_from_spec(spec: importlib.machinery.ModuleSpec) -> ModuleType
             sys.modules[spec.name] = module
             spec.loader.exec_module(module)  # type: ignore
         else:
-            # zipimport.zipimporter does not provide `exec_module()`,
-            # only the legacy `load_module()` API.
+            # Before Python 3.10, zipimport.zipimporter does not provide
+            # `exec_module()`, only the legacy `load_module()` API. Once
+            # we support _only_ Python 3.10+, this will become
+            # superfluous.
             module = spec.loader.load_module(spec.name)
     return module
 
