@@ -9,6 +9,8 @@
 - Replace load-file button for RL agent execution with a widget that displays
   the full path of the file.
 - Support file paths in Configurable interface.
+- Add context category filter menu to the LSA selector. This allows the user to
+  display and choose non-operational contexts.
 
 ### Bug fixes
 

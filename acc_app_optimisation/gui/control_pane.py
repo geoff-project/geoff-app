@@ -3,6 +3,7 @@ import typing as t
 from logging import getLogger
 
 from accwidgets.lsa_selector import (
+    AbstractLsaSelectorContext,
     LsaSelector,
     LsaSelectorAccelerator,
     LsaSelectorModel,
@@ -66,11 +67,16 @@ class ControlPane(QtWidgets.QWidget):
         self.machine_combo.addItems(machine.value for machine in coi.Machine)
         self.machine_combo.setCurrentText(initial_machine.value)
         self.machine_combo.stableTextChanged.connect(self._on_machine_changed)
-        self.lsa_selector = LsaSelector(
-            model=LsaSelectorModel(LsaSelectorAccelerator.SPS, lsa, resident_only=True),
-            parent=self,
+        model = LsaSelectorModel(
+            LsaSelectorAccelerator.SPS,
+            lsa,
+            resident_only=True,
+            categories=list(AbstractLsaSelectorContext.Category),
         )
+        model.filter_categories = {AbstractLsaSelectorContext.Category.OPERATIONAL}
+        self.lsa_selector = LsaSelector(parent=self, model=model)
         self.lsa_selector.userSelectionChanged.connect(self._on_lsa_user_changed)
+        self.lsa_selector.showCategoryFilter = True
         self.tabs = QtWidgets.QTabWidget()
         self.num_opt_tab = NumOptTab(plot_manager=plot_manager)
         self.rl_train_tab = RlTrainTab(plot_manager=plot_manager)
