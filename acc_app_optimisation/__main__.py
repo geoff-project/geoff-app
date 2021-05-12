@@ -12,6 +12,8 @@ from accwidgets.log_console import LogConsoleModel
 from cernml import coi
 from PyQt5 import QtWidgets
 
+from acc_app_optimisation import __version__ as VERSION
+
 
 class StreamToLogger(io.TextIOBase):
     """Fake file-like stream object that redirects writes to a logger.
@@ -82,6 +84,11 @@ def get_parser() -> argparse.ArgumentParser:
         "with `::`",
     )
     parser.add_argument(
+        "--version",
+        action="store_true",
+        help="Print the application version and exit",
+    )
+    parser.add_argument(
         "-m",
         "--machine",
         type=str,
@@ -133,11 +140,13 @@ def get_parser() -> argparse.ArgumentParser:
 def main(argv: list) -> int:
     """Main function. Pass sys.argv."""
     args = get_parser().parse_args(argv[1:])
+    if args.version:
+        print(f"GeOFF v{VERSION}")
+        return 0
     model = init_logging(args.capture_stdout)
     lsa = pjlsa.LSAClient(server=args.lsa_server)
     with lsa.java_api():
         # pylint: disable = import-outside-toplevel
-        from acc_app_optimisation import __version__ as version
         from acc_app_optimisation import foreign_imports, gui
 
         foreign_imports.import_all(args.foreign_imports)
@@ -155,7 +164,7 @@ def main(argv: list) -> int:
             japc_no_set=args.japc_no_set,
         )
         window.setWindowTitle(
-            f"GeOFF v{version} (LSA {args.lsa_server.upper()}"
+            f"GeOFF v{VERSION} (LSA {args.lsa_server.upper()}"
             f'{", NO SET" if args.japc_no_set else ""})'
         )
         window.show()

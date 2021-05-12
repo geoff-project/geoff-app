@@ -11,6 +11,7 @@
 - Support file paths in Configurable interface.
 - Add context category filter menu to the LSA selector. This allows the user to
   display and choose non-operational contexts.
+- Add `--version` command-line option.
 
 ### Bug fixes
 
