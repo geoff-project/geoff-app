@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes so far.
+
+## v0.1.6
+
 ### Visible changes
 
 - Only print message about skeleton points when configuring FunctionOptimizable
