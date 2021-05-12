@@ -221,9 +221,11 @@ class MainWindow(ApplicationFrame):
     def _on_machine_changed(self, value: str) -> None:
         machine = coi.Machine(value)
         timing_domain = translate_machine(machine)
-        self.timingBarAction().setVisible(bool(timing_domain))
         if timing_domain:
             self.timing_bar.model.domain = timing_domain
+            self.timingBarAction().setVisible(True)
+        else:
+            self.timingBarAction().setVisible(False)
 
     def _on_rba_login(self, token: RbaToken) -> None:
         self._control_pane.rbac_login(token)

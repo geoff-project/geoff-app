@@ -68,7 +68,7 @@ class ControlPane(QtWidgets.QWidget):
         self.machine_combo.setCurrentText(initial_machine.value)
         self.machine_combo.stableTextChanged.connect(self._on_machine_changed)
         model = LsaSelectorModel(
-            LsaSelectorAccelerator.SPS,
+            translate_machine(initial_machine),
             lsa,
             resident_only=True,
             categories=list(AbstractLsaSelectorContext.Category),
