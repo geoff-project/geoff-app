@@ -6,7 +6,6 @@ import functools
 import importlib
 import logging
 import sys
-import traceback
 import typing as t
 from enum import Enum
 from pathlib import Path, PurePath
@@ -90,8 +89,7 @@ def import_all(paths: t.Iterable[str]) -> None:
         for path in paths:
             import_from_path(path)
     except Exception:  # pylint: disable=broad-except
-        LOG.error(traceback.format_exc())
-        LOG.error("Aborted foreign imports due to the above exception")
+        LOG.error("aborted foreign imports", exc_info=True)
 
 
 def import_from_path(to_be_imported: str) -> ModuleType:

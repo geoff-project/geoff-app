@@ -2,7 +2,10 @@
 
 ## Unreleased
 
-No changes so far.
+### Visible changes
+
+- Change the way exceptions are logged. The exception message now always
+  appears last, making it more visible in the log console.
 
 ## v0.1.6
 

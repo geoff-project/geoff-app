@@ -117,12 +117,11 @@ class TrainJob(Job):
         except cancellation.CancelledError as exc:
             if isinstance(exc, BenignCancelledError):
                 self._token_source.token.complete_cancellation()
-            LOG.info("Training cancelled")
+            LOG.info("cancelled training")
         except:
-            LOG.error(traceback.format_exc())
-            LOG.error("Training aborted due to the above exception")
+            LOG.error("aborted training", exc_info=True)
         else:
-            LOG.info("Training finished")
+            LOG.info("finished training")
         if self._token_source.can_reset_cancellation:
             self._token_source.reset_cancellation()
         self._signals.training_finished.emit(True)

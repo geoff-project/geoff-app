@@ -1,5 +1,4 @@
 import contextlib
-import traceback
 import typing as t
 from logging import getLogger
 
@@ -122,8 +121,7 @@ class NumOptTab(QtWidgets.QWidget):
             LOG.debug("initializing new problem: %s", self._opt_builder.problem_id)
             return self._opt_builder.make_problem()
         except:  # pylint: disable=bare-except
-            LOG.error(traceback.format_exc())
-            LOG.error("Aborted initialization due to the above exception")
+            LOG.error("aborted initialization", exc_info=True)
             return None
         finally:
             please_wait_dialog.accept()
@@ -206,8 +204,7 @@ class NumOptTab(QtWidgets.QWidget):
         try:
             self._current_opt_job = self._opt_builder.build_job()
         except:  # pylint: disable=bare-except
-            LOG.error(traceback.format_exc())
-            LOG.error("Aborted initialization due to the above exception")
+            LOG.error("aborted initialization", exc_info=True)
             return
         assert self._current_opt_job is not None
         self.start_button.setEnabled(False)
@@ -246,8 +243,7 @@ class NumOptTab(QtWidgets.QWidget):
                     job.problem.render(mode="matplotlib_figures")
                     self._plot_manager.redraw_mpl_figures()
             except:  # pylint: disable=bare-except
-                LOG.error(traceback.format_exc())
-                LOG.error("could not reset due to the above exception")
+                LOG.error("could not reset", exc_info=True)
             else:
                 LOG.info("problem successfully reset")
             self.start_button.setEnabled(True)

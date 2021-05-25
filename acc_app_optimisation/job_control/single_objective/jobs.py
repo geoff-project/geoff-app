@@ -83,12 +83,11 @@ class OptJob(Job):
         except cancellation.CancelledError as exc:
             if isinstance(exc, BenignCancelledError):
                 self._token_source.token.complete_cancellation()
-            LOG.info("Optimization cancelled")
+            LOG.info("cancelled optimization")
         except:
-            LOG.error(traceback.format_exc())
-            LOG.error("Optimization aborted due to the above exception")
+            LOG.error("aborted optimization", exc_info=True)
         else:
-            LOG.info("Optimization finished")
+            LOG.info("finished optimization")
         if self._token_source.can_reset_cancellation:
             self._token_source.reset_cancellation()
         self._signals.optimisation_finished.emit(True)

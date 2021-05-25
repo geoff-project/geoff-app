@@ -1,5 +1,4 @@
 import contextlib
-import traceback
 import typing as t
 from logging import getLogger
 from pathlib import Path
@@ -124,8 +123,7 @@ class RlExecTab(QtWidgets.QWidget):
             LOG.debug("initializing new problem: %s", self._exec_builder.env_id)
             return self._exec_builder.make_env()
         except:  # pylint: disable=bare-except
-            LOG.error(traceback.format_exc())
-            LOG.error("Aborted initialization due to the above exception")
+            LOG.error("aborted initialization", exc_info=True)
             return None
         finally:
             please_wait_dialog.accept()
@@ -181,8 +179,7 @@ class RlExecTab(QtWidgets.QWidget):
         try:
             self._current_exec_job = self._exec_builder.build_job()
         except:  # pylint: disable=bare-except
-            LOG.error(traceback.format_exc())
-            LOG.error("Aborted initialization due to the above exception")
+            LOG.error("aborted initialization", exc_info=True)
             return
         assert self._current_exec_job is not None
         self.start_button.setEnabled(False)
