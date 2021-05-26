@@ -9,6 +9,8 @@
 - Increase the default value of BOBYQA's `rhobeg` parameter to 0.5 (was 0.1).
   Too many built-in environments failed to optimize speedily when the initial
   trust region was too small.
+- When an environment is reset after numeric optimization, the associated actor
+  values and loss are now appended to the respective history plots.
 
 ### Build changes
 

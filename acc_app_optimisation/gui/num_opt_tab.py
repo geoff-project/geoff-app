@@ -239,9 +239,6 @@ class NumOptTab(QtWidgets.QWidget):
         def _perform_reset(job: OptJob) -> None:
             try:
                 job.reset()
-                if "matplotlib_figures" in envs.Metadata(job.problem).render_modes:
-                    job.problem.render(mode="matplotlib_figures")
-                    self._plot_manager.redraw_mpl_figures()
             except:  # pylint: disable=bare-except
                 LOG.error("could not reset", exc_info=True)
             else:

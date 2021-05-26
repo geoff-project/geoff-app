@@ -175,7 +175,7 @@ class SingleOptimizableJob(OptJob):
         )
 
     def reset(self) -> None:
-        self.problem.compute_single_objective(self.x_0)
+        self._env_callback(self.x_0)
 
     def get_optimization_space(self) -> gym.spaces.Box:
         return self.problem.optimization_space
@@ -214,6 +214,8 @@ class FunctionOptimizableJob(OptJob):
         # TODO: Only reset up to and including the current point.
         for point, x_0 in zip(self.skeleton_points, self.all_x_0):
             self.problem.compute_function_objective(point, x_0)
+            self._current_point = point
+            self._env_callback(x_0)
 
     def get_optimization_space(self) -> gym.spaces.Box:
         assert self._current_point is not None
