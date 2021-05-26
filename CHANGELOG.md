@@ -7,6 +7,11 @@
 - Change the way exceptions are logged. The exception message now always
   appears last, making it more visible in the log console.
 
+### Build changes
+
+- Upgrade cern-sps-tune-env requirement to 0.3.0.
+- Upgrade cern-sps-zs-alignment-env requirement to 0.3.0.
+
 ## v0.1.6
 
 ### Visible changes
