@@ -36,7 +36,7 @@ class OptimizerFactory(abc.ABC):
 class Bobyqa(OptimizerFactory, Configurable):
     def __init__(self) -> None:
         self.maxfun = 100
-        self.rhobeg = 0.1
+        self.rhobeg = 0.5
         self.rhoend = 0.05
         self.seek_global_minimum = False
         self.objfun_has_noise = False

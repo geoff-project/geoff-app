@@ -6,6 +6,9 @@
 
 - Change the way exceptions are logged. The exception message now always
   appears last, making it more visible in the log console.
+- Increase the default value of BOBYQA's `rhobeg` parameter to 0.5 (was 0.1).
+  Too many built-in environments failed to optimize speedily when the initial
+  trust region was too small.
 
 ### Build changes
 
