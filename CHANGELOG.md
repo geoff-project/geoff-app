@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes yet
+
+## v0.1.7
+
 ### Visible changes
 
 - Change the way exceptions are logged. The exception message now always
