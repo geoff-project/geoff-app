@@ -1,4 +1,3 @@
-import traceback
 import typing as t
 from logging import getLogger
 from pathlib import Path
