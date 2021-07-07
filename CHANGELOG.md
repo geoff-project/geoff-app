@@ -18,6 +18,9 @@
   [cernml-coi-utils](https://gitlab.cern.ch/be-op-ml-optimization/cernml-coi-utils/).
   Authors of optimization problems are encouraged to change their code
   accordingly.
+- Add dependency on cernml-coi-utils v0.2.2. Having both the new utilities
+  package and a cernml-coi version that still has its utilities will make
+  transitioning to the new API easier.
 
 ### Bug fixes
 
