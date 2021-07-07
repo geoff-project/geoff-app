@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes yet!
+
+## v0.1.8
+
 ## Build changes
 
 - Upgrade cernml-svd to 3.0.0. This reverts the way action normalization is
