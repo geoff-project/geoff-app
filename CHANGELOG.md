@@ -12,7 +12,7 @@
   [cernml-coi-utils](https://gitlab.cern.ch/be-op-ml-optimization/cernml-coi-utils/)
   for the latter. If their code works with cernml-coi 0.7.6 without deprecation
   warnings, it will likely work with the upcoming cernml-coi 0.8.0 as well.
-- Upgrade cernml-coi-funcs to 0.2.3. This is the final release. The
+- Upgrade cernml-coi-funcs to 0.2.4. This is the final release. The
   `FunctionOptimizable` interface has been integrated into cernml-coi; the LSA
   utilities have been integrated into
   [cernml-coi-utils](https://gitlab.cern.ch/be-op-ml-optimization/cernml-coi-utils/).
