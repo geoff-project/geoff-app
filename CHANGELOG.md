@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## Build changes
+
+- Upgrade cernml-svd to 3.0.0. This reverts the way action normalization is
+  done and finishes the initial prototype phase.
+
 ### Bug fixes
 
 - Fix crash when resetting after an aborted optimization due to unequal lengths

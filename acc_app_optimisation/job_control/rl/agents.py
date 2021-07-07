@@ -216,7 +216,7 @@ class SVD(AgentFactory):
         super().__init__()
         defaults = _get_default_args(SvdOptimizer)
         self.action_scale: float = defaults["action_scale"]
-        self.max_action_value: float = defaults["max_action_value"]
+        self.max_action_size: float = defaults["max_action_size"]
         self.verbose: bool = defaults["verbose"]
 
     def get_config(self) -> coi.Config:
@@ -229,8 +229,8 @@ class SVD(AgentFactory):
             help="Size of the steps to take during training",
         )
         config.add(
-            "max_action_value",
-            self.max_action_value,
+            "max_action_size",
+            self.max_action_size,
             range=(0, np.inf),
             label="Maximum prediction step size",
             help="Limit on the step size during evaluation",
@@ -247,14 +247,14 @@ class SVD(AgentFactory):
     def apply_config(self, values: SimpleNamespace) -> None:
         super().apply_config(values)
         self.action_scale = values.action_scale
-        self.max_action_value = values.max_action_value
+        self.max_action_size = values.max_action_size
         self.verbose = values.verbose
 
     def make_agent(self, env: gym.Env) -> BaseAlgorithm:
         agent = SvdOptimizer(
             env,
             action_scale=self.action_scale,
-            max_action_value=self.max_action_value,
+            max_action_size=self.max_action_size,
             verbose=self.verbose,
         )
         # This is fine – we've registered SvdOptimizer as a subclass of
