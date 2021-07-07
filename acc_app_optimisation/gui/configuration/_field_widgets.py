@@ -53,7 +53,7 @@ def make_field_widget(field: Config.Field, values: UnparsedDict) -> QtWidgets.QW
 
 
 def make_file_selector(
-    value: Path, choices: t.Optional[t.Iterable[str]]
+    value: os.PathLike, choices: t.Optional[t.Iterable[str]]
 ) -> FileSelector:
     """Create a button that opens a file selection widget."""
     if value == Path():
