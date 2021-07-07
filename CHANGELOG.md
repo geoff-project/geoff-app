@@ -2,7 +2,10 @@
 
 ## Unreleased
 
-No changes yet
+### Bug fixes
+
+- Fix crash when resetting after an aborted optimization due to unequal lengths
+  in action/objective logs.
 
 ## v0.1.7
 

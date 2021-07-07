@@ -104,21 +104,22 @@ class OptJob(Job):
         # out-of-bounds.
         opt_space = self.get_optimization_space()
         action = np.clip(action, opt_space.low, opt_space.high)
-        self._actions_log.append(action.flatten())
         # Calculate loss function.
         loss = self.compute_loss(action.copy())
         assert np.ndim(loss) == 0, "non-scalar loss"
-        self._objectives_log.append(loss)
-        # Calculate constraints and mash all of them into a single array.
         if self.wrapped_constraints:
-            self._constraints_log.append(
-                all_into_flat_array(
-                    constraint.fun(action) for constraint in self.wrapped_constraints
-                )
+            constraints_values = all_into_flat_array(
+                constraint.fun(action) for constraint in self.wrapped_constraints
             )
             for constraint in self.wrapped_constraints:
                 constraint.clear_cache()
-        # Log inputs and outputs.
+        # Log inputs and outputs. Only adjust the logs after all user
+        # functions have been called. Otherwise, we risk unequal lengths
+        # between the log arrays.
+        self._actions_log.append(action.flatten())
+        self._objectives_log.append(loss)
+        if self.wrapped_constraints:
+            self._constraints_log.append(constraints_values)
         self._emit_all_signals()
         self._render_env()
         # Clear all constraint caches.
