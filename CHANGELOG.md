@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes yet!
+
+## v0.1.9
+
 - Upgrade cern-sps-zs-alignment-env requirement to 0.3.2.
 - Upgrade cern-leir-transfer-line-env requirement to 0.3.0.
 
