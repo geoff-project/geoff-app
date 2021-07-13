@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-No changes yet!
+- Upgrade cern-sps-zs-alignment-env requirement to 0.3.2.
 
 ## v0.1.8
 
