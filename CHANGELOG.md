@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+## Build changes
+
 - Upgrade cernml-coi-utils to 0.2.3. This adds an optional *description*
   argument to LSA incorporations.
+- Upgrade cern-leir-transfer-line-env requirement to 0.3.1.
+
+### Visible changes
+
 - Expose option *nsamples* from BOBYQA, which allows you to evaluate the cost
   function multiple times and optimize on the average.
 
