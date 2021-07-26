@@ -38,6 +38,7 @@ class Bobyqa(OptimizerFactory, Configurable):
         self.maxfun = 100
         self.rhobeg = 0.5
         self.rhoend = 0.05
+        self.nsamples = 1
         self.seek_global_minimum = False
         self.objfun_has_noise = False
 
@@ -47,6 +48,7 @@ class Bobyqa(OptimizerFactory, Configurable):
         constraints: t.Sequence[Constraint],
     ) -> SolveFunc:
         def solve(objective: Objective, x_0: np.ndarray) -> np.ndarray:
+            nsamples = self.nsamples
             opt_result = pybobyqa.solve(
                 objective,
                 x0=x_0,
@@ -56,6 +58,7 @@ class Bobyqa(OptimizerFactory, Configurable):
                 maxfun=self.maxfun,
                 seek_global_minimum=self.seek_global_minimum,
                 objfun_has_noise=self.objfun_has_noise,
+                nsamples=lambda *_: nsamples,
             )
             log_level = {
                 opt_result.EXIT_SUCCESS: logging.INFO,
@@ -94,6 +97,12 @@ class Bobyqa(OptimizerFactory, Configurable):
             help="Step size below which the optimization is considered converged",
         )
         config.add(
+            "nsamples",
+            self.nsamples,
+            range=(1, 100),
+            help="Number of measurements which to average over in each iteration",
+        )
+        config.add(
             "seek_global_minimum",
             self.seek_global_minimum,
             help="Enable additional logic to avoid local minima",
@@ -109,6 +118,7 @@ class Bobyqa(OptimizerFactory, Configurable):
         self.maxfun = values.maxfun
         self.rhobeg = values.rhobeg
         self.rhoend = values.rhoend
+        self.nsamples = values.nsamples
         self.seek_global_minimum = values.seek_global_minimum
         self.objfun_has_noise = values.objfun_has_noise
 
