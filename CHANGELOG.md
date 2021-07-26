@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-No changes yet!
+- Upgrade cernml-coi-utils to 0.2.3. This adds an optional *description*
+  argument to LSA incorporations.
 
 ## v0.1.9
 
