@@ -7,7 +7,7 @@ import typing as t
 import accwidgets.graph as accgraph
 import numpy as np
 import pyqtgraph
-from cernml.coi.mpl_utils import iter_matplotlib_figures
+from cernml.coi import mpl_utils
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
@@ -32,8 +32,6 @@ ColorSpec = t.Union[
     t.Tuple[int, int, int, int],  # R, G, B, A; integers 0-255
     QtGui.QColor,
 ]
-FigureSpec = t.Union[Figure, t.Tuple[str, Figure]]
-FigureCollection = t.Union[t.Iterable[FigureSpec], t.Mapping[str, Figure]]
 
 
 def _add_items_to_plot(
@@ -159,7 +157,7 @@ class PlotManager:
         self._mdi.addSubWindow(subwindow).show()
         self._mpl_canvases.append(canvas)
 
-    def add_mpl_figures(self, figures: FigureCollection) -> None:
+    def add_mpl_figures(self, figures: mpl_utils.MatplotlibFigures) -> None:
         """Add several Matplotlib figures, creating one subwindow for each.
 
         Args:
@@ -169,10 +167,10 @@ class PlotManager:
                 title)`). The ordering is such that mapping from `str`
                 to figures can be passed in via `dict.items()`.
         """
-        for title, figure in iter_matplotlib_figures(figures):
+        for title, figure in mpl_utils.iter_matplotlib_figures(figures):
             self.add_mpl_figure(figure, title)
 
-    def replace_mpl_figures(self, figures: FigureCollection) -> None:
+    def replace_mpl_figures(self, figures: mpl_utils.MatplotlibFigures) -> None:
         """Clear and add figures, but keep existing ones.
 
         This is like `clear_figures()` followed by `add_figures()`, but
@@ -180,7 +178,7 @@ class PlotManager:
         this manager.
         """
         # Handle `fig` and `(title, fig)` properly.
-        titles_and_figures = tuple(iter_matplotlib_figures(figures))
+        titles_and_figures = tuple(mpl_utils.iter_matplotlib_figures(figures))
         # Remove stale figures be making a new list without them -- the
         # GC will take care of the rest.
         self._clear_mpl_figures_except(fig for _, fig in titles_and_figures)
