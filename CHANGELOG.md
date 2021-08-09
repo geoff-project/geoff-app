@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-No changes yet!
+### Visible changes
+
+- Add a legend to the built-in actors plot.
 
 ## v0.1.11
 

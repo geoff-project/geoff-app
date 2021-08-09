@@ -84,6 +84,10 @@ class PlotManager:
         self._actors_plot.setLabels(bottom="Step", left="Actor values (norm. u.)")
         self._actors_plot.showGrid(x=True, y=True)
         self._mdi.addSubWindow(self._actors_plot)
+        legend = self._actors_plot.addLegend()
+        legend.bg_brush.setColor(pyqtgraph.mkColor("#DDDD"))
+        legend.border_pen.setColor(pyqtgraph.mkColor("k"))
+        legend.text_pen.setColor(pyqtgraph.mkColor("k"))
 
         self._episode_length_plot = _make_plot_widget_with_margins()
         self._episode_length_plot.setTitle("Episode length")
@@ -322,12 +326,12 @@ class PlotManager:
         """
         axes = self._actors_plot.getPlotItem()
         if len(axes.items) != num:
-            self._actors_plot.clear()
+            axes.clear()
             for i in range(num):
                 curve = pyqtgraph.PlotDataItem(
-                    pen=(i, num), symbol="+", symbolPen=(i, num)
+                    pen=(i, num), symbol="+", symbolPen=(i, num), name=f"Actor {i+1}"
                 )
-                self._actors_plot.addItem(curve)
+                axes.addItem(curve)
         return list(axes.items)
 
     def _constraints_curves(
