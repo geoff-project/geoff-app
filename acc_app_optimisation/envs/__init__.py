@@ -9,7 +9,7 @@ from gym.envs.registration import EnvSpec
 
 if t.TYPE_CHECKING:
     # pylint: disable = ungrouped-imports, unused-import, import-error
-    from cernml.coi.unstable import cancellation
+    from cernml.coi import cancellation
     from pyjapc import PyJapc
 
 

@@ -4,10 +4,8 @@ from logging import getLogger
 import gym
 import numpy as np
 import scipy.optimize
-from cernml.coi import SingleOptimizable
-from cernml.coi.mpl_utils import iter_matplotlib_figures
-from cernml.coi.unstable import cancellation
-from cernml.coi_funcs import FunctionOptimizable
+from cernml.coi import FunctionOptimizable, SingleOptimizable, cancellation
+from cernml.mpl_utils import iter_matplotlib_figures
 from PyQt5 import QtCore
 
 from ...envs import Metadata

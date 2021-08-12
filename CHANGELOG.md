@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Build changes
+
+- Upgrade cernml-coi requirement to 0.8.2. This is a breaking change w.r.t to
+  the previous 0.7.x line.
+
 ### Visible changes
 
 - Add a legend to the built-in actors plot.

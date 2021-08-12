@@ -2,9 +2,7 @@ import typing as t
 from logging import getLogger
 
 import numpy as np
-from cernml.coi import SingleOptimizable
-from cernml.coi.unstable import cancellation
-from cernml.coi_funcs import FunctionOptimizable
+from cernml.coi import FunctionOptimizable, SingleOptimizable, cancellation
 
 from ...envs import make_env_by_name
 from ..base import CannotBuildJob, JobBuilder

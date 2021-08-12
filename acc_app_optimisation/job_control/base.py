@@ -5,7 +5,7 @@ from PyQt5 import QtCore
 
 if t.TYPE_CHECKING:
     # pylint: disable = unused-import
-    from cernml.coi.unstable import cancellation
+    from cernml.coi import cancellation
 
 
 class CannotBuildJob(Exception):

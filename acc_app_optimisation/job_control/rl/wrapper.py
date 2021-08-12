@@ -2,8 +2,8 @@ import typing as t
 
 import gym
 import numpy as np
-from cernml.coi.mpl_utils import iter_matplotlib_figures
-from cernml.coi.unstable import cancellation
+from cernml.coi import cancellation
+from cernml.mpl_utils import iter_matplotlib_figures
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 

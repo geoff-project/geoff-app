@@ -2,7 +2,7 @@ import typing as t
 from logging import getLogger
 
 import gym
-from cernml.coi.unstable import cancellation
+from cernml.coi import cancellation
 from gym.envs.registration import EnvSpec
 
 from ...envs import make_env_by_name

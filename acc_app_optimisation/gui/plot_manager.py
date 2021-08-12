@@ -7,7 +7,7 @@ import typing as t
 import accwidgets.graph as accgraph
 import numpy as np
 import pyqtgraph
-from cernml.coi import mpl_utils
+from cernml import mpl_utils
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
