@@ -12,6 +12,7 @@ class BenignCancelledError(cancellation.CancelledError):
 
 
 class Signals(QObject):
+    new_run_started = pyqtSignal()
     objective_updated = pyqtSignal(np.ndarray, np.ndarray)
     actors_updated = pyqtSignal(np.ndarray, np.ndarray)
     reward_lists_updated = pyqtSignal(list)

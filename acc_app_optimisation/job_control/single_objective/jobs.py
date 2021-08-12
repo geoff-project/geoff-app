@@ -1,4 +1,5 @@
 import typing as t
+from dataclasses import dataclass
 from logging import getLogger
 
 import gym
@@ -20,7 +21,27 @@ class BenignCancelledError(cancellation.CancelledError):
     """Cancellation error that we raise, not the :class:`SingleOptimizable`."""
 
 
+@dataclass(frozen=True)
+class PreOptimizationMetadata:
+    """Message object that provides information just before optimization.
+
+    Attributes:
+        objective_name: The physical meaning of the objective function,
+            e.g. a device name. If the problem does not provide one,
+            this is the empty string.
+        param_names: The physical meaning of each parameter, e.g. a
+            device name. If there is none, this is the empty list.
+        constraint_names: The physical meaning of each constraint, e.g.
+            a device name. If there is none, this is the empty list.
+    """
+
+    objective_name: str
+    param_names: t.Tuple[str, ...]
+    constraint_names: t.Tuple[str, ...]
+
+
 class Signals(QtCore.QObject):
+    new_optimisation_started = QtCore.pyqtSignal(PreOptimizationMetadata)
     actors_updated = QtCore.pyqtSignal(np.ndarray, np.ndarray)
     constraints_updated = QtCore.pyqtSignal(np.ndarray, BoundedArray)
     objective_updated = QtCore.pyqtSignal(np.ndarray, np.ndarray)
@@ -182,6 +203,13 @@ class SingleOptimizableJob(OptJob):
         return self.problem.compute_single_objective(normalized_action)
 
     def run_optimization(self) -> None:
+        self._signals.new_optimisation_started.emit(
+            PreOptimizationMetadata(
+                objective_name=str(self.problem.objective_name),
+                param_names=tuple(self.problem.param_names),
+                constraint_names=tuple(self.problem.constraint_names),
+            )
+        )
         optimum = self._solve(self._env_callback, self.x_0.copy())
         self._env_callback(optimum)
 
@@ -226,6 +254,17 @@ class FunctionOptimizableJob(OptJob):
         )
 
     def run_optimization(self) -> None:
+        # TODO: Right now, we create one plot for all optimizations.
+        # This is fundamentally incompatible with our promise to allow
+        # different numers of parameters for each skeleton point. We
+        # will have to change this eventually.
+        self._signals.new_optimisation_started.emit(
+            PreOptimizationMetadata(
+                objective_name=str(self.problem.get_objective_function_name()),
+                param_names=tuple(self.problem.get_param_function_names()),
+                constraint_names=getattr(self.problem, "constraint_names", ()),
+            )
+        )
         for point, x_0 in zip(self.skeleton_points, self.all_x_0):
             if self._token_source.token.cancellation_requested:
                 raise BenignCancelledError()

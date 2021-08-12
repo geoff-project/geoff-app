@@ -119,6 +119,7 @@ class ExecJob(Job):
     def run(self) -> None:
         # pylint: disable = bare-except
         self._finished = False
+        self._signals.new_run_started.emit()
         try:
             for _ in range(self._num_episodes):
                 obs = self._env.reset()

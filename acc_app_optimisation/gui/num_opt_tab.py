@@ -41,6 +41,13 @@ class NumOptTab(QtWidgets.QWidget):
         self._current_opt_job: t.Optional[OptJob] = None
         self._plot_manager = plot_manager
         # Bind the job factories signals to the outside world.
+        self._opt_builder.signals.new_optimisation_started.connect(
+            lambda metadata: self._plot_manager.reset_default_plots(
+                objective_name=metadata.objective_name,
+                actor_names=metadata.param_names,
+                constraint_names=metadata.constraint_names,
+            )
+        )
         self._opt_builder.signals.objective_updated.connect(
             self._plot_manager.set_objective_curve_data
         )

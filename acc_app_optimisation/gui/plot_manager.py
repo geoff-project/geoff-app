@@ -50,6 +50,14 @@ def _make_plot_widget_with_margins() -> accgraph.StaticPlotWidget:
     return widget
 
 
+def _add_well_colored_legend(plot: accgraph.StaticPlotWidget) -> None:
+    """Add a legend to the given plot with better colors."""
+    legend = plot.addLegend()
+    legend.bg_brush.setColor(pyqtgraph.mkColor("#DDDD"))
+    legend.border_pen.setColor(pyqtgraph.mkColor("k"))
+    legend.text_pen.setColor(pyqtgraph.mkColor("k"))
+
+
 class PlotManager:
     """Manager to put plots into an MDI area and remove them from there.
 
@@ -65,11 +73,14 @@ class PlotManager:
         self._objective_plot.setTitle("Objective function")
         self._objective_plot.setLabels(bottom="Step", left="Cost (norm. u.)")
         self._objective_plot.showGrid(x=True, y=True)
+        self._constraint_names: t.Tuple[str, ...] = ()
         self._constraints_plot = _make_plot_widget_with_margins()
         self._constraints_plot.setTitle("Constraints")
         self._constraints_plot.setLabels(bottom="Step", left="Constraint (a. u.)")
         self._constraints_plot.showGrid(x=True, y=True)
         self._constraints_plot.hide()
+        _add_well_colored_legend(self._constraints_plot)
+
         reward_episode_length_widget = QtWidgets.QWidget()
         reward_episode_length_widget.setWindowTitle("Objective and Constraints")
         layout = QtWidgets.QVBoxLayout(reward_episode_length_widget)
@@ -79,15 +90,13 @@ class PlotManager:
         layout.addWidget(self._constraints_plot, stretch=1)
         self._mdi.addSubWindow(reward_episode_length_widget)
 
+        self._actor_names: t.Tuple[str, ...] = ()
         self._actors_plot = _make_plot_widget_with_margins()
         self._actors_plot.setWindowTitle("Actors")
         self._actors_plot.setLabels(bottom="Step", left="Actor values (norm. u.)")
         self._actors_plot.showGrid(x=True, y=True)
         self._mdi.addSubWindow(self._actors_plot)
-        legend = self._actors_plot.addLegend()
-        legend.bg_brush.setColor(pyqtgraph.mkColor("#DDDD"))
-        legend.border_pen.setColor(pyqtgraph.mkColor("k"))
-        legend.text_pen.setColor(pyqtgraph.mkColor("k"))
+        _add_well_colored_legend(self._actors_plot)
 
         self._episode_length_plot = _make_plot_widget_with_margins()
         self._episode_length_plot.setTitle("Episode length")
@@ -308,6 +317,25 @@ class PlotManager:
         reward_curve.setData(xlist, rlist)
         episode_length_curve.setData(xlist, llist)
 
+    def reset_default_plots(
+        self,
+        *,
+        objective_name: str = "",
+        actor_names: t.Tuple[str, ...] = (),
+        constraint_names: t.Tuple[str, ...] = (),
+    ) -> None:
+        self._objective_plot.clear()
+        self._actors_plot.clear()
+        self._constraints_plot.clear()
+        self._reward_plot.clear()
+        self._episode_length_plot.clear()
+        self._objective_plot.setLabel(
+            axis="left",
+            text=objective_name or "Objective function",
+        )
+        self._actor_names = actor_names
+        self._constraint_names = constraint_names
+
     def _objective_curve(self) -> pyqtgraph.PlotDataItem:
         """The single curve inside `self._objective_plot.`"""
         curves = self._objective_plot.getPlotItem().items
@@ -327,9 +355,11 @@ class PlotManager:
         axes = self._actors_plot.getPlotItem()
         if len(axes.items) != num:
             axes.clear()
-            for i in range(num):
+            names = self._actor_names or tuple(f"Actor {i}" for i in range(1, 1 + num))
+            assert len(names) == num, f"{len(names)} == {num}"
+            for i, name in enumerate(names):
                 curve = pyqtgraph.PlotDataItem(
-                    pen=(i, num), symbol="+", symbolPen=(i, num), name=f"Actor {i+1}"
+                    pen=(i, num), symbol="+", symbolPen=(i, num), name=name
                 )
                 axes.addItem(curve)
         return list(axes.items)
@@ -353,11 +383,15 @@ class PlotManager:
                 result.append(Bounded(*chunk))
         else:
             self._constraints_plot.clear()
-            for color, layer_name in _iter_colored_layers(num):
+            names = self._constraint_names or tuple(
+                f"Constraint {i}" for i in range(1, 1 + num)
+            )
+            assert len(names) == num, f"{len(names)} == {num}"
+            for name, (color, layer_name) in zip(names, _iter_colored_layers(num)):
                 if layer_name:
                     self._constraints_plot.add_layer(layer_name, pen=color)
                 curves = _make_curve_with_bounds(
-                    color=color, layer=layer_name, symbol="+"
+                    color=color, name=name, layer=layer_name, symbol="+"
                 )
                 result.append(curves)
                 _add_items_to_plot([curves.values, curves.lower, curves.upper], axes)
@@ -393,6 +427,7 @@ class PlotManager:
 
 def _make_curve_with_bounds(
     color: ColorSpec,
+    name: str,
     layer: t.Optional[str],
     symbol: t.Optional[str] = None,
 ) -> Bounded[pyqtgraph.PlotDataItem]:
@@ -404,9 +439,11 @@ def _make_curve_with_bounds(
     parsed_color: QtGui.QColor = pyqtgraph.mkColor(color)
     solid_pen = QtGui.QPen(parsed_color, 0.0, Qt.SolidLine)
     dashed_pen = QtGui.QPen(parsed_color, 0.0, Qt.DashLine)
+    # Only add `name` to the values item. We don't want the upper nor
+    # the lower bounds to appear in the plot's legend.
     curves = Bounded(
         values=pyqtgraph.PlotDataItem(
-            pen=solid_pen, layer=layer, symbol=symbol, symbolPen=solid_pen
+            pen=solid_pen, layer=layer, symbol=symbol, symbolPen=solid_pen, name=name
         ),
         lower=pyqtgraph.PlotDataItem(pen=dashed_pen, layer=layer),
         upper=pyqtgraph.PlotDataItem(pen=dashed_pen, layer=layer),

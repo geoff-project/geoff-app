@@ -111,6 +111,7 @@ class TrainJob(Job):
     def run(self) -> None:
         # pylint: disable = bare-except
         self._finished = False
+        self._signals.new_run_started.emit()
         try:
             self._agent.learn(self._total_timesteps)
         except cancellation.CancelledError as exc:
