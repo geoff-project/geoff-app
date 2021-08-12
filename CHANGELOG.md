@@ -6,6 +6,10 @@
 
 - Upgrade cernml-coi requirement to 0.8.2. This is a breaking change w.r.t to
   the previous 0.7.x line.
+- Upgrade cern-awake-env requirement to 0.16.0.
+- Upgrade cern-leir-transfer-line-env requirement to 0.4.0.
+- Upgrade cern-sps-tune-env requirement to 0.4.0.
+- Upgrade cern-sps-zs-alignment-env requirement to 0.4.0.
 
 ### Visible changes
 
