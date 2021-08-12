@@ -2,7 +2,6 @@
 """Functionality to search and load environments."""
 
 import typing as t
-from dataclasses import dataclass
 
 from cernml import coi
 from gym.envs.registration import EnvSpec
