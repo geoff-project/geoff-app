@@ -49,6 +49,9 @@ def optimizable() -> cernml.coi.SingleOptimizable:
     result.optimization_space = gym.spaces.Box(-1.0, 1.0, shape=(3,))
     result.get_initial_params.return_value = result.optimization_space.sample()
     result.return_value = result
+    result.objective_name = ""
+    result.param_names = []
+    result.constraint_names = []
     result.spec = Mock(
         id=f"MockEnv-{id(result)}-v0",
         entry_point=result,
