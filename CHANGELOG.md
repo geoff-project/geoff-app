@@ -2,9 +2,13 @@
 
 ## Unreleased
 
+No changes yet!
+
+## v0.2.0
+
 ### Build changes
 
-- Upgrade cernml-coi requirement to 0.8.2. This is a breaking change w.r.t to
+- Upgrade cernml-coi requirement to 0.8.2. This is a breaking change w.r.t. to
   the previous 0.7.x line.
 - Upgrade cern-awake-env requirement to 0.16.0.
 - Upgrade cern-leir-transfer-line-env requirement to 0.4.0.
