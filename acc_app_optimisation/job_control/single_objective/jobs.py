@@ -27,12 +27,11 @@ class PreOptimizationMetadata:
 
     Attributes:
         objective_name: The physical meaning of the objective function,
-            e.g. a device name. If the problem does not provide one,
-            this is the empty string.
+            e.g. a device name.
         param_names: The physical meaning of each parameter, e.g. a
-            device name. If there is none, this is the empty list.
+            device name.
         constraint_names: The physical meaning of each constraint, e.g.
-            a device name. If there is none, this is the empty list.
+            a device name.
     """
 
     objective_name: str
@@ -206,12 +205,34 @@ class SingleOptimizableJob(OptJob):
         self._signals.new_optimisation_started.emit(
             PreOptimizationMetadata(
                 objective_name=str(self.problem.objective_name),
-                param_names=tuple(self.problem.param_names),
-                constraint_names=tuple(self.problem.constraint_names),
+                param_names=self.get_param_names(),
+                constraint_names=self.get_constraint_names(),
             )
         )
         optimum = self._solve(self._env_callback, self.x_0.copy())
         self._env_callback(optimum)
+
+    def get_param_names(self) -> t.Tuple[str, ...]:
+        """Read the problem's parameter names or supply defaults.
+
+        Whereas ``problem.param_names`` may be an empty sequence, the
+        tuple returned by this function will always have as many
+        elements as the first result of` `get_initial_params()``.
+        """
+        indices = range(1, 1 + len(self.x_0))
+        return tuple(self.problem.param_names) or tuple(f"Actor {i}" for i in indices)
+
+    def get_constraint_names(self) -> t.Tuple[str, ...]:
+        """Read the problem's constraint names or supply defaults.
+
+        Whereas ``problem.constraint_names`` may be an empty sequence,
+        the tuple returned by this function will always have as many
+        elements as ``problem.constraints``.
+        """
+        indices = range(1, 1 + len(self.problem.constraints))
+        return tuple(self.problem.constraint_names) or tuple(
+            f"Constraint {i}" for i in indices
+        )
 
 
 class FunctionOptimizableJob(OptJob):
@@ -261,8 +282,8 @@ class FunctionOptimizableJob(OptJob):
         self._signals.new_optimisation_started.emit(
             PreOptimizationMetadata(
                 objective_name=str(self.problem.get_objective_function_name()),
-                param_names=tuple(self.problem.get_param_function_names()),
-                constraint_names=getattr(self.problem, "constraint_names", ()),
+                param_names=self.get_param_names(),
+                constraint_names=self.get_constraint_names(),
             )
         )
         for point, x_0 in zip(self.skeleton_points, self.all_x_0):
@@ -276,6 +297,31 @@ class FunctionOptimizableJob(OptJob):
             )
             optimum = solve(self._env_callback, x_0.copy())
             self._env_callback(optimum)
+
+    def get_param_names(self) -> t.Tuple[str, ...]:
+        """Read the problem's parameter names or supply defaults.
+
+        Whereas ``problem.get_param_function_names()`` may return an
+        empty sequence, the tuple returned by this function will always
+        have as many elements as the first result of`
+        `get_initial_params()``.
+        """
+        indices = range(1, 1 + len(self.all_x_0[0]))
+        return tuple(self.problem.get_param_function_names()) or tuple(
+            f"Actor {i}" for i in indices
+        )
+
+    def get_constraint_names(self) -> t.Tuple[str, ...]:
+        """Read the problem's constraint names or supply defaults.
+
+        Whereas ``problem.constraint_names`` may be an empty sequence,
+        the tuple returned by this function will always have as many
+        elements as ``problem.constraints``.
+        """
+        indices = range(1, 1 + len(self.problem.constraints))
+        return tuple(getattr(self.problem, "constraint_names", ())) or tuple(
+            f"Constraint {i}" for i in indices
+        )
 
 
 def all_into_flat_array(values: t.Iterable[t.Union[float, np.ndarray]]) -> np.ndarray:

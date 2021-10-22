@@ -1,4 +1,5 @@
 import typing as t
+from dataclasses import dataclass
 
 import gym
 import numpy as np
@@ -11,8 +12,34 @@ class BenignCancelledError(cancellation.CancelledError):
     """Cancellation error that we raise, not the :class:`SingleOptimizable`."""
 
 
+@dataclass(frozen=True)
+class PreRunMetadata:
+    """Message object that provides information just before optimization.
+
+    Attributes:
+        objective_name: The physical meaning of the objective function,
+            e.g. a device name.
+        param_names: The physical meaning of each parameter, e.g. a
+            device name.
+    """
+
+    Self = t.TypeVar("Self", bound="PreRunMetadata")
+
+    objective_name: str
+    param_names: t.Tuple[str, ...]
+
+    @classmethod
+    def from_env(cls: t.Type[Self], env: gym.Env) -> Self:
+        """Create an instance based on the data in an environment."""
+        num_actions = env.action_space.shape[0]
+        return cls(
+            objective_name="Reward",
+            param_names=tuple(f"Action {i}" for i in range(1, 1 + num_actions)),
+        )
+
+
 class Signals(QObject):
-    new_run_started = pyqtSignal()
+    new_run_started = pyqtSignal(PreRunMetadata)
     objective_updated = pyqtSignal(np.ndarray, np.ndarray)
     actors_updated = pyqtSignal(np.ndarray, np.ndarray)
     reward_lists_updated = pyqtSignal(list)

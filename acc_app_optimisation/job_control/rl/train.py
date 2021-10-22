@@ -8,7 +8,7 @@ from gym.envs.registration import EnvSpec
 from ...envs import make_env_by_name
 from ..base import CannotBuildJob, Job, JobBuilder
 from . import agents
-from .wrapper import BenignCancelledError, RenderWrapper, Signals
+from .wrapper import BenignCancelledError, PreRunMetadata, RenderWrapper, Signals
 
 if t.TYPE_CHECKING:
     from io import BufferedIOBase  # pylint: disable=unused-import
@@ -111,7 +111,7 @@ class TrainJob(Job):
     def run(self) -> None:
         # pylint: disable = bare-except
         self._finished = False
-        self._signals.new_run_started.emit()
+        self._signals.new_run_started.emit(PreRunMetadata.from_env(self._env))
         try:
             self._agent.learn(self._total_timesteps)
         except cancellation.CancelledError as exc:

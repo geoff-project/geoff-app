@@ -43,7 +43,11 @@ class RlExecTab(QtWidgets.QWidget):
         self._plot_manager = plot_manager
         # Bind the job factories signals to the outside world.
         self._exec_builder.signals.new_run_started.connect(
-            self._plot_manager.reset_default_plots
+            lambda metadata: self._plot_manager.reset_default_plots(
+                objective_name=metadata.objective_name,
+                actor_names=metadata.param_names,
+                constraint_names=(),
+            )
         )
         self._exec_builder.signals.objective_updated.connect(
             self._plot_manager.set_objective_curve_data

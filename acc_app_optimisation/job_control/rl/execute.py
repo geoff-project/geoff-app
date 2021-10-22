@@ -9,7 +9,7 @@ from gym.envs.registration import EnvSpec
 from ...envs import make_env_by_name
 from ..base import CannotBuildJob, Job, JobBuilder
 from . import agents
-from .wrapper import BenignCancelledError, RenderWrapper, Signals
+from .wrapper import BenignCancelledError, PreRunMetadata, RenderWrapper, Signals
 
 if t.TYPE_CHECKING:
     from pyjapc import PyJapc  # pylint: disable=import-error, unused-import
@@ -119,7 +119,7 @@ class ExecJob(Job):
     def run(self) -> None:
         # pylint: disable = bare-except
         self._finished = False
-        self._signals.new_run_started.emit()
+        self._signals.new_run_started.emit(PreRunMetadata.from_env(self._env))
         try:
             for _ in range(self._num_episodes):
                 obs = self._env.reset()

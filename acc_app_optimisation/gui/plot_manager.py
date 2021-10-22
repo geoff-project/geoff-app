@@ -320,9 +320,9 @@ class PlotManager:
     def reset_default_plots(
         self,
         *,
-        objective_name: str = "",
-        actor_names: t.Tuple[str, ...] = (),
-        constraint_names: t.Tuple[str, ...] = (),
+        objective_name: str,
+        actor_names: t.Tuple[str, ...],
+        constraint_names: t.Tuple[str, ...],
     ) -> None:
         self._objective_plot.clear()
         self._actors_plot.clear()
@@ -355,7 +355,7 @@ class PlotManager:
         axes = self._actors_plot.getPlotItem()
         if len(axes.items) != num:
             axes.clear()
-            names = self._actor_names or tuple(f"Actor {i}" for i in range(1, 1 + num))
+            names = self._actor_names
             assert len(names) == num, f"{len(names)} == {num}"
             for i, name in enumerate(names):
                 curve = pyqtgraph.PlotDataItem(
@@ -383,9 +383,7 @@ class PlotManager:
                 result.append(Bounded(*chunk))
         else:
             self._constraints_plot.clear()
-            names = self._constraint_names or tuple(
-                f"Constraint {i}" for i in range(1, 1 + num)
-            )
+            names = self._constraint_names
             assert len(names) == num, f"{len(names)} == {num}"
             for name, (color, layer_name) in zip(names, _iter_colored_layers(num)):
                 if layer_name:
