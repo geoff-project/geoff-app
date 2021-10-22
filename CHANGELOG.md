@@ -6,6 +6,8 @@
 
 - Before resets of numerical optimization, the user is shown the reset point
   and asked for confirmation.
+- If an exception is raised during the import of foreign or built-in
+  environments, an error dialog is shown to the user.
 
 ## v0.2.1
 
