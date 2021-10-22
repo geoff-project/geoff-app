@@ -2,7 +2,6 @@ import contextlib
 import typing as t
 from logging import getLogger
 
-import numpy as np
 from cernml import coi, coi_funcs
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -27,6 +26,51 @@ class CreatingEnvDialog(QtWidgets.QDialog):
         layout.addWidget(
             QtWidgets.QLabel("Environment is being initialized, please wait ...")
         )
+
+
+class ConfirmationDialog(QtWidgets.QDialog):
+    """Qt dialog showing a job's reset point and asks for confirmation.
+
+    Args:
+        job: The job about to be reset.
+        parent: The parent widget to attach to.
+    """
+
+    def __init__(
+        self, job: OptJob, parent: t.Optional[QtWidgets.QWidget] = None
+    ) -> None:
+        super().__init__(parent)
+        self.setWindowTitle("Reset")
+        self.setModal(True)
+        layout = QtWidgets.QGridLayout(self)
+        icon = QtWidgets.QLabel()
+        icon.setPixmap(
+            QtWidgets.QMessageBox.standardIcon(QtWidgets.QMessageBox.Information)
+        )
+        layout.addWidget(icon, 0, 0, 1, 1, QtCore.Qt.AlignTop)
+        label = QtWidgets.QLabel(
+            "Do you want to reset the problem to the following point?"
+        )
+        layout.addWidget(label, 0, 1, 1, 1)
+        details = QtWidgets.QTextEdit()
+        details.setPlainText(job.format_reset_point())
+        details.setMinimumHeight(100)
+        details.setFocusPolicy(QtCore.Qt.NoFocus)
+        details.setReadOnly(True)
+        layout.addWidget(details, 1, 0, 1, 2)
+        buttons = QtWidgets.QDialogButtonBox(
+            t.cast(
+                QtWidgets.QDialogButtonBox.StandardButtons,
+                QtWidgets.QDialogButtonBox.Yes | QtWidgets.QDialogButtonBox.No,
+            )
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons, 2, 1, 1, 1)
+        # Set this default _after_ `addWidget()`, lest Qt ignores it.
+        no_button = buttons.button(QtWidgets.QDialogButtonBox.No)
+        no_button.setDefault(True)
+        no_button.setFocus()
 
 
 class NumOptTab(QtWidgets.QWidget):
@@ -239,12 +283,19 @@ class NumOptTab(QtWidgets.QWidget):
         if self._current_opt_job is None:
             LOG.error("cannot reset, no job has been run")
             return
+        # This assignment convinces MyPy that `job` is never None.
+        job = self._current_opt_job
+        dialog = ConfirmationDialog(job, parent=self)
+        dialog.accepted.connect(lambda: self._on_reset_confirmed(job))
+        dialog.show()
+
+    def _on_reset_confirmed(self, job: OptJob) -> None:
         LOG.debug("resetting ...")
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(False)
         self.reset_button.setEnabled(False)
 
-        def _perform_reset(job: OptJob) -> None:
+        def _perform_reset() -> None:
             try:
                 job.reset()
             except:  # pylint: disable=bare-except
@@ -256,7 +307,7 @@ class NumOptTab(QtWidgets.QWidget):
             self.reset_button.setEnabled(True)
 
         threadpool = QtCore.QThreadPool.globalInstance()
-        threadpool.start(ThreadPoolTask(_perform_reset, self._current_opt_job))
+        threadpool.start(ThreadPoolTask(_perform_reset))
 
     def _clear_job(self) -> None:
         self._current_opt_job = None

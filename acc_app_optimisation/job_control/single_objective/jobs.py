@@ -91,6 +91,10 @@ class OptJob(Job):
         """Evaluate the problem at x_0."""
         raise NotImplementedError()
 
+    def format_reset_point(self) -> str:
+        """Format the point to which reset() will go as a string."""
+        raise NotImplementedError()
+
     @QtCore.pyqtSlot()
     def run(self) -> None:
         """Implementation of `QRunnable.run()`."""
@@ -195,6 +199,9 @@ class SingleOptimizableJob(OptJob):
     def reset(self) -> None:
         self._env_callback(self.x_0)
 
+    def format_reset_point(self) -> str:
+        return "\n".join(map("{}:\t{}".format, self.get_param_names(), self.x_0))
+
     def get_optimization_space(self) -> gym.spaces.Box:
         return self.problem.optimization_space
 
@@ -263,6 +270,19 @@ class FunctionOptimizableJob(OptJob):
             self.problem.compute_function_objective(point, x_0)
             self._current_point = point
             self._env_callback(x_0)
+
+    def format_reset_point(self) -> str:
+        param_names = self.get_param_names()
+        hline = 40 * "-"
+
+        def _format_single_point(skeleton_point: float, x_0: np.ndarray) -> str:
+            lines = [hline, f"At t={skeleton_point}", hline]
+            lines.extend(map("{}:\t{}".format, param_names, x_0))
+            return "\n".join(lines)
+
+        return "\n\n".join(
+            map(_format_single_point, self.skeleton_points, self.all_x_0)
+        )
 
     def get_optimization_space(self) -> gym.spaces.Box:
         assert self._current_point is not None
