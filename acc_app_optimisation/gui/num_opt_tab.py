@@ -178,14 +178,15 @@ class NumOptTab(QtWidgets.QWidget):
             parent=self.window(),
         )
         if isinstance(problem.unwrapped, coi_funcs.FunctionOptimizable):
-            dialog.config_applied.connect(
-                lambda: self._set_skeleton_points(dialog.skeletonPoints())
-            )
-        dialog.open()
 
-    def _set_skeleton_points(self, skeleton_points: np.ndarray) -> None:
-        LOG.info("new skeleton points: %s", skeleton_points)
-        self._opt_builder.skeleton_points = skeleton_points
+            def _set_skeleton_points() -> None:
+                skeleton_points = dialog.skeletonPoints()
+                assert skeleton_points is not None
+                LOG.info("new skeleton points: %s", skeleton_points)
+                self._opt_builder.skeleton_points = skeleton_points
+
+            dialog.config_applied.connect(_set_skeleton_points)
+        dialog.open()
 
     def _on_algo_changed(self, name: str) -> None:
         factory_class = optimizers.ALL_OPTIMIZERS[name]
