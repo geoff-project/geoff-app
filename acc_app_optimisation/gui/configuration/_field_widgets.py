@@ -18,7 +18,7 @@ def make_field_widget(field: Config.Field, values: UnparsedDict) -> QtWidgets.QW
     """Given a field, pick the best widget to configure it."""
     # pylint: disable = too-many-return-statements
     setter = itemsetter(values, field.dest)
-    # Boolean fields always ignore range and choices.
+    # Handle type-based decisions before argument-based ones.
     if _tu.is_bool(field.value):
         checkbox = make_checkbox(bool(field.value))
         # `_state` is an integer with non-obvious semantics. Ignore it
@@ -27,11 +27,24 @@ def make_field_widget(field: Config.Field, values: UnparsedDict) -> QtWidgets.QW
             lambda _state: setter(_tu.str_boolsafe(checkbox.isChecked()))
         )
         return checkbox
-    # Path-like fields take precedence over range and choices.
     if isinstance(field.value, os.PathLike):
         selector = make_file_selector(field.value, field.choices)
         selector.fileChanged.connect(setter)
         return selector
+    return _make_scalar_field_widget(field, values)
+
+
+def _make_scalar_field_widget(
+    field: Config.Field,
+    values: UnparsedDict,
+) -> QtWidgets.QWidget:
+    """Given a field, pick the best widget to configure it.
+
+    This function contains the catch-all cases if type-based widget
+    selection does not work. It is only called by
+    :func:`make_field_widget()`.
+    """
+    setter = itemsetter(values, field.dest)
     if field.choices is not None:
         combobox = make_combobox(str(field.value), map(str, field.choices))
         combobox.currentTextChanged.connect(setter)
