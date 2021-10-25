@@ -1,5 +1,5 @@
-"""Provide the :class:`FileSelector` widget.
-"""
+"""Provide the :class:`FileSelector` widget."""
+
 import os
 import typing as t
 
