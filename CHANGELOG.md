@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes yet!
+
+## v0.2.2
+
 ### Visible changes
 
 - Before resets of numerical optimization, the user is shown the reset point
