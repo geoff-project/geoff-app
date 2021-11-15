@@ -9,6 +9,10 @@
 - If an exception is raised during the import of foreign or built-in
   environments, an error dialog is shown to the user.
 
+### Build changes
+
+- Add linac3-lebit-tuning 1.0.0.
+
 ## v0.2.1
 
 ### Build changes
