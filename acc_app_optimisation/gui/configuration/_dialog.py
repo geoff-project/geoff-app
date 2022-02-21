@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import gym
 import numpy as np
-from cernml import coi, coi_funcs
+from cernml import coi
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QTabWidget, QVBoxLayout, QWidget
 
@@ -112,7 +112,7 @@ class OptimizableDialog(_BaseDialog):
 
     def __init__(
         self,
-        target: t.Union[coi.SingleOptimizable, coi_funcs.FunctionOptimizable],
+        target: t.Union[coi.SingleOptimizable, coi.FunctionOptimizable],
         skeleton_points: t.Optional[np.ndarray] = None,
         parent: t.Optional[QWidget] = None,
     ) -> None:
@@ -126,7 +126,7 @@ class OptimizableDialog(_BaseDialog):
         if self._cfgform is not None:
             tab_widget.addTab(self._cfgform, "Configuration")
         self._skeleton_points: t.Optional[np.ndarray]
-        if isinstance(target.unwrapped, coi_funcs.FunctionOptimizable):
+        if isinstance(target.unwrapped, coi.FunctionOptimizable):
             if skeleton_points is not None:
                 self._skeleton_points = np.array(skeleton_points, dtype=float)
             else:

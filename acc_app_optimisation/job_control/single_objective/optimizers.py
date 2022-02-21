@@ -7,12 +7,11 @@ import numpy as np
 import pybobyqa
 import scipy.optimize
 import skopt.optimizer
-from cernml.coi import BadConfig, Config, Configurable, SingleOptimizable
-from cernml.coi_funcs import FunctionOptimizable
+from cernml import coi
 
 from .constraints import Constraint, NonlinearConstraint
 
-Optimizable = t.Union[SingleOptimizable, FunctionOptimizable]
+Optimizable = t.Union[coi.SingleOptimizable, coi.FunctionOptimizable]
 Objective = t.Callable[[np.ndarray], float]
 SolveFunc = t.Callable[[Objective, np.ndarray], np.ndarray]
 
@@ -34,7 +33,7 @@ class OptimizerFactory(abc.ABC):
         raise NotImplementedError()
 
 
-class Bobyqa(OptimizerFactory, Configurable):
+class Bobyqa(OptimizerFactory, coi.Configurable):
     def __init__(self) -> None:
         self.maxfun = 100
         self.rhobeg = 0.5
@@ -77,8 +76,8 @@ class Bobyqa(OptimizerFactory, Configurable):
 
         return solve
 
-    def get_config(self) -> Config:
-        config = Config()
+    def get_config(self) -> coi.Config:
+        config = coi.Config()
         config.add(
             "maxfun",
             self.maxfun,
@@ -124,7 +123,7 @@ class Bobyqa(OptimizerFactory, Configurable):
         self.objfun_has_noise = values.objfun_has_noise
 
 
-class Cobyla(OptimizerFactory, Configurable):
+class Cobyla(OptimizerFactory, coi.Configurable):
     """Adapter for the COBYLA algorithm."""
 
     def __init__(self) -> None:
@@ -157,8 +156,8 @@ class Cobyla(OptimizerFactory, Configurable):
 
         return solve
 
-    def get_config(self) -> Config:
-        config = Config()
+    def get_config(self) -> coi.Config:
+        config = coi.Config()
         config.add(
             "maxfun",
             self.maxfun,
@@ -185,7 +184,7 @@ class Cobyla(OptimizerFactory, Configurable):
         self.rhoend = values.rhoend
 
 
-class NelderMead(OptimizerFactory, Configurable):
+class NelderMead(OptimizerFactory, coi.Configurable):
     """Adapter for the Nelder–Mead algorithm."""
 
     DELTA_IF_ZERO: t.ClassVar[float] = 0.001
@@ -225,8 +224,8 @@ class NelderMead(OptimizerFactory, Configurable):
 
         return solve
 
-    def get_config(self) -> Config:
-        config = Config()
+    def get_config(self) -> coi.Config:
+        config = coi.Config()
         config.add(
             "maxfun",
             self.maxfun,
@@ -289,7 +288,7 @@ class NelderMead(OptimizerFactory, Configurable):
         return simplex
 
 
-class Powell(OptimizerFactory, Configurable):
+class Powell(OptimizerFactory, coi.Configurable):
     """Adapter for the Powell's conjugate-direction method."""
 
     def __init__(self) -> None:
@@ -323,8 +322,8 @@ class Powell(OptimizerFactory, Configurable):
 
         return solve
 
-    def get_config(self) -> Config:
-        config = Config()
+    def get_config(self) -> coi.Config:
+        config = coi.Config()
         config.add(
             "maxfun",
             self.maxfun,
@@ -351,7 +350,7 @@ class Powell(OptimizerFactory, Configurable):
         self.initial_step_size = values.initial_step_size
 
 
-class SkoptGpOptimize(OptimizerFactory, Configurable):
+class SkoptGpOptimize(OptimizerFactory, coi.Configurable):
     """Adapter for Bayesian optimization via scikit-optimize."""
 
     def __init__(self) -> None:
@@ -391,8 +390,8 @@ class SkoptGpOptimize(OptimizerFactory, Configurable):
 
         return solve
 
-    def get_config(self) -> Config:
-        config = Config()
+    def get_config(self) -> coi.Config:
+        config = coi.Config()
         config.add(
             "n_calls",
             self.n_calls,
@@ -446,7 +445,7 @@ class SkoptGpOptimize(OptimizerFactory, Configurable):
 
     def apply_config(self, values: SimpleNamespace) -> None:
         if values.n_initial_points > values.maxfun:
-            raise BadConfig("n_initial_points must be less than maxfun")
+            raise coi.BadConfig("n_initial_points must be less than maxfun")
         self.n_calls = values.n_calls
         self.n_initial_points = values.n_initial_points
         self.acq_func = values.acq_func

@@ -2,7 +2,7 @@ import contextlib
 import typing as t
 from logging import getLogger
 
-from cernml import coi, coi_funcs
+from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from .. import envs
@@ -187,7 +187,7 @@ class NumOptTab(QtWidgets.QWidget):
         self.env_combo.addItems(
             envs.iter_env_names(
                 machine=machine,
-                superclass=(coi.SingleOptimizable, coi_funcs.FunctionOptimizable),
+                superclass=(coi.SingleOptimizable, coi.FunctionOptimizable),
             )
         )
 
@@ -199,7 +199,7 @@ class NumOptTab(QtWidgets.QWidget):
             # TODO: This does not work well with wrappers.
             env_class = env_spec.entry_point
             is_configurable = issubclass(
-                env_class, (coi.Configurable, coi_funcs.FunctionOptimizable)
+                env_class, (coi.Configurable, coi.FunctionOptimizable)
             )
         else:
             is_configurable = False
@@ -212,7 +212,7 @@ class NumOptTab(QtWidgets.QWidget):
             # Initialization failed, logs already made.
             return
         if not isinstance(
-            problem.unwrapped, (coi.Configurable, coi_funcs.FunctionOptimizable)
+            problem.unwrapped, (coi.Configurable, coi.FunctionOptimizable)
         ):
             LOG.error("not configurable: %s", problem)
             return
@@ -221,7 +221,7 @@ class NumOptTab(QtWidgets.QWidget):
             skeleton_points=self._opt_builder.skeleton_points,
             parent=self.window(),
         )
-        if isinstance(problem.unwrapped, coi_funcs.FunctionOptimizable):
+        if isinstance(problem.unwrapped, coi.FunctionOptimizable):
 
             def _set_skeleton_points() -> None:
                 skeleton_points = dialog.skeletonPoints()

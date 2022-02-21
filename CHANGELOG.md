@@ -11,6 +11,10 @@
 ### Build changes
 
 - Add dependency on scikit-optimize v0.9.0 for new Bayesian optimization.
+- Drop dependency on cernml-coi-funcs v0.2.4. This package has been deprecated
+  since [v0.0.1.8](#v018). The `FunctionOptimizable` interface has been
+  integrated into cernml-coi; the LSA utilities have been integrated into
+  cernml-coi-utils.
 
 ## v0.2.2
 
