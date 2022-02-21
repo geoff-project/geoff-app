@@ -70,7 +70,9 @@ def test_runner(
     optimizer_factory_class: t.Type[OptimizerFactory],
 ) -> None:
     # Given:
-    mocker.patch("numpy.clip", side_effect=lambda x, lower, upper: x)
+    # TODO: It is no longer clear what the below line does. Uncomment it
+    # in case problems appear, otherwise remove it in v0.4.0.
+    # mocker.patch("numpy.clip", side_effect=lambda x, lower, upper: np.asanyarray(x))
     coi_make = mocker.patch("cernml.coi.make", return_value=optimizable)
     coi_spec = mocker.patch(
         "cernml.coi.spec", return_value=optimizable.spec  # type:ignore
