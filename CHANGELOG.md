@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes yet!
+
+## v0.3.0
+
 ### Visible changes
 
 - Add Bayesian optimization via
