@@ -6,7 +6,8 @@ from types import SimpleNamespace
 import numpy as np
 import pybobyqa
 import scipy.optimize
-from cernml.coi import Config, Configurable, SingleOptimizable
+import skopt.optimizer
+from cernml.coi import BadConfig, Config, Configurable, SingleOptimizable
 from cernml.coi_funcs import FunctionOptimizable
 
 from .constraints import Constraint, NonlinearConstraint
@@ -350,9 +351,115 @@ class Powell(OptimizerFactory, Configurable):
         self.initial_step_size = values.initial_step_size
 
 
+class SkoptGpOptimize(OptimizerFactory, Configurable):
+    """Adapter for Bayesian optimization via scikit-optimize."""
+
+    def __init__(self) -> None:
+        self.check_convergence = False
+        self.min_objective = 0.0
+        self.n_calls = 100
+        self.n_initial_points = 10
+        self.acq_func = "LCB"
+        self.kappa_param = 1.96
+        self.xi_param = 0.01
+
+    def make_solve_func(
+        self,
+        bounds: scipy.optimize.Bounds,
+        constraints: t.Sequence[Constraint],
+    ) -> SolveFunc:
+        callback = (
+            (lambda res: res.fun < self.min_objective)
+            if self.check_convergence
+            else None
+        )
+
+        def solve(objective: Objective, x_0: np.ndarray) -> np.ndarray:
+            result = skopt.optimizer.gp_minimize(
+                objective,
+                x0=list(x_0),
+                dimensions=zip(bounds.lb, bounds.ub),
+                n_calls=self.n_calls,
+                n_initial_points=self.n_initial_points,
+                acq_func=self.acq_func,
+                kappa=self.kappa_param,
+                xi=self.xi_param,
+                verbose=True,
+                callback=callback,
+            )
+            return result.x
+
+        return solve
+
+    def get_config(self) -> Config:
+        config = Config()
+        config.add(
+            "n_calls",
+            self.n_calls,
+            range=(0, np.inf),
+            help="Maximum number of function evaluations",
+        )
+        config.add(
+            "n_initial_points",
+            self.n_initial_points,
+            range=(0, np.inf),
+            help="Number of function evaluations before approximating "
+            "with base estimator",
+        )
+        config.add(
+            "acq_func",
+            self.acq_func,
+            choices=["LCB", "EI", "PI", "EIps", "PIps"],
+            help="Function to minimize over the Gaussian prior",
+        )
+        config.add(
+            "kappa_param",
+            self.kappa_param,
+            range=(0, np.inf),
+            help='Only used with "LCB". Controls how much of the '
+            "variance in the predicted values should be taken into "
+            "account. If set to be very high, then we are favouring "
+            "exploration over exploitation and vice versa.",
+        )
+        config.add(
+            "xi_param",
+            self.xi_param,
+            range=(0, np.inf),
+            help='Only used with "EI", "PI" and variants. Controls '
+            "how much improvement one wants over the previous best "
+            "values.",
+        )
+        config.add(
+            "check_convergence",
+            self.check_convergence,
+            help="Enable convergence check at every iteration. "
+            "Without this, the algorithm always evaluates the "
+            "function the maximum number of times.",
+        )
+        config.add(
+            "min_objective",
+            self.min_objective,
+            help="If convergence check is enabled, end optimization "
+            "below this value of the objective function.",
+        )
+        return config
+
+    def apply_config(self, values: SimpleNamespace) -> None:
+        if values.n_initial_points > values.maxfun:
+            raise BadConfig("n_initial_points must be less than maxfun")
+        self.n_calls = values.n_calls
+        self.n_initial_points = values.n_initial_points
+        self.acq_func = values.acq_func
+        self.kappa_param = values.kappa_param
+        self.xi_param = values.xi_param
+        self.check_convergence = values.check_convergence
+        self.min_objective = values.min_objective
+
+
 ALL_OPTIMIZERS: t.Mapping[str, t.Type[OptimizerFactory]] = {
     "BOBYQA": Bobyqa,
     "COBYLA": Cobyla,
     "Nelder–Mead": NelderMead,
     "Powell": Powell,
+    "BayesOpt": SkoptGpOptimize,
 }

@@ -2,7 +2,15 @@
 
 ## Unreleased
 
-No changes yet!
+### Visible changes
+
+- Add Bayesian optimization via
+  [scikit-optimize](https://scikit-optimize.github.io/) as a numerical
+  optimization scheme.
+
+### Build changes
+
+- Add dependency on scikit-optimize v0.9.0 for new Bayesian optimization.
 
 ## v0.2.2
 
