@@ -4,6 +4,12 @@
 
 No changes yet!
 
+## v0.3.1
+
+### Bug fixes
+
+- Fix broken configuration of Bayesian optimization.
+
 ## v0.3.0
 
 ### Visible changes

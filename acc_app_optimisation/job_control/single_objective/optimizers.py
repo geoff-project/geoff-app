@@ -444,7 +444,7 @@ class SkoptGpOptimize(OptimizerFactory, coi.Configurable):
         return config
 
     def apply_config(self, values: SimpleNamespace) -> None:
-        if values.n_initial_points > values.maxfun:
+        if values.n_initial_points > values.n_calls:
             raise coi.BadConfig("n_initial_points must be less than maxfun")
         self.n_calls = values.n_calls
         self.n_initial_points = values.n_initial_points
