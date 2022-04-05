@@ -197,7 +197,16 @@ class SingleOptimizableJob(OptJob):
         )
 
     def reset(self) -> None:
-        self._env_callback(self.x_0)
+        try:
+            self._env_callback(self.x_0)
+        except cancellation.CancelledError:
+            LOG.info("cancelled optimization")
+        except:  # pylint: disable=bare-except
+            LOG.error("could not reset", exc_info=True)
+        else:
+            LOG.info("problem successfully reset")
+        if self._token_source.can_reset_cancellation:
+            self._token_source.reset_cancellation()
 
     def format_reset_point(self) -> str:
         return "\n".join(map("{}:\t{}".format, self.get_param_names(), self.x_0))
@@ -265,11 +274,24 @@ class FunctionOptimizableJob(OptJob):
         self._factory = optimizer_factory
 
     def reset(self) -> None:
-        # TODO: Only reset up to and including the current point.
-        for point, x_0 in zip(self.skeleton_points, self.all_x_0):
-            self.problem.compute_function_objective(point, x_0)
-            self._current_point = point
-            self._env_callback(x_0)
+        try:
+            # TODO: Only reset up to and including the current point.
+            token = self._token_source.token
+            for point, x_0 in zip(self.skeleton_points, self.all_x_0):
+                if token.cancellation_requested:
+                    token.complete_cancellation()
+                    raise cancellation.CancelledError()
+                self.problem.compute_function_objective(point, x_0)
+                self._current_point = point
+                self._env_callback(x_0)
+        except cancellation.CancelledError:
+            LOG.info("cancelled optimization")
+        except:  # pylint: disable=bare-except
+            LOG.error("could not reset", exc_info=True)
+        else:
+            LOG.info("problem successfully reset")
+        if self._token_source.can_reset_cancellation:
+            self._token_source.reset_cancellation()
 
     def format_reset_point(self) -> str:
         param_names = self.get_param_names()

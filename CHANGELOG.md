@@ -2,7 +2,14 @@
 
 ## Unreleased
 
-No changes yet!
+### Visible changes
+
+- Resets of numerical optimization can now be cancelled. For most problems,
+  this only does anything if the optimization problem is
+  [cancellable](https://cernml-coi.docs.cern.ch/guide/cancellation.html#cancellation).
+  For [function
+  optimization](https://cernml-coi.docs.cern.ch/guide/funcopt.html), this may
+  interrupt the reset between manipulated time points.
 
 ## v0.3.1
 

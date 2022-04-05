@@ -3,6 +3,7 @@ import typing as t
 from logging import getLogger
 
 from cernml import coi
+from cernml.coi.cancellation import CancelledError
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from .. import envs
@@ -292,16 +293,12 @@ class NumOptTab(QtWidgets.QWidget):
     def _on_reset_confirmed(self, job: OptJob) -> None:
         LOG.debug("resetting ...")
         self.start_button.setEnabled(False)
-        self.stop_button.setEnabled(False)
+        self.stop_button.setEnabled(True)
         self.reset_button.setEnabled(False)
 
         def _perform_reset() -> None:
-            try:
-                job.reset()
-            except:  # pylint: disable=bare-except
-                LOG.error("could not reset", exc_info=True)
-            else:
-                LOG.info("problem successfully reset")
+            # Reset catches and handles exceptions for us.
+            job.reset()
             self.start_button.setEnabled(True)
             self.stop_button.setEnabled(False)
             self.reset_button.setEnabled(True)
