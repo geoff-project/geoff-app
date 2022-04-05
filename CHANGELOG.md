@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes yet!
+
+## v0.3.2
+
 ### Visible changes
 
 - Resets of numerical optimization can now be cancelled. For most problems,
