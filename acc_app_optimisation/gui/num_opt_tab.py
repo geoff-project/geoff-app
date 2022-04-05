@@ -75,6 +75,9 @@ class ConfirmationDialog(QtWidgets.QDialog):
 
 
 class NumOptTab(QtWidgets.QWidget):
+
+    errorOccurred = QtCore.pyqtSignal()
+
     def __init__(
         self, parent: t.Optional[QtWidgets.QWidget] = None, *, plot_manager: PlotManager
     ) -> None:
@@ -174,6 +177,7 @@ class NumOptTab(QtWidgets.QWidget):
             return self._opt_builder.make_problem()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
+            self.errorOccurred.emit()
             return None
         finally:
             please_wait_dialog.accept()
@@ -258,6 +262,7 @@ class NumOptTab(QtWidgets.QWidget):
             self._current_opt_job = self._opt_builder.build_job()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
+            self.errorOccurred.emit()
             return
         assert self._current_opt_job is not None
         self.start_button.setEnabled(False)
@@ -275,10 +280,12 @@ class NumOptTab(QtWidgets.QWidget):
         self.stop_button.setEnabled(False)
         self._current_opt_job.cancel()
 
-    def _on_opt_finished(self) -> None:
+    def _on_opt_finished(self, success: bool) -> None:
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
         self.reset_button.setEnabled(True)
+        if not success:
+            self.errorOccurred.emit()
 
     def _on_reset_clicked(self) -> None:
         if self._current_opt_job is None:
@@ -295,16 +302,10 @@ class NumOptTab(QtWidgets.QWidget):
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
         self.reset_button.setEnabled(False)
-
-        def _perform_reset() -> None:
-            # Reset catches and handles exceptions for us.
-            job.reset()
-            self.start_button.setEnabled(True)
-            self.stop_button.setEnabled(False)
-            self.reset_button.setEnabled(True)
-
         threadpool = QtCore.QThreadPool.globalInstance()
-        threadpool.start(ThreadPoolTask(_perform_reset))
+        # job.reset() does the logging for us and eventually emits
+        # another `optimisation_finished` signal.
+        threadpool.start(ThreadPoolTask(job.reset))
 
     def _clear_job(self) -> None:
         self._current_opt_job = None

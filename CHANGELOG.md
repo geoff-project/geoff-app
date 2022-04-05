@@ -10,6 +10,7 @@
   For [function
   optimization](https://cernml-coi.docs.cern.ch/guide/funcopt.html), this may
   interrupt the reset between manipulated time points.
+- If a plugin raises an exception, the log console expands automatically now.
 
 ## v0.3.1
 

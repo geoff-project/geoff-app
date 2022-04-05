@@ -120,6 +120,7 @@ class ExecJob(Job):
         # pylint: disable = bare-except
         self._finished = False
         self._signals.new_run_started.emit(PreRunMetadata.from_env(self._env))
+        error_occurred = False
         try:
             for _ in range(self._num_episodes):
                 obs = self._env.reset()
@@ -134,9 +135,10 @@ class ExecJob(Job):
             LOG.info("cancelled execution")
         except:
             LOG.error("aborted execution", exc_info=True)
+            error_occurred = True
         else:
             LOG.info("finished training")
         if self._token_source.can_reset_cancellation:
             self._token_source.reset_cancellation()
-        self._signals.training_finished.emit(True)
+        self._signals.training_finished.emit(not error_occurred)
         self._finished = True

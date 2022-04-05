@@ -112,6 +112,7 @@ class TrainJob(Job):
         # pylint: disable = bare-except
         self._finished = False
         self._signals.new_run_started.emit(PreRunMetadata.from_env(self._env))
+        error_occurred = False
         try:
             self._agent.learn(self._total_timesteps)
         except cancellation.CancelledError as exc:
@@ -120,11 +121,12 @@ class TrainJob(Job):
             LOG.info("cancelled training")
         except:
             LOG.error("aborted training", exc_info=True)
+            error_occurred = True
         else:
             LOG.info("finished training")
         if self._token_source.can_reset_cancellation:
             self._token_source.reset_cancellation()
-        self._signals.training_finished.emit(True)
+        self._signals.training_finished.emit(not error_occurred)
         self._finished = True
 
     def save(self, path: t.Union[str, "Path", "BufferedIOBase"]) -> None:

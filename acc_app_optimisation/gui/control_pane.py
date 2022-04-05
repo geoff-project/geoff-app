@@ -43,6 +43,9 @@ def translate_machine(machine: coi.Machine) -> LsaSelectorAccelerator:
 
 
 class ControlPane(QtWidgets.QWidget):
+
+    errorOccurred = QtCore.pyqtSignal()
+
     def __init__(
         self,
         parent: t.Optional[QtWidgets.QWidget] = None,
@@ -79,8 +82,11 @@ class ControlPane(QtWidgets.QWidget):
         self.lsa_selector.showCategoryFilter = True
         self.tabs = QtWidgets.QTabWidget()
         self.num_opt_tab = NumOptTab(plot_manager=plot_manager)
+        self.num_opt_tab.errorOccurred.connect(self.errorOccurred)
         self.rl_train_tab = RlTrainTab(plot_manager=plot_manager)
+        self.rl_train_tab.errorOccurred.connect(self.errorOccurred)
         self.rl_exec_tab = RlExecTab(plot_manager=plot_manager)
+        self.rl_exec_tab.errorOccurred.connect(self.errorOccurred)
         self.tabs.addTab(self.num_opt_tab, "Num. Optimization")
         self.tabs.addTab(self.rl_train_tab, "Train RL Agent")
         self.tabs.addTab(self.rl_exec_tab, "Run RL Agent")

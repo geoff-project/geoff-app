@@ -31,6 +31,9 @@ class CreatingEnvDialog(QtWidgets.QDialog):
 
 
 class RlExecTab(QtWidgets.QWidget):
+
+    errorOccurred = QtCore.pyqtSignal()
+
     def __init__(
         self, parent: t.Optional[QtWidgets.QWidget] = None, *, plot_manager: PlotManager
     ) -> None:
@@ -58,7 +61,7 @@ class RlExecTab(QtWidgets.QWidget):
         self._exec_builder.signals.reward_lists_updated.connect(
             self._plot_manager.set_reward_curve_data
         )
-        self._exec_builder.signals.training_finished.connect(self._on_training_finished)
+        self._exec_builder.signals.training_finished.connect(self._on_run_finished)
         # Build the GUI.
         large = QtGui.QFont()
         large.setPointSize(12)
@@ -131,6 +134,7 @@ class RlExecTab(QtWidgets.QWidget):
             return self._exec_builder.make_env()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
+            self.errorOccurred.emit()
             return None
         finally:
             please_wait_dialog.accept()
@@ -187,6 +191,7 @@ class RlExecTab(QtWidgets.QWidget):
             self._current_exec_job = self._exec_builder.build_job()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
+            self.errorOccurred.emit()
             return
         assert self._current_exec_job is not None
         self.start_button.setEnabled(False)
@@ -203,9 +208,11 @@ class RlExecTab(QtWidgets.QWidget):
         self.stop_button.setEnabled(False)
         self._current_exec_job.cancel()
 
-    def _on_training_finished(self) -> None:
+    def _on_run_finished(self, success: bool) -> None:
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
+        if not success:
+            self.errorOccurred.emit()
 
     def _clear_job(self) -> None:
         self._current_exec_job = None

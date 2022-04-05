@@ -29,6 +29,9 @@ class CreatingEnvDialog(QtWidgets.QDialog):
 
 
 class RlTrainTab(QtWidgets.QWidget):
+
+    errorOccurred = QtCore.pyqtSignal()
+
     def __init__(
         self, parent: t.Optional[QtWidgets.QWidget] = None, *, plot_manager: PlotManager
     ) -> None:
@@ -124,6 +127,7 @@ class RlTrainTab(QtWidgets.QWidget):
             return self._train_builder.make_env()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
+            self.errorOccurred.emit()
             return None
         finally:
             please_wait_dialog.accept()
@@ -179,6 +183,7 @@ class RlTrainTab(QtWidgets.QWidget):
             self._current_train_job = self._train_builder.build_job()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
+            self.errorOccurred.emit()
             return
         assert self._current_train_job is not None
         self.start_button.setEnabled(False)
@@ -196,10 +201,12 @@ class RlTrainTab(QtWidgets.QWidget):
         self.stop_button.setEnabled(False)
         self._current_train_job.cancel()
 
-    def _on_training_finished(self) -> None:
+    def _on_training_finished(self, success: bool) -> None:
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
         self.save_button.setEnabled(True)
+        if not success:
+            self.errorOccurred.emit()
 
     def _on_save_clicked(self) -> None:
         dialog = QtWidgets.QFileDialog(self.window())
