@@ -16,6 +16,10 @@ No changes yet!
   interrupt the reset between manipulated time points.
 - If a plugin raises an exception, the log console expands automatically now.
 
+### Build changes
+
+- Upgrade cern-awake-env requirement to 0.18.0.
+
 ## v0.3.1
 
 ### Bug fixes
