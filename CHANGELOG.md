@@ -4,6 +4,12 @@
 
 No changes yet!
 
+## v0.3.3
+
+### Build changes
+
+- Upgrade cern-leir-transfer-line-env requirement to 0.4.2.
+
 ## v0.3.2
 
 ### Visible changes
