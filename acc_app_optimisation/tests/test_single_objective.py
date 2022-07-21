@@ -81,6 +81,9 @@ def test_runner(
     job_builder = OptJobBuilder()
     job_builder.problem_id = optimizable.spec.id  # type:ignore
     job_builder.optimizer_factory = optimizer_factory_class()
+    # Ensure that ExtremumSeeking terminates.
+    if hasattr(job_builder.optimizer_factory, "max_calls"):
+        t.cast(t.Any, job_builder.optimizer_factory).max_calls = 10
     job_builder.signals.actors_updated.connect(recv.actors_updated)
     job_builder.signals.objective_updated.connect(recv.objective_updated)
     job_builder.signals.constraints_updated.connect(recv.constraints_updated)
