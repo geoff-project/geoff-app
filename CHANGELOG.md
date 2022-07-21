@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+No changes yet!
+
+## v0.4.0
+
+### Visible changes
+
+- Add Extremum Seeking via
+  [cernml-extremum-seeking](https://gitlab.cern.ch/be-op-ml-optimization/cernml-extremum-seeking/)
+  as a numerical optimization scheme.
+
 ### Build changes
 
 - Use [setuptools-scm](https://pypi.org/project/setuptools-scm/) for version
