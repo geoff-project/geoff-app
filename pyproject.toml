@@ -1,6 +1,12 @@
 [build-system]
-requires = ["setuptools >= 40.8", "wheel >= 0.34"]
+requires = [
+    "setuptools >= 40.8",
+    "wheel >= 0.34",
+    "setuptools-scm >= 6.0",
+]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
 
 [tool.black]
 target-version = ['py37', 'py38']

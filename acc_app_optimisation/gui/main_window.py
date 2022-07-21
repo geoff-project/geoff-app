@@ -3,6 +3,8 @@
 import typing as t
 from logging import getLogger
 
+import importlib_metadata
+import jpype
 import pjlsa
 from accwidgets.app_frame import ApplicationFrame
 from accwidgets.log_console import LogConsole, LogConsoleDock, LogConsoleModel
@@ -12,12 +14,25 @@ from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
-from .. import __version__ as VERSION
 from .control_pane import ControlPane
 from .plot_manager import PlotManager
 from .popout_mdi_area import PopoutMdiArea
 
 LOG = getLogger(__name__)
+
+
+def get_lsa_server(lsa: pjlsa.LSAClient) -> str:
+    """Query the selected LSA server."""
+    # We don't actually read anything from the LSAClient instance. We
+    # just take it as proof that the user has already initialized LSA
+    # (and so the lsa.server property _must_ be set).
+    if not isinstance(lsa, pjlsa.LSAClient):
+        raise TypeError(f"not an LSAClient: {lsa!r}")
+    java_lang = jpype.JPackage("java.lang")
+    server_name = java_lang.System.getProperty("lsa.server")
+    if not isinstance(server_name, str):
+        raise TypeError(f"lsa.server is not a string: {server_name!r}")
+    return server_name
 
 
 def translate_machine(machine: coi.Machine) -> t.Optional[TimingBarDomain]:
@@ -141,8 +156,16 @@ class MainWindow(ApplicationFrame):
         japc_no_set: bool = False,
     ) -> None:
         super().__init__(use_timing_bar=True, use_rbac=True)
+        self.appVersion = importlib_metadata.version(  # pylint: disable=invalid-name
+            __package__.partition(".")[0]
+        )
+        self.setWindowTitle(
+            f"GeOFF v{self.appVersion} "
+            f"(LSA {get_lsa_server(lsa).upper()}"
+            f"{', NO SET' if japc_no_set else ''})"
+        )
+
         mdi = MainMdiArea()
-        self.appVersion = VERSION  # pylint: disable=invalid-name
         self.setCentralWidget(mdi)
         self._plot_manager = PlotManager(mdi)
         self.runner = None

@@ -7,12 +7,11 @@ import logging
 import sys
 import typing as t
 
+import importlib_metadata
 import pjlsa
 from accwidgets.log_console import LogConsoleModel
 from cernml import coi
 from PyQt5 import QtWidgets
-
-from acc_app_optimisation import __version__ as VERSION
 
 
 class StreamToLogger(io.TextIOBase):
@@ -167,7 +166,7 @@ def main(argv: list) -> int:
     """Main function. Pass sys.argv."""
     args = get_parser().parse_args(argv[1:])
     if args.version:
-        print(f"GeOFF v{VERSION}")
+        print(f"GeOFF v{importlib_metadata.version(__package__)}")
         return 0
     model = init_logging(args.capture_stdout)
     lsa = pjlsa.LSAClient(server=args.lsa_server)
@@ -183,10 +182,6 @@ def main(argv: list) -> int:
             lsa=lsa,
             model=model,
             japc_no_set=args.japc_no_set,
-        )
-        window.setWindowTitle(
-            f"GeOFF v{VERSION} (LSA {args.lsa_server.upper()}"
-            f'{", NO SET" if args.japc_no_set else ""})'
         )
         window.show()
         if import_error is not None:
