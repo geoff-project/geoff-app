@@ -2,9 +2,18 @@
 
 ## Unreleased
 
+### Visible changes
+
+- Upgrade PyQtGraph from 0.10 to 0.12. This should bring a number of bug fixes,
+  performance improvements and quality-of-life changes. In particular, curves
+  on the **actor plot** can now be selectively hidden by clicking their
+  respective **icon** in the graph's legend.
+
 ### Build changes
 
 - Upgrade cern-leir-transfer-line-env requirement to 0.4.4.
+- Upgrade accwidgets requirement to 1.7.0.
+- Upgrade pyqtgraph requirement to 0.12.0.
 
 ## v0.4.0
 

@@ -53,9 +53,9 @@ def _make_plot_widget_with_margins() -> accgraph.StaticPlotWidget:
 def _add_well_colored_legend(plot: accgraph.StaticPlotWidget) -> None:
     """Add a legend to the given plot with better colors."""
     legend = plot.addLegend()
-    legend.bg_brush.setColor(pyqtgraph.mkColor("#DDDD"))
-    legend.border_pen.setColor(pyqtgraph.mkColor("k"))
-    legend.text_pen.setColor(pyqtgraph.mkColor("k"))
+    legend.setBrush(pyqtgraph.mkColor("#DDDD"))
+    legend.setPen(pyqtgraph.mkColor("k"))
+    legend.setLabelTextColor(pyqtgraph.mkColor("k"))
 
 
 class PlotManager:
