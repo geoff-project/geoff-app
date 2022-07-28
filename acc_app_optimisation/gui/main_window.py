@@ -35,7 +35,7 @@ def get_lsa_server(lsa: pjlsa.LSAClient) -> str:
     return server_name
 
 
-def translate_machine(machine: coi.Machine) -> t.Optional[TimingBarDomain]:
+def machine_to_timing_domain(machine: coi.Machine) -> t.Optional[TimingBarDomain]:
     """Fetch the timing domain for a given CERN machine."""
     return {
         coi.Machine.LINAC_2: TimingBarDomain.PSB,
@@ -247,7 +247,7 @@ class MainWindow(ApplicationFrame):
 
     def _on_machine_changed(self, value: str) -> None:
         machine = coi.Machine(value)
-        timing_domain = translate_machine(machine)
+        timing_domain = machine_to_timing_domain(machine)
         if timing_domain:
             self.timing_bar.model.domain = timing_domain
             self.timingBarAction().setVisible(True)
