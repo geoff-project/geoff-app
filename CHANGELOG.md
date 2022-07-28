@@ -22,7 +22,6 @@ No changes yet!
   [`importlib_metadata`](https://importlib_metadata.readthedocs.io/) before
   Python 3.8) to query the app's version programmatically.
 
-
 ## v0.3.4
 
 ### Build changes
