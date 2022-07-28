@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes yet!
+
+## v0.5.0
+
 ### Visible changes
 
 - Upgrade PyQtGraph from 0.10 to 0.12. This should bring a number of bug fixes,
