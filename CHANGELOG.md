@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-No changes yet!
+### Build changes
+
+- Upgrade cern-leir-transfer-line-env requirement to 0.4.4.
 
 ## v0.4.0
 
