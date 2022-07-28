@@ -11,6 +11,7 @@ from accwidgets.log_console import LogConsole, LogConsoleDock, LogConsoleModel
 from accwidgets.rbac import RbaToken
 from accwidgets.timing_bar import TimingBar, TimingBarDomain
 from cernml import coi
+from pylogbook import NamedActivity
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
@@ -46,6 +47,20 @@ def machine_to_timing_domain(machine: coi.Machine) -> t.Optional[TimingBarDomain
         coi.Machine.PSB: TimingBarDomain.PSB,
         coi.Machine.SPS: TimingBarDomain.SPS,
         coi.Machine.LHC: TimingBarDomain.LHC,
+    }.get(machine)
+
+
+def machine_to_activity(machine: coi.Machine) -> t.Optional[NamedActivity]:
+    """Fetch the pylogbook activity for a given CERN machine."""
+    return {
+        coi.Machine.LEIR: NamedActivity.LEIR,
+        coi.Machine.LINAC_2: NamedActivity.LINAC4,
+        coi.Machine.LINAC_3: NamedActivity.LINAC3,
+        coi.Machine.LINAC_4: NamedActivity.LINAC4,
+        coi.Machine.LHC: NamedActivity.LHC,
+        coi.Machine.PS: NamedActivity.PS,
+        coi.Machine.PSB: NamedActivity.PSB,
+        coi.Machine.SPS: NamedActivity.SPS,
     }.get(machine)
 
 
@@ -182,6 +197,17 @@ class MainWindow(ApplicationFrame):
             lambda _: LOG.warning("RBAC token expired")
         )
 
+        self.useScreenshot = True
+        self.screenshot_widget.captureFailed.connect(
+            lambda error: LOG.error("Screenshot error: %s", error)
+        )
+        self.screenshot_widget.eventFetchFailed.connect(
+            lambda error: LOG.warning("Could not fetch Logbook event: %s", error)
+        )
+        self.screenshot_widget.activitiesFailed.connect(
+            lambda error: LOG.warning("Could not fetch Lookbook activities: %s", error)
+        )
+
         self._control_pane = ControlPane(
             initial_machine=initial_machine,
             lsa=lsa,
@@ -247,6 +273,7 @@ class MainWindow(ApplicationFrame):
 
     def _on_machine_changed(self, value: str) -> None:
         machine = coi.Machine(value)
+        self.screenshot_widget.model.logbook_activities = machine_to_activity(machine)
         timing_domain = machine_to_timing_domain(machine)
         if timing_domain:
             self.timing_bar.model.domain = timing_domain

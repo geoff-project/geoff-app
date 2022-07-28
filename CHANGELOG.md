@@ -8,12 +8,15 @@
   performance improvements and quality-of-life changes. In particular, curves
   on the **actor plot** can now be selectively hidden by clicking their
   respective **icon** in the graph's legend.
+- Provide new screenshot button provided by
+  [AccWidgets](https://acc-py.web.cern.ch/gitlab/acc-co/accsoft/gui/accsoft-gui-pyqt-widgets/docs/stable/widgets/screenshot/index.html).
 
 ### Build changes
 
 - Upgrade cern-leir-transfer-line-env requirement to 0.4.4.
 - Upgrade accwidgets requirement to 1.7.0.
 - Upgrade pyqtgraph requirement to 0.12.0.
+- Add dependency on pylogbook 3.3.0 for new screenshot button.
 
 ## v0.4.0
 
