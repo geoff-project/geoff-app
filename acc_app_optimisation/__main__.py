@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 """Main entry point of this package."""
 
+from __future__ import annotations
+
 import argparse
-import io
 import logging
 import sys
 import typing as t
@@ -13,54 +14,23 @@ from accwidgets.log_console import LogConsoleModel
 from cernml import coi
 from PyQt5 import QtWidgets
 
+from . import foreign_imports, logging_setup
 
-class StreamToLogger(io.TextIOBase):
-    """Fake file-like stream object that redirects writes to a logger.
-
-    Class has been taken and adapted from `Stack Overflow`_ and `Ferry Boender`_.
-
-    .. _`Stack Overflow`: https://stackoverflow.com/a/39215961
-    .. _`Ferry Boender`: https://www.electricmonk.nl/log/2011/08/14/redirect-stdout-and-stderr-to-a-logger-in-python/
-    """
-
-    def __init__(self, logger: logging.Logger, level: int) -> None:
-        super().__init__()
-        self.logger = logger
-        self.level = level
-        self.linebuf = ""
-
-    def write(self, buf: t.AnyStr) -> int:
-        for line in buf.rstrip().splitlines():
-            self.logger.log(self.level, line.rstrip())
-        return len(buf)
-
-    def flush(self) -> None:
-        pass
-
-    def __enter__(self) -> "StreamToLogger":
-        return self
-
-    def __exit__(self, *args: t.Any) -> None:
-        pass
+if t.TYPE_CHECKING:
+    # pylint: disable = unused-import, ungrouped-imports
+    import os
 
 
-def init_logging(capture_stdout: bool) -> LogConsoleModel:
+def init_logging(
+    log_to_file: bool, filename: t.Union[None, str, os.PathLike]
+) -> LogConsoleModel:
     """Configure the `logging` module."""
-    if capture_stdout:
-        sys.stdout = StreamToLogger(  # type: ignore
-            logging.getLogger("stdout"),
-            logging.INFO,
-        )
-        sys.stderr = StreamToLogger(  # type: ignore
-            logging.getLogger("stderr"),
-            logging.WARNING,
-        )
-        handlers = []
+    if log_to_file:
+        handler = logging_setup.create_handler(filename)
+        print("Logging to", handler.stream.name, file=sys.stderr)
+        handlers = [handler]
     else:
-        stderr_handler = logging.StreamHandler()
-        stderr_handler.setLevel("INFO")
-        stderr_handler.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
-        handlers = [stderr_handler]
+        handlers = []
     # No level-based filtering on the root logger; we leave that to the
     # log console and to the stderr_handler.
     logging.basicConfig(level="NOTSET", handlers=handlers)
@@ -73,10 +43,8 @@ def import_all(paths: t.Iterable[str], *, builtins: bool) -> t.Optional[Exceptio
     If an exception occurs at any point, it is caught, logged, and
     returned. This allows displaying the error in the GUI later.
     """
+    # pylint: disable = broad-except
     # pylint: disable = import-outside-toplevel
-    # pylint: disable=broad-except
-    from acc_app_optimisation import foreign_imports
-
     try:
         for path in paths:
             foreign_imports.import_from_path(path)
@@ -159,6 +127,27 @@ def get_parser() -> argparse.ArgumentParser:
         dest="builtins",
         help="Disable loading of built-in optimization problems",
     )
+    logger = parser.add_mutually_exclusive_group()
+    logger.add_argument(
+        "--enable-logging",
+        dest="log_to_file",
+        action="store_true",
+        default=True,
+        help="In addition to the app's logging console, also log "
+        "events to a file on disk (this is the default)",
+    )
+    logger.add_argument(
+        "--disable-logging",
+        dest="log_to_file",
+        action="store_false",
+        help="Disable on-disk logging",
+    )
+    logger.add_argument(
+        "--log-file",
+        type=str,
+        help="Location for on-disk logging; by default, a new file "
+        'is created under /tmp; pass "-" to log to stderr',
+    )
     return parser
 
 
@@ -168,31 +157,32 @@ def main(argv: list) -> int:
     if args.version:
         print(f"GeOFF v{importlib_metadata.version(__package__)}")
         return 0
-    model = init_logging(args.capture_stdout)
-    lsa = pjlsa.LSAClient(server=args.lsa_server)
-    with lsa.java_api():
-        # pylint: disable = import-outside-toplevel
-        from acc_app_optimisation import gui
+    model = init_logging(log_to_file=args.log_to_file, filename=args.log_file)
+    with logging_setup.redirect_streams_to_logging():
+        lsa = pjlsa.LSAClient(server=args.lsa_server)
+        with lsa.java_api():
+            # pylint: disable = import-outside-toplevel
+            from acc_app_optimisation import gui
 
-        import_error = import_all(args.foreign_imports, builtins=args.builtins)
-        app = QtWidgets.QApplication(argv)
-        app.setApplicationName(__package__)
-        window = gui.MainWindow(
-            initial_machine=coi.Machine[args.machine],
-            lsa=lsa,
-            model=model,
-            japc_no_set=args.japc_no_set,
-        )
-        window.show()
-        if import_error is not None:
-            error_dialog = gui.excdialog.exception_dialog(
-                import_error,
-                title="Foreign imports",
-                text="An error occurred while importing foreign packages",
-                parent=window,
+            import_error = import_all(args.foreign_imports, builtins=args.builtins)
+            app = QtWidgets.QApplication(argv)
+            app.setApplicationName(__package__)
+            window = gui.MainWindow(
+                initial_machine=coi.Machine[args.machine],
+                lsa=lsa,
+                model=model,
+                japc_no_set=args.japc_no_set,
             )
-            error_dialog.show()
-        return app.exec_()
+            window.show()
+            if import_error is not None:
+                error_dialog = gui.excdialog.exception_dialog(
+                    import_error,
+                    title="Foreign imports",
+                    text="An error occurred while importing foreign packages",
+                    parent=window,
+                )
+                error_dialog.show()
+            return app.exec_()
 
 
 if __name__ == "__main__":

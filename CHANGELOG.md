@@ -2,7 +2,18 @@
 
 ## Unreleased
 
-No changes yet!
+### Visible changes
+
+- Refactor logging. By default, the app now logs all events not only to the
+  logging console, but also to a file in the user's temporary directory. This
+  is to faciliate post-mortem debugging in the case of a crash. This behavior
+  can be disabled with the new command-line option `--disable-logging`. The
+  user may also choose a specific logging file with the new command-line option
+  `--log-file`.
+- Remove the command-line option `--no-capture-stdout`. It is made superfluous
+  by the new setup. Its behavior can roughly be emulated with `--log-file=-`.
+  This uses the new logging mechanism, but picks `stderr` instead of a real
+  file for output.
 
 ## v0.5.0
 
