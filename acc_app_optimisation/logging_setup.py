@@ -27,13 +27,20 @@ class StreamToLogger(io.TextIOBase):
         self.level = level
         self.linebuf = ""
 
-    def write(self, buf: t.AnyStr) -> int:
-        for line in buf.rstrip().splitlines():
-            self.logger.log(self.level, line.rstrip())
+    def write(self, buf: str) -> int:
+        if self.linebuf:
+            buf = self.linebuf + buf
+        while buf:
+            self.linebuf, newline, buf = buf.partition("\n")
+            if newline:
+                self.logger.log(self.level, self.linebuf.rstrip())
+                self.linebuf = ""
         return len(buf)
 
     def flush(self) -> None:
-        pass
+        if self.linebuf:
+            self.logger.log(self.level, self.linebuf.rstrip())
+            self.linebuf = ""
 
     def __enter__(self) -> "StreamToLogger":
         return self
