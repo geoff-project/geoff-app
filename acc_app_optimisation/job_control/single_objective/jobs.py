@@ -75,6 +75,16 @@ class OptJob(Job):
         self._actions_log: t.List[np.ndarray] = []
         self._constraints_log: t.List[np.ndarray] = []
 
+    @property
+    def problem_id(self) -> str:
+        """The name of the optimization problem."""
+        problem = self.problem.unwrapped
+        spec = getattr(problem, "spec", None)
+        if spec:
+            return spec.id
+        problem_class = type(problem)
+        return ".".join([problem_class.__module__, problem_class.__qualname__])
+
     def get_optimization_space(self) -> gym.spaces.Box:
         """Extract the optimization space from the problem."""
         raise NotImplementedError()
@@ -191,6 +201,7 @@ class SingleOptimizableJob(OptJob):
     ) -> None:
         super().__init__(token_source=token_source, signals=signals, problem=problem)
         self.x_0 = self.problem.get_initial_params()
+        self._factory_name = type(optimizer_factory).__name__
         self._solve = optimizer_factory.make_solve_func(
             scipy.optimize.Bounds(
                 problem.optimization_space.low, problem.optimization_space.high
@@ -199,6 +210,9 @@ class SingleOptimizableJob(OptJob):
         )
 
     def reset(self) -> None:
+        LOG.info(
+            "start reset of %s using %s", self.problem_id, type(self._factory).__name__
+        )
         error_occurred = False
         try:
             self._env_callback(self.x_0)
@@ -223,6 +237,9 @@ class SingleOptimizableJob(OptJob):
         return self.problem.compute_single_objective(normalized_action)
 
     def run_optimization(self) -> None:
+        LOG.info(
+            "start optimization of %s using %s", self.problem_id, self._factory_name
+        )
         self._signals.new_optimisation_started.emit(
             PreOptimizationMetadata(
                 objective_name=str(self.problem.objective_name),
@@ -279,6 +296,9 @@ class FunctionOptimizableJob(OptJob):
         self._factory = optimizer_factory
 
     def reset(self) -> None:
+        LOG.info(
+            "start reset of %s using %s", self.problem_id, type(self._factory).__name__
+        )
         error_occurred = False
         try:
             # TODO: Only reset up to and including the current point.
@@ -287,6 +307,8 @@ class FunctionOptimizableJob(OptJob):
                 if token.cancellation_requested:
                     token.complete_cancellation()
                     raise cancellation.CancelledError()
+                LOG.info("next skeleton point: %g", point)
+                LOG.info("x0 = %s", x_0)
                 self.problem.compute_function_objective(point, x_0)
                 self._current_point = point
                 self._env_callback(x_0)
@@ -325,6 +347,11 @@ class FunctionOptimizableJob(OptJob):
         )
 
     def run_optimization(self) -> None:
+        LOG.info(
+            "start optimization of %s using %s",
+            self.problem_id,
+            type(self._factory).__name__,
+        )
         # TODO: Right now, we create one plot for all optimizations.
         # This is fundamentally incompatible with our promise to allow
         # different numers of parameters for each skeleton point. We
@@ -339,6 +366,8 @@ class FunctionOptimizableJob(OptJob):
         for point, x_0 in zip(self.skeleton_points, self.all_x_0):
             if self._token_source.token.cancellation_requested:
                 raise BenignCancelledError()
+            LOG.info("next skeleton point: %g", point)
+            LOG.info("x0 = %s", x_0)
             self._current_point = point
             op_space = self.get_optimization_space()
             solve = self._factory.make_solve_func(

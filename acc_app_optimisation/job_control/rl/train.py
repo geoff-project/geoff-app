@@ -108,8 +108,21 @@ class TrainJob(Job):
         self._agent = agent_factory.make_agent(self._env)
         self._finished = False
 
+    @property
+    def env_id(self) -> str:
+        """The name of the environment."""
+        env = self._env.unwrapped
+        spec = getattr(env, "spec", None)
+        if spec:
+            return spec.id
+        env_class = type(env)
+        return ".".join([env_class.__module__, env_class.__qualname__])
+
     def run(self) -> None:
         # pylint: disable = bare-except
+        LOG.info(
+            "start training of %s in env %s", type(self._agent).__name__, self.env_id
+        )
         self._finished = False
         self._signals.new_run_started.emit(PreRunMetadata.from_env(self._env))
         error_occurred = False
@@ -132,4 +145,5 @@ class TrainJob(Job):
     def save(self, path: t.Union[str, "Path", "BufferedIOBase"]) -> None:
         if not self._finished:
             raise RuntimeError("cannot save a model before or during training")
+        LOG.info("saving %s to %s", type(self._agent).__name__, path)
         self._agent.save(path)

@@ -116,13 +116,27 @@ class ExecJob(Job):
         self._agent = agent
         self._finished = False
 
+    @property
+    def env_id(self) -> str:
+        """The name of the environment."""
+        env = self._env.unwrapped
+        spec = getattr(env, "spec", None)
+        if spec:
+            return spec.id
+        env_class = type(env)
+        return ".".join([env_class.__module__, env_class.__qualname__])
+
     def run(self) -> None:
         # pylint: disable = bare-except
+        LOG.info(
+            "start execution of %s in env %s", type(self._agent).__name__, self.env_id
+        )
         self._finished = False
         self._signals.new_run_started.emit(PreRunMetadata.from_env(self._env))
         error_occurred = False
         try:
-            for _ in range(self._num_episodes):
+            for i in range(1, 1 + self._num_episodes):
+                LOG.info("episode %d/%d", i, self._num_episodes)
                 obs = self._env.reset()
                 done = False
                 state = None
