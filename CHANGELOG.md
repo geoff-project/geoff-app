@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes yet!
+
+## v0.6.0
+
 ### Visible changes
 
 - Refactor logging. By default, the app now logs all events not only to the
