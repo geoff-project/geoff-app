@@ -4,7 +4,6 @@
 # pylint: disable = missing-function-docstring
 # pylint: disable = missing-class-docstring
 # pylint: disable = import-outside-toplevel
-# pylint: disable = no-self-use
 # pylint: disable = redefined-outer-name
 
 import sys
