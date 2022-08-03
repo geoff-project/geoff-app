@@ -10,11 +10,15 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from .. import envs
 from ..job_control import rl
 from . import configuration
+from .excdialog import current_exception_dialog, exception_dialog
 from .file_selector import FileSelector
 from .plot_manager import PlotManager
 
 if t.TYPE_CHECKING:
-    from pyjapc import PyJapc  # pylint: disable=import-error, unused-import
+    # pylint: disable=import-error, unused-import, ungrouped-imports
+    from traceback import TracebackException
+
+    from pyjapc import PyJapc
 
 LOG = getLogger(__name__)
 
@@ -31,9 +35,6 @@ class CreatingEnvDialog(QtWidgets.QDialog):
 
 
 class RlExecTab(QtWidgets.QWidget):
-
-    errorOccurred = QtCore.pyqtSignal()
-
     def __init__(
         self, parent: t.Optional[QtWidgets.QWidget] = None, *, plot_manager: PlotManager
     ) -> None:
@@ -61,7 +62,8 @@ class RlExecTab(QtWidgets.QWidget):
         self._exec_builder.signals.reward_lists_updated.connect(
             self._plot_manager.set_reward_curve_data
         )
-        self._exec_builder.signals.training_finished.connect(self._on_run_finished)
+        self._exec_builder.signals.run_finished.connect(self._on_run_finished)
+        self._exec_builder.signals.run_failed.connect(self._on_run_failed)
         # Build the GUI.
         large = QtGui.QFont()
         large.setPointSize(12)
@@ -134,7 +136,11 @@ class RlExecTab(QtWidgets.QWidget):
             return self._exec_builder.make_env()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
-            self.errorOccurred.emit()
+            current_exception_dialog(
+                title="RL run",
+                text="The environment could not be initialized due to an exception",
+                parent=self.window(),
+            ).show()
             return None
         finally:
             please_wait_dialog.accept()
@@ -191,7 +197,11 @@ class RlExecTab(QtWidgets.QWidget):
             self._current_exec_job = self._exec_builder.build_job()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
-            self.errorOccurred.emit()
+            current_exception_dialog(
+                title="RL run",
+                text="The environment could not be initialized due to an exception",
+                parent=self.window(),
+            ).show()
             return
         assert self._current_exec_job is not None
         self.start_button.setEnabled(False)
@@ -208,11 +218,18 @@ class RlExecTab(QtWidgets.QWidget):
         self.stop_button.setEnabled(False)
         self._current_exec_job.cancel()
 
-    def _on_run_finished(self, success: bool) -> None:
+    def _on_run_finished(self, _cancellation_completed: bool) -> None:
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
-        if not success:
-            self.errorOccurred.emit()
+
+    def _on_run_failed(self, exception: TracebackException) -> None:
+        exception_dialog(
+            exception,
+            title="RL run",
+            text="The run failed due to an exception",
+            parent=self.window(),
+        ).show()
+        self._on_run_finished(False)
 
     def _clear_job(self) -> None:
         self._current_exec_job = None

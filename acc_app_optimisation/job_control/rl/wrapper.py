@@ -1,3 +1,4 @@
+import traceback
 import typing as t
 from dataclasses import dataclass
 
@@ -43,7 +44,8 @@ class Signals(QObject):
     objective_updated = pyqtSignal(np.ndarray, np.ndarray)
     actors_updated = pyqtSignal(np.ndarray, np.ndarray)
     reward_lists_updated = pyqtSignal(list)
-    training_finished = pyqtSignal(bool)
+    run_finished = pyqtSignal(bool)
+    run_failed = pyqtSignal(traceback.TracebackException)
 
 
 class RenderWrapper(gym.Wrapper):

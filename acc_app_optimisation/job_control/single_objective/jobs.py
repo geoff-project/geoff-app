@@ -1,3 +1,4 @@
+import traceback
 import typing as t
 from dataclasses import dataclass
 from logging import getLogger
@@ -11,14 +12,10 @@ from PyQt5 import QtCore
 
 from ...envs import Metadata
 from ...utils.bounded import BoundedArray
-from ..base import Job
+from ..base import BenignCancelledError, Job, catching_exceptions
 from . import constraints, optimizers
 
 LOG = getLogger(__name__)
-
-
-class BenignCancelledError(cancellation.CancelledError):
-    """Cancellation error that we raise, not the :class:`SingleOptimizable`."""
 
 
 @dataclass(frozen=True)
@@ -45,6 +42,7 @@ class Signals(QtCore.QObject):
     constraints_updated = QtCore.pyqtSignal(np.ndarray, BoundedArray)
     objective_updated = QtCore.pyqtSignal(np.ndarray, np.ndarray)
     optimisation_finished = QtCore.pyqtSignal(bool)
+    optimisation_failed = QtCore.pyqtSignal(traceback.TracebackException)
 
 
 class OptJob(Job):
@@ -108,22 +106,17 @@ class OptJob(Job):
     @QtCore.pyqtSlot()
     def run(self) -> None:
         """Implementation of `QRunnable.run()`."""
-        # pylint: disable = bare-except
-        error_occurred = False
-        try:
+        with catching_exceptions(
+            "optimization",
+            LOG,
+            token_source=self._token_source,
+            on_success=lambda: self._signals.optimisation_finished.emit(True),
+            on_cancel=lambda: self._signals.optimisation_finished.emit(
+                not self._token_source.cancellation_requested
+            ),
+            on_exception=self._signals.optimisation_failed.emit,
+        ):
             self.run_optimization()
-        except cancellation.CancelledError as exc:
-            if isinstance(exc, BenignCancelledError):
-                self._token_source.token.complete_cancellation()
-            LOG.info("cancelled optimization")
-        except:
-            LOG.error("aborted optimization", exc_info=True)
-            error_occurred = True
-        else:
-            LOG.info("finished optimization")
-        if self._token_source.can_reset_cancellation:
-            self._token_source.reset_cancellation()
-        self._signals.optimisation_finished.emit(not error_occurred)
 
     def _env_callback(self, action: np.ndarray) -> float:
         """The callback function provided to BaseOptimizer.solve()."""
@@ -210,22 +203,18 @@ class SingleOptimizableJob(OptJob):
         )
 
     def reset(self) -> None:
-        LOG.info(
-            "start reset of %s using %s", self.problem_id, type(self._factory).__name__
-        )
-        error_occurred = False
-        try:
+        with catching_exceptions(
+            "reset",
+            LOG,
+            token_source=self._token_source,
+            on_success=lambda: self._signals.optimisation_finished.emit(True),
+            on_cancel=lambda: self._signals.optimisation_finished.emit(
+                not self._token_source.cancellation_requested
+            ),
+            on_exception=self._signals.optimisation_failed.emit,
+        ):
+            LOG.info("start reset of %s using %s", self.problem_id, self._factory_name)
             self._env_callback(self.x_0)
-        except cancellation.CancelledError:
-            LOG.info("cancelled optimization")
-        except:  # pylint: disable=bare-except
-            LOG.error("could not reset", exc_info=True)
-            error_occurred = True
-        else:
-            LOG.info("problem successfully reset")
-        if self._token_source.can_reset_cancellation:
-            self._token_source.reset_cancellation()
-        self._signals.optimisation_finished.emit(not error_occurred)
 
     def format_reset_point(self) -> str:
         return "\n".join(map("{}:\t{}".format, self.get_param_names(), self.x_0))
@@ -296,11 +285,21 @@ class FunctionOptimizableJob(OptJob):
         self._factory = optimizer_factory
 
     def reset(self) -> None:
-        LOG.info(
-            "start reset of %s using %s", self.problem_id, type(self._factory).__name__
-        )
-        error_occurred = False
-        try:
+        with catching_exceptions(
+            "reset",
+            LOG,
+            token_source=self._token_source,
+            on_success=lambda: self._signals.optimisation_finished.emit(True),
+            on_cancel=lambda: self._signals.optimisation_finished.emit(
+                not self._token_source.cancellation_requested
+            ),
+            on_exception=self._signals.optimisation_failed.emit,
+        ):
+            LOG.info(
+                "start reset of %s using %s",
+                self.problem_id,
+                type(self._factory).__name__,
+            )
             # TODO: Only reset up to and including the current point.
             token = self._token_source.token
             for point, x_0 in zip(self.skeleton_points, self.all_x_0):
@@ -312,16 +311,6 @@ class FunctionOptimizableJob(OptJob):
                 self.problem.compute_function_objective(point, x_0)
                 self._current_point = point
                 self._env_callback(x_0)
-        except cancellation.CancelledError:
-            LOG.info("cancelled optimization")
-        except:  # pylint: disable=bare-except
-            LOG.error("could not reset", exc_info=True)
-            error_occurred = True
-        else:
-            LOG.info("problem successfully reset")
-        if self._token_source.can_reset_cancellation:
-            self._token_source.reset_cancellation()
-        self._signals.optimisation_finished.emit(not error_occurred)
 
     def format_reset_point(self) -> str:
         param_names = self.get_param_names()

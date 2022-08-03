@@ -214,7 +214,6 @@ class MainWindow(ApplicationFrame):
             plot_manager=self._plot_manager,
             japc_no_set=japc_no_set,
         )
-        self._control_pane.errorOccurred.connect(self._on_error)
         dock = DumbDockWidget()
         dock.setWidget(self._control_pane)
         self.addDockWidget(Qt.LeftDockWidgetArea, dock)
@@ -267,9 +266,6 @@ class MainWindow(ApplicationFrame):
             if isinstance(toolbar.widgetForAction(action), TimingBar)
         )
         return timing_bar_action
-
-    def _on_error(self) -> None:
-        self.log_console.console.expanded = True
 
     def _on_machine_changed(self, value: str) -> None:
         machine = coi.Machine(value)

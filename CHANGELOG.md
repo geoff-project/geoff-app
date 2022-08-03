@@ -2,7 +2,10 @@
 
 ## Unreleased
 
-No changes yet!
+### Visible changes
+
+- If a plugin raises an exception, open a message box instead of expanding the
+  log console.
 
 ## v0.6.0
 

@@ -1,19 +1,24 @@
+from __future__ import annotations
+
 import contextlib
 import typing as t
 from logging import getLogger
 
 from cernml import coi
-from cernml.coi.cancellation import CancelledError
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from .. import envs
 from ..job_control.single_objective import OptJob, OptJobBuilder, optimizers
 from . import configuration
+from .excdialog import current_exception_dialog, exception_dialog
 from .plot_manager import PlotManager
 from .task import ThreadPoolTask
 
 if t.TYPE_CHECKING:
-    from pyjapc import PyJapc  # pylint: disable=import-error, unused-import
+    # pylint: disable=import-error, unused-import, ungrouped-imports
+    from traceback import TracebackException
+
+    from pyjapc import PyJapc
 
 LOG = getLogger(__name__)
 
@@ -75,9 +80,6 @@ class ConfirmationDialog(QtWidgets.QDialog):
 
 
 class NumOptTab(QtWidgets.QWidget):
-
-    errorOccurred = QtCore.pyqtSignal()
-
     def __init__(
         self, parent: t.Optional[QtWidgets.QWidget] = None, *, plot_manager: PlotManager
     ) -> None:
@@ -106,6 +108,7 @@ class NumOptTab(QtWidgets.QWidget):
             self._plot_manager.set_constraints_curve_data
         )
         self._opt_builder.signals.optimisation_finished.connect(self._on_opt_finished)
+        self._opt_builder.signals.optimisation_failed.connect(self._on_opt_failed)
         # Build the GUI.
         large = QtGui.QFont()
         large.setPointSize(12)
@@ -158,7 +161,7 @@ class NumOptTab(QtWidgets.QWidget):
         self.setMachine(self._machine)
 
     @contextlib.contextmanager
-    def create_lsa_context(self, japc: "PyJapc") -> t.Iterator[None]:
+    def create_lsa_context(self, japc: PyJapc) -> t.Iterator[None]:
         assert self._opt_builder.japc is None, "nested LSA context"
         self._opt_builder.japc = japc
         try:
@@ -177,7 +180,11 @@ class NumOptTab(QtWidgets.QWidget):
             return self._opt_builder.make_problem()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
-            self.errorOccurred.emit()
+            current_exception_dialog(
+                title="Numerical optimization",
+                text="The problem could not be initialized due to an exception",
+                parent=self.window(),
+            ).show()
             return None
         finally:
             please_wait_dialog.accept()
@@ -262,7 +269,11 @@ class NumOptTab(QtWidgets.QWidget):
             self._current_opt_job = self._opt_builder.build_job()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
-            self.errorOccurred.emit()
+            current_exception_dialog(
+                title="Numerical optimization",
+                text="The problem could not be initialized due to an exception",
+                parent=self.window(),
+            ).show()
             return
         assert self._current_opt_job is not None
         self.start_button.setEnabled(False)
@@ -280,12 +291,19 @@ class NumOptTab(QtWidgets.QWidget):
         self.stop_button.setEnabled(False)
         self._current_opt_job.cancel()
 
-    def _on_opt_finished(self, success: bool) -> None:
+    def _on_opt_finished(self, _cancellation_completed: bool) -> None:
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
         self.reset_button.setEnabled(True)
-        if not success:
-            self.errorOccurred.emit()
+
+    def _on_opt_failed(self, exception: TracebackException) -> None:
+        exception_dialog(
+            exception,
+            title="Numerical optimization",
+            text="The optimization failed due to an exception",
+            parent=self.window(),
+        ).show()
+        self._on_opt_finished(False)
 
     def _on_reset_clicked(self) -> None:
         if self._current_opt_job is None:

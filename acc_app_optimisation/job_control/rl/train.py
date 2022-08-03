@@ -6,9 +6,9 @@ from cernml.coi import cancellation
 from gym.envs.registration import EnvSpec
 
 from ...envs import make_env_by_name
-from ..base import CannotBuildJob, Job, JobBuilder
+from ..base import CannotBuildJob, Job, JobBuilder, catching_exceptions
 from . import agents
-from .wrapper import BenignCancelledError, PreRunMetadata, RenderWrapper, Signals
+from .wrapper import PreRunMetadata, RenderWrapper, Signals
 
 if t.TYPE_CHECKING:
     from io import BufferedIOBase  # pylint: disable=unused-import
@@ -125,21 +125,17 @@ class TrainJob(Job):
         )
         self._finished = False
         self._signals.new_run_started.emit(PreRunMetadata.from_env(self._env))
-        error_occurred = False
-        try:
+        with catching_exceptions(
+            "training",
+            LOG,
+            token_source=self._token_source,
+            on_success=lambda: self._signals.run_finished.emit(True),
+            on_cancel=lambda: self._signals.run_finished.emit(
+                not self._token_source.cancellation_requested
+            ),
+            on_exception=self._signals.run_failed.emit,
+        ):
             self._agent.learn(self._total_timesteps)
-        except cancellation.CancelledError as exc:
-            if isinstance(exc, BenignCancelledError):
-                self._token_source.token.complete_cancellation()
-            LOG.info("cancelled training")
-        except:
-            LOG.error("aborted training", exc_info=True)
-            error_occurred = True
-        else:
-            LOG.info("finished training")
-        if self._token_source.can_reset_cancellation:
-            self._token_source.reset_cancellation()
-        self._signals.training_finished.emit(not error_occurred)
         self._finished = True
 
     def save(self, path: t.Union[str, "Path", "BufferedIOBase"]) -> None:

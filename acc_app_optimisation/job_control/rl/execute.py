@@ -7,9 +7,9 @@ from cernml.coi import cancellation
 from gym.envs.registration import EnvSpec
 
 from ...envs import make_env_by_name
-from ..base import CannotBuildJob, Job, JobBuilder
+from ..base import CannotBuildJob, Job, JobBuilder, catching_exceptions
 from . import agents
-from .wrapper import BenignCancelledError, PreRunMetadata, RenderWrapper, Signals
+from .wrapper import PreRunMetadata, RenderWrapper, Signals
 
 if t.TYPE_CHECKING:
     from pyjapc import PyJapc  # pylint: disable=import-error, unused-import
@@ -114,7 +114,6 @@ class ExecJob(Job):
         self._env = RenderWrapper(env, self._token_source.token, signals)
         self._num_episodes = num_episodes
         self._agent = agent
-        self._finished = False
 
     @property
     def env_id(self) -> str:
@@ -131,10 +130,17 @@ class ExecJob(Job):
         LOG.info(
             "start execution of %s in env %s", type(self._agent).__name__, self.env_id
         )
-        self._finished = False
         self._signals.new_run_started.emit(PreRunMetadata.from_env(self._env))
-        error_occurred = False
-        try:
+        with catching_exceptions(
+            "training",
+            LOG,
+            token_source=self._token_source,
+            on_success=lambda: self._signals.run_finished.emit(True),
+            on_cancel=lambda: self._signals.run_finished.emit(
+                not self._token_source.cancellation_requested
+            ),
+            on_exception=self._signals.run_failed.emit,
+        ):
             for i in range(1, 1 + self._num_episodes):
                 LOG.info("episode %d/%d", i, self._num_episodes)
                 obs = self._env.reset()
@@ -143,16 +149,3 @@ class ExecJob(Job):
                 while not done:
                     action, state = self._agent.predict(obs, state)
                     obs, _, done, _ = self._env.step(action)
-        except cancellation.CancelledError as exc:
-            if isinstance(exc, BenignCancelledError):
-                self._token_source.token.complete_cancellation()
-            LOG.info("cancelled execution")
-        except:
-            LOG.error("aborted execution", exc_info=True)
-            error_occurred = True
-        else:
-            LOG.info("finished training")
-        if self._token_source.can_reset_cancellation:
-            self._token_source.reset_cancellation()
-        self._signals.training_finished.emit(not error_occurred)
-        self._finished = True
