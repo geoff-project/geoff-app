@@ -97,6 +97,6 @@ def create_handler(filename: t.Union[None, str, os.PathLike]) -> StreamHandler:
         )
         handler = t.cast(StreamHandler, FileHandler(file.name, delay=True))
         handler.setStream(t.cast(io.TextIOWrapper, file))
-    handler.setLevel(logging.INFO)
+    handler.setLevel(logging.DEBUG)
     handler.setFormatter(formatter)
     return handler
