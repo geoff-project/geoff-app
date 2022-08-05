@@ -9,6 +9,13 @@
 - Show an informational message box whenever an optimization, RL training, RL
   run or reset operation terminates successfully.
 
+### Bug fixes
+
+- The initial point for numerical optimization is now verified to be a 1-D
+  float array. Returning anything else prevents optimization from starting.
+  This catches a common bug where an array with `dtype="object"` is returned by
+  accident.
+
 ## v0.6.0
 
 ### Visible changes

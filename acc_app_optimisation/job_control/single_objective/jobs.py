@@ -18,6 +18,10 @@ from . import constraints, optimizers
 LOG = getLogger(__name__)
 
 
+class BadInitialPoint(Exception):
+    """The initial point has not the correct shape or type."""
+
+
 @dataclass(frozen=True)
 class PreOptimizationMetadata:
     """Message object that provides information just before optimization.
@@ -193,7 +197,12 @@ class SingleOptimizableJob(OptJob):
         optimizer_factory: optimizers.OptimizerFactory,
     ) -> None:
         super().__init__(token_source=token_source, signals=signals, problem=problem)
-        self.x_0 = self.problem.get_initial_params()
+        unvalidated_x0 = self.problem.get_initial_params()
+        try:
+            self.x_0 = validate_x0(unvalidated_x0)
+        except BadInitialPoint:
+            LOG.warning("x0=%r", unvalidated_x0)
+            raise
         self._factory_name = type(optimizer_factory).__name__
         self._solve = optimizer_factory.make_solve_func(
             scipy.optimize.Bounds(
@@ -278,9 +287,14 @@ class FunctionOptimizableJob(OptJob):
     ) -> None:
         super().__init__(token_source=token_source, signals=signals, problem=problem)
         self.skeleton_points = tuple(skeleton_points)
-        self.all_x_0 = [
-            problem.get_initial_params(point) for point in self.skeleton_points
-        ]
+        self.all_x_0 = []
+        for point in self.skeleton_points:
+            unvalidated_x0 = problem.get_initial_params(point)
+            try:
+                self.all_x_0.append(validate_x0(unvalidated_x0))
+            except BadInitialPoint:
+                LOG.warning("t=%g ms, x0=%r", point, unvalidated_x0)
+                raise
         self._current_point: t.Optional[float] = None
         self._factory = optimizer_factory
 
@@ -388,6 +402,25 @@ class FunctionOptimizableJob(OptJob):
         return tuple(getattr(self.problem, "constraint_names", ())) or tuple(
             f"Constraint {i}" for i in indices
         )
+
+
+def validate_x0(array: np.ndarray) -> np.ndarray:
+    """Raise BadInitialPoint if array is not a flat floating-point array."""
+    array = np.asanyarray(array)
+    if array.ndim != 1:
+        raise BadInitialPoint(
+            f"bad shape: expected a 1-D array, got shape={array.shape}"
+        )
+    # We exceptionally also accept unsigned ("u") and signed ("i")
+    # integers, but only because most optimizers cast them to float
+    # without issues. The one thing this guards against is
+    # `dtype('object')`, which we can occasionally get if PyJapc returns
+    # something weird.
+    if array.dtype.kind not in "uif":
+        raise BadInitialPoint(
+            f"bad type: expected a float array, got dtype={array.dtype}"
+        )
+    return array
 
 
 def all_into_flat_array(values: t.Iterable[t.Union[float, np.ndarray]]) -> np.ndarray:
