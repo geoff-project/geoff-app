@@ -291,7 +291,14 @@ class NumOptTab(QtWidgets.QWidget):
         self.stop_button.setEnabled(False)
         self._current_opt_job.cancel()
 
-    def _on_opt_finished(self, _cancellation_completed: bool) -> None:
+    def _on_opt_finished(self, success: bool) -> None:
+        if success:
+            QtWidgets.QMessageBox(
+                QtWidgets.QMessageBox.Information,
+                "Numerical optimization",
+                "Job has terminated successfully.",
+                parent=self.window(),
+            ).show()
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
         self.reset_button.setEnabled(True)

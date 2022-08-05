@@ -220,7 +220,14 @@ class RlExecTab(QtWidgets.QWidget):
         self.stop_button.setEnabled(False)
         self._current_exec_job.cancel()
 
-    def _on_run_finished(self, _cancellation_completed: bool) -> None:
+    def _on_run_finished(self, success: bool) -> None:
+        if success:
+            QtWidgets.QMessageBox(
+                QtWidgets.QMessageBox.Information,
+                "RL run",
+                "Job has terminated successfully.",
+                parent=self.window(),
+            ).show()
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
 

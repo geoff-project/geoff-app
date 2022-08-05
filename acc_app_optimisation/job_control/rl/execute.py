@@ -136,9 +136,7 @@ class ExecJob(Job):
             LOG,
             token_source=self._token_source,
             on_success=lambda: self._signals.run_finished.emit(True),
-            on_cancel=lambda: self._signals.run_finished.emit(
-                not self._token_source.cancellation_requested
-            ),
+            on_cancel=lambda: self._signals.run_finished.emit(False),
             on_exception=self._signals.run_failed.emit,
         ):
             for i in range(1, 1 + self._num_episodes):

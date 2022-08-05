@@ -6,6 +6,8 @@
 
 - If a plugin raises an exception, open a message box instead of expanding the
   log console.
+- Show an informational message box whenever an optimization, RL training, RL
+  run or reset operation terminates successfully.
 
 ## v0.6.0
 
