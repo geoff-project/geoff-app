@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import typing as t
 from logging import getLogger

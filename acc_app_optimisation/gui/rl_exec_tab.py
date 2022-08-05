@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import typing as t
 from logging import getLogger
@@ -117,7 +119,7 @@ class RlExecTab(QtWidgets.QWidget):
         self.setMachine(self._machine)
 
     @contextlib.contextmanager
-    def create_lsa_context(self, japc: "PyJapc") -> t.Iterator[None]:
+    def create_lsa_context(self, japc: PyJapc) -> t.Iterator[None]:
         assert self._exec_builder.japc is None, "nested LSA context"
         self._exec_builder.japc = japc
         try:
