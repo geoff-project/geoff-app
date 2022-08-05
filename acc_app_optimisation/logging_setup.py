@@ -28,6 +28,7 @@ class StreamToLogger(io.TextIOBase):
         self.linebuf = ""
 
     def write(self, buf: str) -> int:
+        num_written = len(buf)
         if self.linebuf:
             buf = self.linebuf + buf
         while buf:
@@ -35,7 +36,7 @@ class StreamToLogger(io.TextIOBase):
             if newline:
                 self.logger.log(self.level, self.linebuf.rstrip())
                 self.linebuf = ""
-        return len(buf)
+        return num_written
 
     def flush(self) -> None:
         if self.linebuf:
