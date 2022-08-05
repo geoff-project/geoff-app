@@ -93,7 +93,7 @@ def create_handler(filename: t.Union[None, str, os.PathLike]) -> StreamHandler:
         # file to the handler and it is none the wiser. Eventually, the
         # handler will correctly close the file.
         file = tempfile.NamedTemporaryFile(  # pylint: disable=consider-using-with
-            mode="w", prefix=__package__, suffix=".log", delete=False
+            mode="w", prefix=__package__ + "_", suffix=".log", delete=False
         )
         handler = t.cast(StreamHandler, FileHandler(file.name, delay=True))
         handler.setStream(t.cast(io.TextIOWrapper, file))
