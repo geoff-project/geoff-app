@@ -115,9 +115,7 @@ class OptJob(Job):
             LOG,
             token_source=self._token_source,
             on_success=lambda: self._signals.optimisation_finished.emit(True),
-            on_cancel=lambda: self._signals.optimisation_finished.emit(
-                not self._token_source.cancellation_requested
-            ),
+            on_cancel=lambda: self._signals.optimisation_finished.emit(False),
             on_exception=self._signals.optimisation_failed.emit,
         ):
             self.run_optimization()
@@ -217,9 +215,7 @@ class SingleOptimizableJob(OptJob):
             LOG,
             token_source=self._token_source,
             on_success=lambda: self._signals.optimisation_finished.emit(True),
-            on_cancel=lambda: self._signals.optimisation_finished.emit(
-                not self._token_source.cancellation_requested
-            ),
+            on_cancel=lambda: self._signals.optimisation_finished.emit(False),
             on_exception=self._signals.optimisation_failed.emit,
         ):
             LOG.info("start reset of %s using %s", self.problem_id, self._factory_name)
