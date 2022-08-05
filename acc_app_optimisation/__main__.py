@@ -32,8 +32,9 @@ def init_logging(
     else:
         handlers = []
     # No level-based filtering on the root logger; we leave that to the
-    # log console and to the stderr_handler.
+    # log console and to `handler`.
     logging.basicConfig(level="NOTSET", handlers=handlers)
+    logging.captureWarnings(True)
     return LogConsoleModel()
 
 
