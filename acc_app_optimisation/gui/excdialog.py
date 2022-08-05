@@ -26,7 +26,7 @@ def exception_dialog(
         parent: The parent widget to attach to.
     """
     if not isinstance(exception, TracebackException):
-        tbexc = TracebackException.from_exception(exception)
+        exception = TracebackException.from_exception(exception)
     dialog = QtWidgets.QMessageBox(
         QtWidgets.QMessageBox.Warning,
         title,
@@ -34,8 +34,8 @@ def exception_dialog(
         parent=parent,
         buttons=QtWidgets.QMessageBox.Close,
     )
-    dialog.setInformativeText("".join(tbexc.format_exception_only()))
-    dialog.setDetailedText("".join(tbexc.format()))
+    dialog.setInformativeText("".join(exception.format_exception_only()))
+    dialog.setDetailedText("".join(exception.format()))
     return dialog
 
 
