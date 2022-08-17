@@ -4,6 +4,12 @@
 
 No changes yet!
 
+## v0.7.1
+
+### Bug fixes
+
+- FunctionOptimizable problems are now recognized as such again.
+
 ## v0.7.0
 
 ### Visible changes

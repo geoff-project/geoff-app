@@ -77,7 +77,7 @@ class OptJobBuilder(JobBuilder):
         if self.optimizer_factory is None:
             raise CannotBuildJob("no optimizer selected")
         problem = self.make_problem() if self.problem is None else self.problem
-        if isinstance(problem, FunctionOptimizable):
+        if isinstance(problem.unwrapped, FunctionOptimizable):
             if self.skeleton_points is None or not np.shape(self.skeleton_points):
                 raise CannotBuildJob("no skeleton points selected")
             return jobs.FunctionOptimizableJob(
