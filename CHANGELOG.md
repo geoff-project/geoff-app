@@ -4,6 +4,14 @@
 
 No changes yet!
 
+## v0.7.2
+
+### Build changes
+
+- Upgrade cernml-coi-utils to 0.2.5. This adds the ability to trim multiple
+  functions at once via `cernml.lsa_utils.IncorporatorGroup`.
+- Upgrade cern-leir-transfer-line-env requirement to 0.5.0.
+
 ## v0.7.1
 
 ### Bug fixes
