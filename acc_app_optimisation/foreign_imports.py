@@ -4,6 +4,8 @@
 import collections
 import functools
 import importlib
+import importlib.machinery
+import importlib.util
 import logging
 import sys
 import typing as t
@@ -16,6 +18,19 @@ LOG = logging.getLogger(__name__)
 
 class IllegalImport(ImportError):
     """An import modified the environment in a disallowed manner."""
+
+
+class UselessNamespacePackage(ImportError):
+    """The module ultimately imported is a namespace packages.
+
+    Namespace packages may only be imported in order to import one of
+    their submodules. The reason is twofold:
+
+    1. This hints at a path confusion, where the user accidentally
+       specified a path that does not actually contain any Python code.
+    2. A namespace package on its own doesn't do anything, so this is
+       almost certainly never the right thing to do.
+    """
 
 
 class ChangeKind(Enum):
@@ -135,6 +150,10 @@ def import_from_path(to_be_imported: str) -> ModuleType:
             child_segments,
             _import_module_from_spec(spec),
         )
+        if _is_namespace_package(module):
+            raise UselessNamespacePackage(
+                f"no __init__.py found, please check the path: {to_be_imported}"
+            )
         _assert_only_additions(backup)
     return module
 
@@ -178,21 +197,27 @@ def _import_module_from_spec(spec: importlib.machinery.ModuleSpec) -> ModuleType
     """Import a module based on its spec."""
     if spec.name in sys.modules:
         LOG.info("skipping: %s (already imported)", spec.name)
-        module = sys.modules[spec.name]
-    else:
-        LOG.info("importing: %s", spec.name)
-        assert spec.loader is not None
-        if hasattr(spec.loader, "exec_module"):
-            module = importlib.util.module_from_spec(spec)
-            sys.modules[spec.name] = module
-            spec.loader.exec_module(module)  # type: ignore
-        else:
-            # Before Python 3.10, zipimport.zipimporter does not provide
-            # `exec_module()`, only the legacy `load_module()` API. Once
-            # we support _only_ Python 3.10+, this will become
-            # superfluous.
-            module = spec.loader.load_module(spec.name)
-    return module
+        return sys.modules[spec.name]
+    if spec.loader is None:
+        # Namespace package. Import it here and check later that the
+        # leaf module is a real one. This prevents path confusion like
+        # using `/path/to/project` instead of
+        # `/path/to/project/src/package`.
+        LOG.info("importing: %s (namespace package)", spec.name)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        return module
+    LOG.info("importing: %s", spec.name)
+    if hasattr(spec.loader, "exec_module"):
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+        spec.loader.exec_module(module)  # type: ignore
+        return module
+    # Before Python 3.10, zipimport.zipimporter does not provide
+    # `exec_module()`, only the legacy `load_module()` API. Once
+    # we support _only_ Python 3.10+, this will become
+    # superfluous.
+    return spec.loader.load_module(spec.name)
 
 
 def _search_and_import_child(parent: ModuleType, child_name: str) -> ModuleType:
@@ -206,6 +231,27 @@ def _search_and_import_child(parent: ModuleType, child_name: str) -> ModuleType:
     if not spec:
         raise ModuleNotFoundError(absolute_name)
     return _import_module_from_spec(spec)
+
+
+def _is_namespace_package(module: ModuleType) -> bool:
+    """Return True if the given module represents a namespace package.
+
+    Examples:
+
+        >>> from importlib.util import module_from_spec
+        >>> from importlib.machinery import ModuleSpec
+        >>> ns_spec = ModuleSpec("nspkg", None, is_package=True)
+        >>> _is_namespace_package(module_from_spec(ns_spec))
+        True
+        >>> _is_namespace_package(__import__("importlib"))
+        False
+        >>> _is_namespace_package(__import__("sys"))
+        False
+    """
+    # For namespace packages, __file__ isn't set or is set to None.
+    # We also need to check __path__ because built-in modules don't have
+    # __file__ set either.
+    return hasattr(module, "__path__") and getattr(module, "__file__", None) is None
 
 
 def _assert_only_additions(backup: BackupModules) -> None:

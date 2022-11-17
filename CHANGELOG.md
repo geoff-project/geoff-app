@@ -7,6 +7,12 @@
 - BOBYQA now supports a higher precision on its `rhobeg` and `rhoend`
   parameters. For regrettable internal reasons, the input fields in the
   configuration dialog consequently no longer have spin controls.
+- The runtime plugin mechanism (known as "foreign imports") now supports
+  modules inside namespace packages. As before, it remains an error to import a
+  namespace package directly. However, the error message in this case has been
+  improved. (It used to be "AssertionError", now it reads "no `__init__.py`
+  found".) This is to catch common mistakes in which a plugin's project
+  directory is passed instead of the package path.
 
 ## v0.7.4
 
