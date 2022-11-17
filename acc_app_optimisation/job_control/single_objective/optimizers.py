@@ -87,13 +87,13 @@ class Bobyqa(OptimizerFactory, coi.Configurable):
         config.add(
             "rhobeg",
             self.rhobeg,
-            range=(0.0, 1.0),
+            range=(1e-10, 1.0),
             help="Initial size of the trust region",
         )
         config.add(
             "rhoend",
             self.rhoend,
-            range=(0.0, 1.0),
+            range=(1e-10, 1.0),
             help="Step size below which the optimization is considered converged",
         )
         config.add(
@@ -115,6 +115,8 @@ class Bobyqa(OptimizerFactory, coi.Configurable):
         return config
 
     def apply_config(self, values: SimpleNamespace) -> None:
+        if values.rhobeg <= values.rhoend:
+            raise coi.BadConfig("rhobeg must be greater than rhoend")
         self.maxfun = values.maxfun
         self.rhobeg = values.rhobeg
         self.rhoend = values.rhoend

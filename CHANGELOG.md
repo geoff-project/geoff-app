@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-No changes yet!
+### Visible changes
+
+- BOBYQA now supports a higher precision on its `rhobeg` and `rhoend`
+  parameters. For regrettable internal reasons, the input fields in the
+  configuration dialog consequently no longer have spin controls.
 
 ## v0.7.4
 
