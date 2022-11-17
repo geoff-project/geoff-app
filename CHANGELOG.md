@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes yet!
+
+## v0.7.5
+
 ### Visible changes
 
 - BOBYQA now supports a higher precision on its `rhobeg` and `rhoend`
