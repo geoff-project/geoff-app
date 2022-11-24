@@ -9,12 +9,12 @@ import pjlsa
 from accwidgets.app_frame import ApplicationFrame
 from accwidgets.log_console import LogConsole, LogConsoleDock, LogConsoleModel
 from accwidgets.rbac import RbaToken
-from accwidgets.timing_bar import TimingBar, TimingBarDomain
+from accwidgets.timing_bar import TimingBar
 from cernml import coi
-from pylogbook import NamedActivity
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
+from . import _translate
 from .control_pane import ControlPane
 from .plot_manager import PlotManager
 from .popout_mdi_area import PopoutMdiArea
@@ -34,44 +34,6 @@ def get_lsa_server(lsa: pjlsa.LSAClient) -> str:
     if not isinstance(server_name, str):
         raise TypeError(f"lsa.server is not a string: {server_name!r}")
     return server_name
-
-
-def machine_to_timing_domain(machine: coi.Machine) -> t.Optional[TimingBarDomain]:
-    """Fetch the timing domain for a given CERN machine."""
-    return {
-        coi.Machine.NO_MACHINE: None,
-        coi.Machine.LINAC_2: TimingBarDomain.PSB,
-        coi.Machine.LINAC_3: TimingBarDomain.LEI,
-        coi.Machine.LINAC_4: TimingBarDomain.PSB,
-        coi.Machine.LEIR: TimingBarDomain.LEI,
-        coi.Machine.PS: TimingBarDomain.CPS,
-        coi.Machine.PSB: TimingBarDomain.PSB,
-        coi.Machine.SPS: TimingBarDomain.SPS,
-        coi.Machine.AWAKE: None,
-        coi.Machine.LHC: TimingBarDomain.LHC,
-        coi.Machine.ISOLDE: None,
-        coi.Machine.AD: TimingBarDomain.ADE,
-        coi.Machine.ELENA: TimingBarDomain.LNA,
-    }.get(machine)
-
-
-def machine_to_activity(machine: coi.Machine) -> t.Union[None, str, NamedActivity]:
-    """Fetch the pylogbook activity for a given CERN machine."""
-    return {
-        coi.Machine.NO_MACHINE: None,
-        coi.Machine.LINAC_2: NamedActivity.LINAC4,
-        coi.Machine.LINAC_3: NamedActivity.LINAC3,
-        coi.Machine.LINAC_4: NamedActivity.LINAC4,
-        coi.Machine.LEIR: NamedActivity.LEIR,
-        coi.Machine.PS: NamedActivity.PS,
-        coi.Machine.PSB: NamedActivity.PSB,
-        coi.Machine.SPS: NamedActivity.SPS,
-        coi.Machine.AWAKE: None,
-        coi.Machine.LHC: NamedActivity.LHC,
-        coi.Machine.ISOLDE: None,
-        coi.Machine.AD: "ADE",
-        coi.Machine.ELENA: NamedActivity.ELENA,
-    }.get(machine)
 
 
 class DumbDockWidget(QtWidgets.QDockWidget):
@@ -279,8 +241,10 @@ class MainWindow(ApplicationFrame):
 
     def _on_machine_changed(self, value: str) -> None:
         machine = coi.Machine(value)
-        self.screenshot_widget.model.logbook_activities = machine_to_activity(machine)
-        timing_domain = machine_to_timing_domain(machine)
+        self.screenshot_widget.model.logbook_activities = (
+            _translate.machine_to_activity(machine)
+        )
+        timing_domain = _translate.machine_to_timing_domain(machine)
         if timing_domain:
             self.timing_bar.model.domain = timing_domain
             self.timingBarAction().setVisible(True)

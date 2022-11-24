@@ -12,6 +12,7 @@ from cernml import coi
 from pyjapc import PyJapc
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from . import _translate
 from .delayed_combo_box import DelayedComboBox
 from .num_opt_tab import NumOptTab
 from .rl_exec_tab import RlExecTab
@@ -25,23 +26,6 @@ if t.TYPE_CHECKING:
     from .plot_manager import PlotManager
 
 LOG = getLogger(__name__)
-
-
-def translate_machine(machine: coi.Machine) -> LsaSelectorAccelerator:
-    """Fetch the LSA accelerator for a given CERN machine."""
-    return {
-        coi.Machine.LINAC_3: LsaSelectorAccelerator.LEIR,
-        coi.Machine.LINAC_4: LsaSelectorAccelerator.PSB,
-        coi.Machine.LEIR: LsaSelectorAccelerator.LEIR,
-        coi.Machine.PS: LsaSelectorAccelerator.PS,
-        coi.Machine.PSB: LsaSelectorAccelerator.PSB,
-        coi.Machine.SPS: LsaSelectorAccelerator.SPS,
-        coi.Machine.AWAKE: LsaSelectorAccelerator.AWAKE,
-        coi.Machine.LHC: LsaSelectorAccelerator.LHC,
-        coi.Machine.ISOLDE: LsaSelectorAccelerator.ISOLDE,
-        coi.Machine.AD: LsaSelectorAccelerator.AD,
-        coi.Machine.ELENA: LsaSelectorAccelerator.ELENA,
-    }.get(machine, LsaSelectorAccelerator.LHC)
 
 
 class ControlPane(QtWidgets.QWidget):
@@ -70,8 +54,11 @@ class ControlPane(QtWidgets.QWidget):
         self.machine_combo.setCurrentText(initial_machine.value)
         self.machine_combo.stableTextChanged.connect(self._on_machine_changed)
         model = LsaSelectorModel(
-            translate_machine(initial_machine),
-            lsa,
+            accelerator=(
+                _translate.machine_to_lsa_accelerator(initial_machine)
+                or LsaSelectorAccelerator.LHC
+            ),
+            lsa=lsa,
             resident_only=True,
             categories=set(AbstractLsaSelectorContext.Category),
         )
