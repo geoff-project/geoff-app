@@ -2,7 +2,10 @@
 
 ## Unreleased
 
-No changes yet!
+### Build changes
+
+- Upgrade cernml-coi requirement to 0.8.5. This enables use of AD and ELENA
+  optimization problems.
 
 ## v0.7.5
 

@@ -39,6 +39,8 @@ def translate_machine(machine: coi.Machine) -> LsaSelectorAccelerator:
         coi.Machine.AWAKE: LsaSelectorAccelerator.AWAKE,
         coi.Machine.LHC: LsaSelectorAccelerator.LHC,
         coi.Machine.ISOLDE: LsaSelectorAccelerator.ISOLDE,
+        coi.Machine.AD: LsaSelectorAccelerator.AD,
+        coi.Machine.ELENA: LsaSelectorAccelerator.ELENA,
     }.get(machine, LsaSelectorAccelerator.LHC)
 
 
@@ -71,7 +73,7 @@ class ControlPane(QtWidgets.QWidget):
             translate_machine(initial_machine),
             lsa,
             resident_only=True,
-            categories=list(AbstractLsaSelectorContext.Category),
+            categories=set(AbstractLsaSelectorContext.Category),
         )
         model.filter_categories = {AbstractLsaSelectorContext.Category.OPERATIONAL}
         self.lsa_selector = LsaSelector(parent=self, model=model)
@@ -108,7 +110,16 @@ class ControlPane(QtWidgets.QWidget):
         from cern.rbac.util.holder import ClientTierTokenHolder  # type: ignore
         from java.nio import ByteBuffer
 
-        byte_buffer = ByteBuffer.wrap(pyrbac_token.get_encoded())
+        # We have to lie about our types here. pjlsa 0.2.12 annotates
+        # `wrap()` as accepting List[int], which expects signed bytes.
+        # However, the method factually also accepts `bytes`. Converting
+        # a `bytes` to a `List[int]` is non-trivial, since `list()`
+        # returns unsigned bytes. It is simpler to just pass the `bytes`
+        # unmodified.
+        # TODO: A patch has been submitted to pjlsa under
+        # <https://gitlab.cern.ch/scripting-tools/pjlsa/-/merge_requests/15>.
+        # Once a new release has been made, this cast should be removed.
+        byte_buffer = ByteBuffer.wrap(t.cast(t.List[int], pyrbac_token.get_encoded()))
         java_token = RbaToken.parseAndValidate(byte_buffer)
         ClientTierTokenHolder.setRbaToken(java_token)
         japc_token = self._japc.rbacGetToken()
@@ -138,6 +149,9 @@ class ControlPane(QtWidgets.QWidget):
         self.rl_exec_tab.setMachine(machine)
 
     def _on_lsa_user_changed(self, user_name: str) -> None:
+        assert (
+            self.lsa_selector.selected_context is not None
+        ), "This should never happen"
         context_name = self.lsa_selector.selected_context.name
         LOG.debug("cycle changed: %s, %s", context_name, user_name)
         self._last_lsa_selection[self.machine_combo.currentText()] = user_name

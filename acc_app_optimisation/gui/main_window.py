@@ -39,6 +39,7 @@ def get_lsa_server(lsa: pjlsa.LSAClient) -> str:
 def machine_to_timing_domain(machine: coi.Machine) -> t.Optional[TimingBarDomain]:
     """Fetch the timing domain for a given CERN machine."""
     return {
+        coi.Machine.NO_MACHINE: None,
         coi.Machine.LINAC_2: TimingBarDomain.PSB,
         coi.Machine.LINAC_3: TimingBarDomain.LEI,
         coi.Machine.LINAC_4: TimingBarDomain.PSB,
@@ -46,21 +47,30 @@ def machine_to_timing_domain(machine: coi.Machine) -> t.Optional[TimingBarDomain
         coi.Machine.PS: TimingBarDomain.CPS,
         coi.Machine.PSB: TimingBarDomain.PSB,
         coi.Machine.SPS: TimingBarDomain.SPS,
+        coi.Machine.AWAKE: None,
         coi.Machine.LHC: TimingBarDomain.LHC,
+        coi.Machine.ISOLDE: None,
+        coi.Machine.AD: TimingBarDomain.ADE,
+        coi.Machine.ELENA: TimingBarDomain.LNA,
     }.get(machine)
 
 
-def machine_to_activity(machine: coi.Machine) -> t.Optional[NamedActivity]:
+def machine_to_activity(machine: coi.Machine) -> t.Union[None, str, NamedActivity]:
     """Fetch the pylogbook activity for a given CERN machine."""
     return {
-        coi.Machine.LEIR: NamedActivity.LEIR,
+        coi.Machine.NO_MACHINE: None,
         coi.Machine.LINAC_2: NamedActivity.LINAC4,
         coi.Machine.LINAC_3: NamedActivity.LINAC3,
         coi.Machine.LINAC_4: NamedActivity.LINAC4,
-        coi.Machine.LHC: NamedActivity.LHC,
+        coi.Machine.LEIR: NamedActivity.LEIR,
         coi.Machine.PS: NamedActivity.PS,
         coi.Machine.PSB: NamedActivity.PSB,
         coi.Machine.SPS: NamedActivity.SPS,
+        coi.Machine.AWAKE: None,
+        coi.Machine.LHC: NamedActivity.LHC,
+        coi.Machine.ISOLDE: None,
+        coi.Machine.AD: "ADE",
+        coi.Machine.ELENA: NamedActivity.ELENA,
     }.get(machine)
 
 
