@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Visible changes
+
+- The `--machine` command-line parameter now also accepts machine names in
+  lower-case.
+
 ### Build changes
 
 - Upgrade cernml-coi requirement to 0.8.5. This enables use of AD and ELENA

@@ -85,7 +85,7 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-m",
         "--machine",
-        type=str,
+        type=str.upper,
         metavar="NAME",
         default="SPS",
         choices=[machine.name for machine in coi.Machine],
