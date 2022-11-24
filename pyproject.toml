@@ -24,6 +24,9 @@ exclude = '''
 [tool.isort]
 profile = "black"
 
+[tool.pylint.MAIN]
+extension-pkg-allow-list = ['PyQt5']
+
 [tool.pylint.REPORTS]
 score = false
 reports = false
