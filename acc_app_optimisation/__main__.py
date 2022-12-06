@@ -38,28 +38,18 @@ def init_logging(
     return LogConsoleModel()
 
 
-def import_all(paths: t.Iterable[str], *, builtins: bool) -> t.Optional[Exception]:
+def import_all(paths: t.Iterable[str], *, builtins: bool) -> None:
     """Import all foreign packages as well as builtin envs.
 
     If an exception occurs at any point, it is caught, logged, and
     returned. This allows displaying the error in the GUI later.
     """
-    # pylint: disable = broad-except
     # pylint: disable = import-outside-toplevel
-    try:
-        for path in paths:
-            foreign_imports.import_from_path(path)
-    except Exception as exc:
-        logging.error("exception during foreign imports", exc_info=True)
-        return exc
+    for path in paths:
+        foreign_imports.import_from_path(path)
     # Tricky ordering: foreign imports may override builtins.
-    try:
-        if builtins:
-            from acc_app_optimisation.envs import builtin_envs as _
-    except Exception as exc:
-        logging.error("exception during builtin imports", exc_info=True)
-        return exc
-    return None
+    if builtins:
+        from acc_app_optimisation.envs import builtin_envs as _
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -165,7 +155,11 @@ def main(argv: list) -> int:
             # pylint: disable = import-outside-toplevel
             from acc_app_optimisation import gui
 
-            import_error = import_all(args.foreign_imports, builtins=args.builtins)
+            errors = gui.excdialog.ExceptionQueue(title="Error during initialization")
+            try:
+                import_all(args.foreign_imports, builtins=args.builtins)
+            except Exception as exc:  # pylint: disable=broad-except
+                errors.append(exc, "not all plugins could be loaded")
             app = QtWidgets.QApplication(argv)
             app.setApplicationName(__package__)
             window = gui.MainWindow(
@@ -175,14 +169,7 @@ def main(argv: list) -> int:
                 japc_no_set=args.japc_no_set,
             )
             window.show()
-            if import_error is not None:
-                error_dialog = gui.excdialog.exception_dialog(
-                    import_error,
-                    title="Foreign imports",
-                    text="An error occurred while importing foreign packages",
-                    parent=window,
-                )
-                error_dialog.show()
+            errors.show_all(parent=window)
             return app.exec_()
 
 

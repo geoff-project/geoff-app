@@ -1,10 +1,41 @@
 """Provide a dialog for configuring optimization problems."""
 
+import logging
 import sys
 import typing as t
 from traceback import TracebackException
 
 from PyQt5 import QtWidgets
+
+
+class ExceptionQueue:
+    """A queue to swallow exceptions during initialization and show them later."""
+
+    def __init__(self, title: str) -> None:
+        self._queue: t.Deque[t.Tuple[str, TracebackException]] = t.Deque()
+        self._title = title
+
+    def append(
+        self,
+        exception: BaseException,
+        text: str,
+        logger: t.Optional[logging.Logger] = logging.root,
+    ) -> None:
+        """Append an exception to the queue for later display."""
+        if logger:
+            logger.error(text, exc_info=exception)
+        self._queue.append((text, TracebackException.from_exception(exception)))
+
+    def show_all(self, parent: t.Optional[QtWidgets.QWidget] = None) -> None:
+        """Show all exceptions as a series of dialogs."""
+        if not self._queue:
+            return
+        text, exception = self._queue.popleft()
+        dialog = exception_dialog(
+            exception, title=self._title, text=text, parent=parent
+        )
+        dialog.finished.connect(lambda _res: self.show_all(parent))
+        dialog.show()
 
 
 def exception_dialog(
