@@ -33,7 +33,6 @@ class ControlPane(QtWidgets.QWidget):
         self,
         parent: t.Optional[QtWidgets.QWidget] = None,
         *,
-        initial_machine: coi.Machine,
         lsa: "pjlsa.LSAClient",
         plot_manager: "PlotManager",
         japc_no_set: bool = False,
@@ -51,19 +50,17 @@ class ControlPane(QtWidgets.QWidget):
         machine_label.setFont(large)
         self.machine_combo = DelayedComboBox()
         self.machine_combo.addItems(machine.value for machine in coi.Machine)
-        self.machine_combo.setCurrentText(initial_machine.value)
+        self.machine_combo.setCurrentText(coi.Machine.NO_MACHINE.value)
         self.machine_combo.stableTextChanged.connect(self._on_machine_changed)
-        model = LsaSelectorModel(
-            accelerator=(
-                _translate.machine_to_lsa_accelerator(initial_machine)
-                or LsaSelectorAccelerator.LHC
+        self.lsa_selector = LsaSelector(
+            parent=self,
+            model=LsaSelectorModel(
+                accelerator=LsaSelectorAccelerator.LHC,
+                lsa=lsa,
+                resident_only=True,
+                categories=set(AbstractLsaSelectorContext.Category),
             ),
-            lsa=lsa,
-            resident_only=True,
-            categories=set(AbstractLsaSelectorContext.Category),
         )
-        model.filter_categories = {AbstractLsaSelectorContext.Category.OPERATIONAL}
-        self.lsa_selector = LsaSelector(parent=self, model=model)
         self.lsa_selector.userSelectionChanged.connect(self._on_lsa_user_changed)
         self.lsa_selector.showCategoryFilter = True
         self.tabs = QtWidgets.QTabWidget()
@@ -85,11 +82,21 @@ class ControlPane(QtWidgets.QWidget):
         # Fill all GUI elements, fire any events based on that.
         self._on_machine_changed(self.machine_combo.currentText())
 
-    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
-        # pylint: disable = invalid-name
-        self._finalizers.close()
-        self._japc.rbacLogout()
-        super().closeEvent(event)
+    def make_initial_selection(self, selection: _translate.InitialSelection) -> None:
+        """Pre-select machine and user according to command-line arguments."""
+        if self.lsa_selector.selected_context is not None:
+            raise RuntimeError("initial selection has already been made")
+        self.machine_combo.setCurrentText(selection.machine.value)
+        default_category = AbstractLsaSelectorContext.Category.OPERATIONAL
+        try:
+            if selection.user:
+                self.lsa_selector.select_user(selection.user)
+                if self.lsa_selector.selected_context is None:
+                    LOG.error("cannot select user: %s", selection.user)
+                    raise ValueError(f"cannot select user: {selection.user}")
+                default_category = self.lsa_selector.selected_context.category
+        finally:
+            self.lsa_selector.model.filter_categories = {default_category}
 
     def rbac_login(self, pyrbac_token: "AccWidgetsRbaToken") -> None:
         # pylint: disable = import-error, import-outside-toplevel
@@ -117,6 +124,12 @@ class ControlPane(QtWidgets.QWidget):
         self._japc.rbacLogout()
         LOG.info("JAPC logout via RBAC")
 
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
+        # pylint: disable = invalid-name
+        self._finalizers.close()
+        self._japc.rbacLogout()
+        super().closeEvent(event)
+
     def _on_machine_changed(self, value: str) -> None:
         LOG.debug("machine changed: %s", value)
         # Unload JAPC. This avoids JAPC with selector for machine A to
@@ -128,7 +141,9 @@ class ControlPane(QtWidgets.QWidget):
         # selected a context for this machine, re-select it.
         machine = coi.Machine(value)
         last_selection = self._last_lsa_selection.get(value, None)
-        self.lsa_selector.accelerator = translate_machine(machine)
+        self.lsa_selector.accelerator = (
+            _translate.machine_to_lsa_accelerator(machine) or LsaSelectorAccelerator.LHC
+        )
         if last_selection:
             self.lsa_selector.select_user(last_selection)
         self.num_opt_tab.setMachine(machine)

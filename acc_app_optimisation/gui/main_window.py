@@ -137,7 +137,6 @@ class MainWindow(ApplicationFrame):
     def __init__(
         self,
         *,
-        initial_machine: coi.Machine,
         lsa: pjlsa.LSAClient,
         model: t.Optional[LogConsoleModel] = None,
         japc_no_set: bool = False,
@@ -181,7 +180,6 @@ class MainWindow(ApplicationFrame):
         )
 
         self._control_pane = ControlPane(
-            initial_machine=initial_machine,
             lsa=lsa,
             plot_manager=self._plot_manager,
             japc_no_set=japc_no_set,
@@ -221,6 +219,10 @@ class MainWindow(ApplicationFrame):
         # created.
         LOG.info("RBAC: Attempting automatic location-based login")
         self.rba_widget.model.login_by_location(interactively_select_roles=False)
+
+    def make_initial_selection(self, selection: _translate.InitialSelection) -> None:
+        """Pre-select machine and user according to command-line arguments."""
+        self._control_pane.make_initial_selection(selection)
 
     def changeEvent(self, event: QtCore.QEvent) -> None:  # pylint: disable=invalid-name
         # The window manager is able to put our window into fullscreen

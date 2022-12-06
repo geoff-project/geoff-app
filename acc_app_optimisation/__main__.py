@@ -77,9 +77,16 @@ def get_parser() -> argparse.ArgumentParser:
         "--machine",
         type=str.upper,
         metavar="NAME",
-        default="SPS",
         choices=[machine.name for machine in coi.Machine],
-        help="The CERN machine to select initially (default: SPS)",
+        help="The CERN machine to select initially; (default: "
+        "deduced from --user if passed, otherwise NO_MACHINE)",
+    )
+    parser.add_argument(
+        "-u",
+        "--user",
+        type=str.upper,
+        metavar="NAME",
+        help="The timing user to select initially; if not passed, none is selected",
     )
     parser.add_argument(
         "-s",
@@ -160,14 +167,22 @@ def main(argv: list) -> int:
                 import_all(args.foreign_imports, builtins=args.builtins)
             except Exception as exc:  # pylint: disable=broad-except
                 errors.append(exc, "not all plugins could be loaded")
+            try:
+                selection = gui.InitialSelection(machine=args.machine, user=args.user)
+            except ValueError as exc:
+                errors.append(exc, "machine or user could not be pre-selected")
+                selection = gui.InitialSelection(None, None)
             app = QtWidgets.QApplication(argv)
             app.setApplicationName(__package__)
             window = gui.MainWindow(
-                initial_machine=coi.Machine[args.machine],
                 lsa=lsa,
                 model=model,
                 japc_no_set=args.japc_no_set,
             )
+            try:
+                window.make_initial_selection(selection)
+            except ValueError as exc:
+                errors.append(exc, "user could not be pre-selected")
             window.show()
             errors.show_all(parent=window)
             return app.exec_()

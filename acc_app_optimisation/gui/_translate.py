@@ -8,6 +8,81 @@ from cernml import coi
 from pylogbook import NamedActivity
 
 
+class InitialSelection:
+    """Turn command-line arguments for --machine and --user into domain objects.
+
+    Examples:
+
+        >>> InitialSelection(None, None)
+        InitialSelection('NO_MACHINE', None)
+        >>> InitialSelection("LINAC_3", None)
+        InitialSelection('LINAC_3', None)
+        >>> InitialSelection(None, "LEI.USER.ALL")
+        InitialSelection('LEIR', 'LEI.USER.ALL')
+        >>> InitialSelection("LINAC_4", "PSB.USER.ALL")
+        InitialSelection('LINAC_4', 'PSB.USER.ALL')
+        >>> InitialSelection("LEIR", "PSB.USER.ALL")
+        Traceback (most recent call last):
+        ...
+        ValueError: mismatched timing domain: ...
+        >>> InitialSelection("AWAKE", "PSB.USER.ALL")
+        Traceback (most recent call last):
+        ...
+        ValueError: machine 'AWAKE' has no timing domain
+        >>> InitialSelection("AWAKE", "PSB.USER.ALL")
+        Traceback (most recent call last):
+        ...
+        ValueError: machine 'AWAKE' has no timing domain
+        >>> InitialSelection("SPS", "FOO.USER.NONE")
+        Traceback (most recent call last):
+        ...
+        ValueError: unknown timing domain: FOO.USER.NONE
+        >>> InitialSelection(None, "FOO.USER.NONE")
+        Traceback (most recent call last):
+        ...
+        ValueError: unknown timing domain: FOO.USER.NONE
+    """
+
+    machine: coi.Machine
+    user: t.Optional[str]
+
+    def __init__(self, machine: t.Optional[str], user: t.Optional[str]) -> None:
+        if machine and user:
+            self.machine = coi.Machine[machine]
+            self.user = user
+            machine_domain = machine_to_timing_domain(self.machine)
+            if not machine_domain:
+                raise ValueError(f"machine {self.machine.name!r} has no timing domain")
+            user_domain = user_to_timing_domain(self.user)
+            if not user_domain:
+                raise ValueError(f"unknown timing domain: {user}")
+            if machine_domain != user_domain:
+                raise ValueError(
+                    f"mismatched timing domain: machine {self.machine.name!r} "
+                    f"expects {machine_domain.name!r}: {self.user!r}"
+                )
+        elif user:
+            domain = user_to_timing_domain(user)
+            if not domain:
+                raise ValueError(f"unknown timing domain: {user}")
+            translated_machine = timing_domain_to_machine(domain)
+            if not translated_machine:
+                raise ValueError(
+                    f"no machine associated with timing domain {domain.name!r}"
+                )
+            self.machine = translated_machine
+            self.user = user
+        elif machine:
+            self.machine = coi.Machine[machine]
+            self.user = None
+        else:
+            self.machine = coi.Machine.NO_MACHINE
+            self.user = None
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}({self.machine.name!r}, {self.user!r})"
+
+
 def machine_to_timing_domain(machine: coi.Machine) -> t.Optional[TimingBarDomain]:
     """Return the timing domain for a given CERN machine.
 

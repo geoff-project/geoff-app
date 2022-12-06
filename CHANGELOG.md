@@ -6,6 +6,9 @@
 
 - The `--machine` command-line parameter now also accepts machine names in
   lower-case.
+- The new command-line parameter `--user` allows specifying the TGM user to
+  preselect in the LSA selector. This allows forwarding a user selected in the
+  CCM to this program.
 
 ### Build changes
 
