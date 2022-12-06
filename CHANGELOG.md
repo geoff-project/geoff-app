@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes yet!
+
+## v0.8.0
+
 ### Visible changes
 
 - The `--machine` command-line parameter now also accepts machine names in
