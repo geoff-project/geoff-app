@@ -8,7 +8,11 @@ import logging
 import sys
 import typing as t
 
-import importlib_metadata
+try:
+    from importlib import metadata
+except ImportError:
+    import importlib_metadata as metadata # type: ignore
+
 import pjlsa
 from accwidgets.log_console import LogConsoleModel
 from cernml import coi
@@ -153,7 +157,7 @@ def main(argv: list) -> int:
     """Main function. Pass sys.argv."""
     args = get_parser().parse_args(argv[1:])
     if args.version:
-        print(f"GeOFF v{importlib_metadata.version(__package__)}")
+        print(f"GeOFF v{metadata.version(__package__)}")
         return 0
     model = init_logging(log_to_file=args.log_to_file, filename=args.log_file)
     with logging_setup.redirect_streams_to_logging():

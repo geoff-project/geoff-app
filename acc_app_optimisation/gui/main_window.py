@@ -3,7 +3,11 @@
 import typing as t
 from logging import getLogger
 
-import importlib_metadata
+try:
+    from importlib import metadata
+except ImportError:
+    import importlib_metadata as metadata # type: ignore
+
 import jpype
 import pjlsa
 from accwidgets.app_frame import ApplicationFrame
@@ -142,7 +146,7 @@ class MainWindow(ApplicationFrame):
         japc_no_set: bool = False,
     ) -> None:
         super().__init__(use_timing_bar=True, use_rbac=True)
-        self.appVersion = importlib_metadata.version(  # pylint: disable=invalid-name
+        self.appVersion = metadata.version(  # pylint: disable=invalid-name
             __package__.partition(".")[0]
         )
         self.setWindowTitle(

@@ -2,7 +2,12 @@
 
 ## Unreleased
 
+### Build changes
+
 - Moved project configuration to pyproject.toml.
+- The `importlib-metadata` backport now is only a dependency for Python<3.8.
+  When running on Python 3.8 and beyond, the standard library module
+  `importlib.metadata` is used.
 
 ## v0.8.1
 
