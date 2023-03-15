@@ -1,82 +1,80 @@
 [build-system]
 requires = [
-    "setuptools >= 61",
-    "wheel >= 0.36",
-    "setuptools-scm[toml] >= 7.0",
+    'setuptools >= 61',
+    'wheel >= 0.36',
+    'setuptools-scm[toml] >= 7.0',
 ]
-build-backend = "setuptools.build_meta"
+build-backend = 'setuptools.build_meta'
 
 [project]
 dynamic = ['version']
-name = "acc-app-optimisation"
-description = "GUI for generic numerical optimisation"
-readme = "README.md"
+name = 'acc-app-optimisation'
+description = 'GUI for generic numerical optimisation'
+readme = 'README.md'
 authors = [
-    {name = "Verena Kain", email = "verena.kain@cern.ch"},
-    {name = "Nico Madysa", email = "nico.madysa@cern.ch"},
+    {name = 'Verena Kain', email = 'verena.kain@cern.ch'},
+    {name = 'Nico Madysa', email = 'nico.madysa@cern.ch'},
 ]
-requires-python = ">=3.7"
+requires-python = '>=3.7'
 classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Environment :: X11 Applications :: Qt",
-    "Intended Audience :: Science/Research",
-    "License :: Other/Proprietary License",
-    "Natural Language :: English",
-    "Operating System :: POSIX :: Linux",
-    "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Topic :: Scientific/Engineering :: Physics",
+    'Development Status :: 3 - Alpha',
+    'Environment :: X11 Applications :: Qt',
+    'Intended Audience :: Science/Research',
+    'License :: Other/Proprietary License',
+    'Natural Language :: English',
+    'Operating System :: POSIX :: Linux',
+    'Programming Language :: Python :: 3 :: Only',
+    'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
+    'Topic :: Scientific/Engineering :: Artificial Intelligence',
+    'Topic :: Scientific/Engineering :: Physics',
 ]
 dependencies = [
-    "JPype1 ~= 1.0",
-    "Py-BOBYQA ~= 1.2",
-    "PyQt5 ~= 5.12",
-    "accwidgets[app_frame,graph,log_console,lsa_selector,rbac,screenshot] ~= 1.7.0",
-    "cern-awake-env ~= 0.18.0",
-    "linac3-lebt-tuning ~= 1.0",
-    "cern-leir-transfer-line-env ~= 0.5.2",
-    "cern-sps-tune-env ~= 0.4.0",
-    "cern-sps-splitter-opt-env ~= 0.0.8",
-    "cern-sps-zs-alignment-env ~= 0.4.0",
-    "cernml-coi ~= 0.8.5",
-    "cernml-coi-utils ~= 0.2.5",
-    "cernml-svd ~= 3.0",
-    "cernml-extremum-seeking ~= 2.0",
-    "gym >= 0.17",
-    "importlib-metadata >=3.6; python_version<'3.8'",
-    "numpy ~= 1.17",
-    "pjlsa ~= 0.2.0",
-    "pyjapc ~= 2.0",
-    "pylogbook ~= 3.3",
-    "pyqtgraph ~= 0.12.0",
-    "pyrbac ~= 0.0.7",
-    "scikit-optimize ~= 0.9.0",
-    "scipy ~= 1.3",
-    "stable-baselines3 ~= 0.11.1",
+    'JPype1 ~= 1.0',
+    'Py-BOBYQA ~= 1.2',
+    'PyQt5 ~= 5.12',
+    'accwidgets[app_frame,graph,log_console,lsa_selector,rbac,screenshot] ~= 1.7.5',
+    'cern-awake-env ~= 0.18.0',
+    'linac3-lebt-tuning ~= 1.0',
+    'cern-leir-transfer-line-env ~= 0.5.2',
+    'cern-sps-tune-env ~= 0.4.0',
+    'cern-sps-splitter-opt-env ~= 0.0.8',
+    'cern-sps-zs-alignment-env ~= 0.4.0',
+    'cernml-coi ~= 0.8.7',
+    'cernml-coi-utils ~= 0.2.5',
+    'cernml-svd ~= 3.0',
+    'cernml-extremum-seeking ~= 2.0',
+    'gym >= 0.17',
+    'importlib-metadata >=3.6; python_version<"3.8"',
+    'numpy ~= 1.17',
+    'pjlsa ~= 0.2.0',
+    'pyjapc ~= 2.0',
+    'pylogbook ~= 3.3',
+    'scikit-optimize ~= 0.9.0',
+    'scipy ~= 1.3',
+    'stable-baselines3 ~= 1.0',
 ]
 
 [project.optional-dependencies]
 test = [
-    "pytest >= 6.0",
-    "pytest-mock ~= 3.3",
+    'pytest >= 6.0',
+    'pytest-mock ~= 3.3',
 ]
 dev = [
-    "PyQt5-stubs ~= 5.12",
-    "black >= 23",
-    "mypy ~= 1.0",
-    "pylint ~= 2.0",
+    'PyQt5-stubs ~= 5.12',
+    'black >= 23',
+    'mypy ~= 1.0',
+    'pylint ~= 2.0',
 ]
 
 [project.urls]
-gitlab = "https://gitlab.cern.ch/vkain/acc-app-optimisation"
+gitlab = 'https://gitlab.cern.ch/vkain/acc-app-optimisation'
 
 [tool.setuptools]
 zip-safe = true
 platforms = [
-    "CERN General Network",
-    "CERN Technical Network",
+    'CERN General Network',
+    'CERN Technical Network',
 ]
 
 [tool.setuptools_scm]
@@ -95,7 +93,7 @@ exclude = '''
 '''
 
 [tool.isort]
-profile = "black"
+profile = 'black'
 
 [tool.pylint.MAIN]
 extension-pkg-allow-list = ['PyQt5']
@@ -127,16 +125,16 @@ namespace-packages = true
 
 [[tool.mypy.overrides]]
 module = [
-    "accwidgets.*",
-    "gym.*",
-    "jpype.*",
-    "matplotlib.*",
-    "numpy.*",
-    "scipy.*",
-    "skopt.*",
-    "pjlsa.*",
-    "pybobyqa.*",
-    "pyjapc.*",
-    "pyqtgraph.*",
+    'accwidgets.*',
+    'gym.*',
+    'jpype.*',
+    'matplotlib.*',
+    'numpy.*',
+    'scipy.*',
+    'skopt.*',
+    'pjlsa.*',
+    'pybobyqa.*',
+    'pyjapc.*',
+    'pyqtgraph.*',
 ]
 ignore-missing-imports = true
