@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-No changes yet!
+- Moved project configuration to pyproject.toml.
 
 ## v0.8.1
 
