@@ -64,9 +64,9 @@ test = [
 ]
 dev = [
     "PyQt5-stubs ~= 5.12",
-    "black",
-    "mypy",
-    "pylint",
+    "black >= 23",
+    "mypy ~= 1.0",
+    "pylint ~= 2.0",
 ]
 
 [project.urls]
