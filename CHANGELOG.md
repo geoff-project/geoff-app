@@ -4,6 +4,7 @@
 
 ### Build changes
 
+- Add support for Python 3.9.
 - Update stable-baselines3 requirement to 1.0.
 - Update accwidgets requirement to 1.7.5.
 - Update cernml-coi requirement to 0.8.7.
