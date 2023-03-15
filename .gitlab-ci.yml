@@ -1,22 +1,18 @@
 include:
- - project: acc-co/devops/python/acc-py-devtools
-   file: acc_py_devtools/templates/gitlab-ci/python.yml
+  - project: acc-co/devops/python/acc-py-gitlab-ci-templates
+    file: v2/python.gitlab-ci.yml
 
 variables:
   project_name: "acc_app_optimisation"
   PY_VERSION: "3.7"
+  ACC_PY_BASE_IMAGE_TAG: '2020.11'
+  ACC_PY_BASE_IMAGE_NAME: 'acc-py_cc7_gui_ci'
 
+build_wheel:
+  extends: .acc_py_build_wheel
 
-# A full installation of the project, tested with pytest.
-test_install:
-  extends: .acc_py_full_test
+test_wheel:
+  extends: .acc_py_wheel_test
 
-
-# A development installation of the project tested with pytest.
-test_dev:
-  extends: .acc_py_dev_test
-
-
-# A push of the source distribution to the acc-py PyPI, only on git tag.
-release_sdist_on_tag:
-  extends: .acc_py_release_sdist
+publish:
+  extends: .acc_py_publish

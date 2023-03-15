@@ -114,8 +114,8 @@ disable = [
 ]
 
 [tool.mypy]
-disallow-untyped-defs = true
-namespace-packages = true
+disallow_untyped_defs = true
+namespace_packages = true
 
 [[tool.mypy.overrides]]
 module = [
@@ -131,4 +131,4 @@ module = [
     'pyjapc.*',
     'pyqtgraph.*',
 ]
-ignore-missing-imports = true
+ignore_missing_imports = true
