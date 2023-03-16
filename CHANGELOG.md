@@ -6,8 +6,9 @@ No changes yet!
 
 ## v0.8.1
 
-### build changes
-- Add cern-sps-splitter-opt-env requirement to 0.0.8.
+### Build changes
+
+- Add cern-sps-splitter-opt-env 0.0.8.
 
 ## v0.8.0
 
