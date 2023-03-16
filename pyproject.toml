@@ -59,7 +59,8 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     'pytest >= 6.0',
-    'pytest-mock ~= 3.3',
+    'pytest-mock >= 3.3',
+    'pytest-qt >= 4.2',
 ]
 dev = [
     'PyQt5-stubs ~= 5.12',
@@ -130,5 +131,6 @@ module = [
     'pybobyqa.*',
     'pyjapc.*',
     'pyqtgraph.*',
+    'pytestqt.*',
 ]
 ignore_missing_imports = true

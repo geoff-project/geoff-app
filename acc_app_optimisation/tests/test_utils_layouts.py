@@ -7,6 +7,7 @@
 # pylint: disable = redefined-outer-name
 
 import pytest
+from pytestqt.qtbot import QtBot
 
 # pylint: disable = wrong-import-position
 pytest.importorskip("PyQt5.QtWidgets")
@@ -16,13 +17,8 @@ from PyQt5 import QtWidgets
 import acc_app_optimisation.utils.layouts as layout_utils
 
 
-@pytest.fixture(scope="module")
-def app() -> QtWidgets.QApplication:
-    return QtWidgets.QApplication([])
-
-
 @pytest.fixture
-def mock_layout() -> QtWidgets.QLayout:
+def widget(qtbot: QtBot) -> QtWidgets.QWidget:
     child_layout = QtWidgets.QHBoxLayout()
     child_layout.setObjectName("childLayout")
     for i in range(1, 4):
@@ -33,15 +29,18 @@ def mock_layout() -> QtWidgets.QLayout:
     parent_layout.setObjectName("parentLayout")
     parent_layout.addLayout(child_layout)
     parent_layout.addSpacerItem(QtWidgets.QSpacerItem(10, 10))
-    widget = QtWidgets.QWidget()
-    widget.setObjectName("childWidget")
-    parent_layout.addWidget(widget)
-    return parent_layout
+    child_widget = QtWidgets.QWidget()
+    child_widget.setObjectName("childWidget")
+    parent_layout.addWidget(child_widget)
+    parent_widget = QtWidgets.QWidget()
+    parent_widget.setObjectName("parentWidget")
+    parent_widget.setLayout(parent_layout)
+    qtbot.addWidget(parent_widget)
+    return parent_widget
 
 
-@pytest.mark.usefixtures("app")
-def test_iter_layout(mock_layout: QtWidgets.QLayout) -> None:
-    for item in layout_utils.iter_layout(mock_layout):
+def test_iter_layout(widget: QtWidgets.QWidget) -> None:
+    for item in layout_utils.iter_layout(widget.layout()):
         if item.widget():
             assert item.widget().objectName() == "childWidget"
         elif item.layout():
@@ -53,16 +52,13 @@ def test_iter_layout(mock_layout: QtWidgets.QLayout) -> None:
             assert isinstance(item, QtWidgets.QSpacerItem)
 
 
-@pytest.mark.usefixtures("app")
-def test_drain_layout(mock_layout: QtWidgets.QLayout) -> None:
-    parent = QtWidgets.QWidget()
-    parent.setLayout(mock_layout)
-    assert [type(item) for item in layout_utils.drain_layout(mock_layout)] == [
+def test_drain_layout(widget: QtWidgets.QWidget) -> None:
+    assert [type(item) for item in layout_utils.drain_layout(widget.layout())] == [
         QtWidgets.QHBoxLayout,
         QtWidgets.QSpacerItem,
         QtWidgets.QWidgetItem,
     ]
-    assert [child.objectName() for child in parent.children()] == [
+    assert [child.objectName() for child in widget.children()] == [
         "parentLayout",
         "grandChild_1",
         "grandChild_2",
@@ -71,9 +67,10 @@ def test_drain_layout(mock_layout: QtWidgets.QLayout) -> None:
     ]
 
 
-@pytest.mark.usefixtures("app")
-def test_iter_layout_widgets(mock_layout: QtWidgets.QLayout) -> None:
-    assert [w.objectName() for w in layout_utils.iter_layout_widgets(mock_layout)] == [
+def test_iter_layout_widgets(widget: QtWidgets.QWidget) -> None:
+    assert [
+        w.objectName() for w in layout_utils.iter_layout_widgets(widget.layout())
+    ] == [
         "grandChild_1",
         "grandChild_2",
         "grandChild_3",
@@ -81,14 +78,11 @@ def test_iter_layout_widgets(mock_layout: QtWidgets.QLayout) -> None:
     ]
     assert ["childWidget"] == [
         w.objectName()
-        for w in layout_utils.iter_layout_widgets(mock_layout, recursive=False)
+        for w in layout_utils.iter_layout_widgets(widget.layout(), recursive=False)
     ]
 
 
-@pytest.mark.usefixtures("app")
-def test_clear_children(mock_layout: QtWidgets.QLayout) -> None:
-    parent = QtWidgets.QWidget()
-    parent.setLayout(mock_layout)
-    layout_utils.clear_children(parent)
-    assert [child.objectName() for child in parent.children()] == ["parentLayout"]
-    assert not list(layout_utils.iter_layout(mock_layout))
+def test_clear_children(widget: QtWidgets.QWidget) -> None:
+    layout_utils.clear_children(widget)
+    assert [child.objectName() for child in widget.children()] == ["parentLayout"]
+    assert not list(layout_utils.iter_layout(widget.layout()))

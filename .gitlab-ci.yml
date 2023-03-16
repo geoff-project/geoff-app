@@ -13,6 +13,9 @@ build_wheel:
 
 test_wheel:
   extends: .acc_py_wheel_test
+  script:
+    - mkdir -p ~/not-the-source-dir && cd ~/not-the-source-dir
+    - run_headless python -m pytest --pyargs ${project_name}
 
 publish:
   extends: .acc_py_publish
