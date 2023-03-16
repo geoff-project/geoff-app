@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes yet!
+
+## v0.8.2
+
 ### Build changes
 
 - Add support for Python 3.9.
