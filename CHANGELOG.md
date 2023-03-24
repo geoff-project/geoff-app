@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-No changes yet!
+### Build changes
+
+- Add cern-isolde-offline-env 0.0.4.
 
 ## v0.8.2
 
