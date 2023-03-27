@@ -4,6 +4,12 @@
 
 No changes yet!
 
+## v0.8.4
+
+### Bug fixes
+
+- Fix cern-isolde-offline-env being declared in stale setup.cfg.
+
 ## v0.8.3
 
 ### Build changes
