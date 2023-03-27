@@ -27,16 +27,18 @@ Setup
 To use [acc-py-deploy][], run either of these lines in your shell. You don't
 have to run them if you have already set up Acc-Py in your init script:
 
-```bash
-# Activate Acc-Py Base.
-# This is the "base" distribution containing only the bare minimum of
-# pre-installed packages.
-source /acc/local/share/python/acc-py/base/pro/setup.sh
+```shell-session
+$ # Activate Acc-Py Base.
+$ # This is the "base" distribution containing only the bare minimum of
+$ # pre-installed packages.
+$ source /acc/local/share/python/acc-py/base/pro/setup.sh
+```
 
-# Activate Acc-Py.
-# This is the "full" distribution with lots of pre-installed packages. As of
-# April 2021, this still lags behind Acc-Py Base by one Python release.
-source /acc/local/share/python/acc-py/pro/setup.sh
+```shell-session
+$ # Activate Acc-Py.
+$ # This is the "full" distribution with lots of pre-installed packages. As of
+$ # April 2021, this still lags behind Acc-Py Base by one Python release.
+$ source /acc/local/share/python/acc-py/pro/setup.sh
 ```
 
 Running
@@ -44,13 +46,15 @@ Running
 
 Once this setup is done, you can run the GUI by executing the following line:
 
-```bash
-# Run the latest production release. `acc-app-optimisation` was the prototype
-# name of the application
-acc-py app run acc-app-optimisation
+```shell-session
+$ # Run the latest production release. `acc-app-optimisation` was the prototype
+$ # name of the application
+$ acc-py app run acc-app-optimisation
+```
 
-# Run a specific version.
-acc-py app run --version 0.8.4 acc-app-optimisation
+```shell-session
+$ # Run a specific version.
+$ acc-py app run --version 0.8.4 acc-app-optimisation
 ```
 
 This runs the GUI in a completely sealed virtual environment. This means that
@@ -75,34 +79,34 @@ You can start out with two base distributions:
 If you use Acc-Py Base, you can create a virtual environment based on it as
 follows:
 
-```bash
-# Set up production-stage release of Acc-Py Base, switch to Python 3.7.
-source /acc/local/share/python/acc-py/base/pro/setup.sh
+```shell-session
+$ # Set up production-stage release of Acc-Py Base, switch to Python 3.7.
+$ source /acc/local/share/python/acc-py/base/pro/setup.sh
 
-# Make some space for virtual environments. If you run out of space in your
-# HOME, consider putting them into /opt/venvs instead.
-mkdir -p ~/venvs
+$ # Make some space for virtual environments. If you run out of space in your
+$ # HOME, consider putting them into /opt/venvs instead.
+$ mkdir -p ~/venvs
 
-# Make a virtual environment based on Acc-Py base and activate it.
-python -m venv --system-site-packages ~/venvs/acc-app-optimisation
-source ~/venvs/acc-app-optimisation/bin/activate
+$ # Make a virtual environment based on Acc-Py base and activate it.
+$ python -m venv --system-site-packages ~/venvs/geoff
+$ source ~/venvs/geoff/bin/activate
 ```
 
 If you use Acc-Py 19.5.2, the setup is very similar, but you need to *isolate*
 your environment from the packages provided by it.
 
-```bash
-# Use the production-stage release of Acc-Py (19.5.2 at the moment), stay on
-# Python 3.6.
-source /acc/local/share/python/acc-py-pyqt/pro/setup.sh
+```shell-session
+$ # Use the production-stage release of Acc-Py (19.5.2 at the moment), stay on
+$ # Python 3.6.
+$ source /acc/local/share/python/acc-py-pyqt/pro/setup.sh
 
-# Make some space for virtual environments. If you run out of space in your
-# HOME, consider putting them into /opt/venvs instead.
-mkdir -p ~/venvs
+$ # Make some space for virtual environments. If you run out of space in your
+$ # HOME, consider putting them into /opt/venvs instead.
+$ mkdir -p ~/venvs
 
-# Make a virtual environment isolated from Acc-Py and activate it.
-python -m venv ~/venvs/acc-app-optimisation
-source ~/venvs/acc-app-optimisation
+$ # Make a virtual environment isolated from Acc-Py and activate it.
+$ python -m venv ~/venvs/geoff
+$ source ~/venvs/geoff
 ```
 
 Of course, you're free to set up your virtual environment however you prefer.
@@ -114,23 +118,23 @@ Step 2: Installing the App
 Once you've activated a virtual environment of your choice, installing the
 application is dead-simple:
 
-```bash
-pip install acc-app-optimisation
+```shell-session
+$ pip install acc-app-optimisation
 ```
 
 And you can run the installed version via:
 
-```bash
-python -m acc_app_optimisation
+```shell-session
+$ python -m acc_app_optimisation
 ```
 
 If you have decided to clone this repository, you can install this clone
 (instead of a published verison) like this:
 
-```bash
-git clone https://gitlab.cern.ch/geoff/geoff-app
-cd geoff-app
-pip install .
+```shell-session
+$ git clone https://gitlab.cern.ch/geoff/geoff-app
+$ cd geoff-app
+$ pip install .
 ```
 
 Step 3: Using Your Own Optimisation Problem
@@ -144,16 +148,16 @@ preview it before submitting it for official inclusion.
 To include your own code in the GUI, simply pass the path to it when running
 the GUI:
 
-```bash
-# Import some_file.py from the current working directory.
-acc-py app run acc-app-optimisation some_file.py
+```shell-session
+$ # Import some_file.py from the current working directory.
+$ acc-py app run acc-app-optimisation some_file.py
 
-# Go to ../path/to and import the package `directory` from there. The package
-# must contain an __init__.py file.
-acc-py app run acc-app-optimisation ../path/to/directory/
+$ # Go to ../path/to and import the package `directory` from there. The package
+$ # must contain an __init__.py file.
+$ acc-py app run acc-app-optimisation ../path/to/directory/
 
-# First import `package`, then import `package.submodule`.
-acc-py app run acc-app-optimisation path/to/package::submodule
+$ # First import `package`, then import `package.submodule`.
+$ acc-py app run acc-app-optimisation path/to/package::submodule
 ```
 
 Note the curious syntax in the third example; simply importing
@@ -183,9 +187,9 @@ change. (Pip actually installs symlinks to your source tree in this case.)
 To make your project installable, refer to the [packaging guide of the
 PyPA][pack-guide].
 
-```bash
-cd ~/Projects/my-project
-pip install --editable .
+```shell-session
+$ cd ~/Projects/my-project
+$ pip install --editable .
 ```
 
 The app imports all the environments and other optimisable problems in
@@ -193,14 +197,16 @@ The app imports all the environments and other optimisable problems in
 expected, all that is needed is that you add an import of your package to this
 file. After a reinstall, your environment should appear in the GUI.
 
-```bash
-cd ~/Projects/geoff-app
+```shell-session
+$ cd ~/Projects/geoff-app
+
 # Add the line `import my_package` or `import my_package.module` to the list of
 # imports in this file.
-$EDITOR acc_app_optimisation/envs/builtin_envs.py
+$ $EDITOR acc_app_optimisation/envs/builtin_envs.py
+
 # Reinstall and execute the GUI. Your environment should now appear in it.
-pip install .
-python -m acc_app_optimisation
+$ pip install .
+$ python -m acc_app_optimisation
 ```
 
 [Acc-Py-Deploy]: https://gitlab.cern.ch/acc-co/devops/python/acc-py-deploy
