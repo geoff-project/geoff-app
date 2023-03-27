@@ -45,11 +45,12 @@ Running
 Once this setup is done, you can run the GUI by executing the following line:
 
 ```bash
-# Run the latest production release.
+# Run the latest production release. `acc-app-optimisation` was the prototype
+# name of the application
 acc-py app run acc-app-optimisation
 
 # Run a specific version.
-acc-py app run --version 0.1.3 acc-app-optimisation
+acc-py app run --version 0.8.4 acc-app-optimisation
 ```
 
 This runs the GUI in a completely sealed virtual environment. This means that
@@ -127,8 +128,8 @@ If you have decided to clone this repository, you can install this clone
 (instead of a published verison) like this:
 
 ```bash
-git clone https://gitlab.cern.ch/vkain/acc-app-optimisation.git
-cd acc-app-optimisation
+git clone https://gitlab.cern.ch/geoff/geoff-app
+cd geoff-app
 pip install .
 ```
 
@@ -193,7 +194,7 @@ expected, all that is needed is that you add an import of your package to this
 file. After a reinstall, your environment should appear in the GUI.
 
 ```bash
-cd ~/Projects/acc-app-optimisation
+cd ~/Projects/geoff-app
 # Add the line `import my_package` or `import my_package.module` to the list of
 # imports in this file.
 $EDITOR acc_app_optimisation/envs/builtin_envs.py
@@ -203,10 +204,10 @@ python -m acc_app_optimisation
 ```
 
 [Acc-Py-Deploy]: https://gitlab.cern.ch/acc-co/devops/python/acc-py-deploy
-[Gitlab]: https://gitlab.cern.ch/vkain/acc-app-optimisation
+[Gitlab]: https://gitlab.cern.ch/geoff/geoff-app
 [Pjlsa]: https://gitlab.cern.ch/scripting-tools/pjlsa
 [Qt LSA Selector]: https://gitlab.cern.ch/nmadysa/qt-lsa-selector/
-[`coi.register()`]: https://gitlab.cern.ch/be-op-ml-optimization/cernml-coi/blob/master/cernml/coi/_registration.py
+[`coi.register()`]: https://gitlab.cern.ch/geoff/cernml-coi/blob/master/cernml/coi/_registration.py
 [acc-py-deploy]: https://gitlab.cern.ch/acc-co/devops/python/acc-py-deploy
 [accwidgets]: https://gitlab.cern.ch/acc-co/accsoft/gui/accsoft-gui-pyqt-widgets/
 [builtin\_envs.py]: /acc_app_optimisation/envs/builtin_envs.py

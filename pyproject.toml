@@ -71,7 +71,7 @@ dev = [
 ]
 
 [project.urls]
-gitlab = 'https://gitlab.cern.ch/vkain/acc-app-optimisation'
+gitlab = 'https://gitlab.cern.ch/geoff/geoff-app'
 
 [tool.setuptools]
 zip-safe = true

@@ -146,7 +146,7 @@ No changes yet!
 ### Visible changes
 
 - Add Extremum Seeking via
-  [cernml-extremum-seeking](https://gitlab.cern.ch/be-op-ml-optimization/cernml-extremum-seeking/)
+  [cernml-extremum-seeking](https://gitlab.cern.ch/geoff/optimizers/cernml-extremum-seeking/)
   as a numerical optimization scheme.
 
 ### Build changes
@@ -276,13 +276,13 @@ No changes yet!
 - Upgrade cernml-coi to 0.7.6. This is the last version that contains both
   interaces and utilities. Authors of optimization problems are encouraged to
   use
-  [cernml-coi-utils](https://gitlab.cern.ch/be-op-ml-optimization/cernml-coi-utils/)
+  [cernml-coi-utils](https://gitlab.cern.ch/geoff/cernml-coi-utils/)
   for the latter. If their code works with cernml-coi 0.7.6 without deprecation
   warnings, it will likely work with the upcoming cernml-coi 0.8.0 as well.
 - Upgrade cernml-coi-funcs to 0.2.4. This is the final release. The
   `FunctionOptimizable` interface has been integrated into cernml-coi; the LSA
   utilities have been integrated into
-  [cernml-coi-utils](https://gitlab.cern.ch/be-op-ml-optimization/cernml-coi-utils/).
+  [cernml-coi-utils](https://gitlab.cern.ch/geoff/cernml-coi-utils/).
   Authors of optimization problems are encouraged to change their code
   accordingly.
 - Add dependency on cernml-coi-utils v0.2.2. Having both the new utilities
@@ -364,7 +364,7 @@ Consequently, all dependent packages are upgraded as well:
 ### Visible changes
 
 - Add [Singular Value Decomposition
-  (SVD)](https://gitlab.cern.ch/be-op-ml-optimization/cernml-svd/) as an RL
+  (SVD)](https://gitlab.cern.ch/geoff/optimizers/cernml-svd/) as an RL
   algorithm. It works best on linear problems that can be described by an
   invertible response matrix. Thanks to @ivojskov for the implementation!
 - Update the simulated AWAKE electron beam steering problem. It now provides a
@@ -404,9 +404,9 @@ Consequently, all dependent packages are upgraded as well:
 - Add initial, extremely fragile implementation of reinforcement learning (RL)
   via [Stable Baselines 3](https://stable-baselines3.readthedocs.io/).
 - Add more built-in optimization problems:
-    - [SPS ZS Alignment](https://gitlab.cern.ch/be-op-ml-optimization/envs/sps-zs-alignment),
-    - [SPS Tune](https://gitlab.cern.ch/be-op-ml-optimization/envs/sps-tune/),
-    - [LEIR Transfer Line](https://gitlab.cern.ch/be-op-ml-optimization/envs/leir-transfer-line).
+    - [SPS ZS Alignment](https://gitlab.cern.ch/geoff/example-envs/sps-zs-alignment),
+    - [SPS Tune](https://gitlab.cern.ch/geoff/example-envs/sps-tune/),
+    - [LEIR Transfer Line](https://gitlab.cern.ch/geoff/example-envs/leir-transfer-line).
 - Add argument `--no-builtins` to start the app without loading the built-in
   optimization problems. In this case, all optimization problems must be
   provided as foreign imports. This mode is best used for debugging.
