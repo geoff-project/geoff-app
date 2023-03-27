@@ -88,7 +88,7 @@ $ # HOME, consider putting them into /opt/venvs instead.
 $ mkdir -p ~/venvs
 
 $ # Make a virtual environment based on Acc-Py base and activate it.
-$ python -m venv --system-site-packages ~/venvs/geoff
+$ acc-py venv ~/venvs/geoff
 $ source ~/venvs/geoff/bin/activate
 ```
 
@@ -105,7 +105,7 @@ $ # HOME, consider putting them into /opt/venvs instead.
 $ mkdir -p ~/venvs
 
 $ # Make a virtual environment isolated from Acc-Py and activate it.
-$ python -m venv ~/venvs/geoff
+$ acc-py venv ~/venvs/geoff
 $ source ~/venvs/geoff
 ```
 
