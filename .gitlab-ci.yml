@@ -11,7 +11,9 @@ variables:
 build_wheel:
   extends: .acc_py_build_wheel
 
-test_wheel_py37:
+# Skip this job for now. It is currently broken because cern_isolde_offline_env
+# accidentally requires Python 3.9 for no reason.
+.test_wheel_py37:
   extends: .acc_py_wheel_test
   script:
     - mkdir -p ~/not-the-source-dir && cd ~/not-the-source-dir

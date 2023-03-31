@@ -6,6 +6,11 @@ No changes yet!
 
 ## v0.8.5
 
+### Ongoing bugs
+
+- The package spuriously requires Python 3.9 to be installed. This is going to
+  be fixed in the next release.
+
 ### Bug fixes
 
 - Fix JAPC initialization: InCA accelerator name is now always deduced from the
