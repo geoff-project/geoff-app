@@ -4,6 +4,14 @@
 
 No changes yet!
 
+## v0.8.5
+
+### Bug fixes
+
+- Fix JAPC initialization: InCA accelerator name is now always deduced from the
+  `--machine` and `--user` parameters. Before, the application used to always
+  contact the AD server for InCA information.
+
 ## v0.8.4
 
 ### Bug fixes

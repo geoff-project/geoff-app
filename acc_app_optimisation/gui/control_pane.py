@@ -2,6 +2,7 @@ import contextlib
 import typing as t
 from logging import getLogger
 
+import pyjapc
 from accwidgets.lsa_selector import (
     AbstractLsaSelectorContext,
     LsaSelector,
@@ -9,7 +10,6 @@ from accwidgets.lsa_selector import (
     LsaSelectorModel,
 )
 from cernml import coi
-from pyjapc import PyJapc
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from . import _translate
@@ -33,14 +33,13 @@ class ControlPane(QtWidgets.QWidget):
         self,
         parent: t.Optional[QtWidgets.QWidget] = None,
         *,
+        japc: pyjapc.PyJapc,
         lsa: "pjlsa.LSAClient",
         plot_manager: "PlotManager",
-        japc_no_set: bool = False,
     ) -> None:
         super().__init__(parent)
         # Set up internal attributes.
-        # TODO: PyJapc should be a global.
-        self._japc = PyJapc("", noSet=japc_no_set, incaAcceleratorName="AD")
+        self._japc = japc
         self._last_lsa_selection: t.Dict[str, str] = {}
         self._finalizers = contextlib.ExitStack()
         # Build the GUI.

@@ -2,6 +2,7 @@
 
 import typing as t
 
+import pyjapc
 from accwidgets.lsa_selector import LsaSelectorAccelerator
 from accwidgets.timing_bar import TimingBarDomain
 from cernml import coi
@@ -81,6 +82,51 @@ class InitialSelection:
 
     def __repr__(self) -> str:
         return f"{type(self).__name__}({self.machine.name!r}, {self.user!r})"
+
+    def get_japc(self, no_set: bool = False) -> pyjapc.PyJapc:
+        """Get a PyJapc instance with the selected user and machine.
+
+        Args:
+            no_set: If passed and True, no SETs are actually send to the
+                machine and a message is logged in its stead.
+
+        Returns:
+            A PyJapc object. The selected user is set as the default
+            timing selector. If no user is selected, no selector is set
+            either, which is suitable for non-PPM devices. The selected
+            machine is used to determine which InCA server to contact
+            for initialization data. If no machine is selected, AD is
+            contacted. This ensures that InCA is always available.
+        """
+        inca_accelerator = self.machine and machine_to_inca_server(self.machine)
+        return pyjapc.PyJapc(
+            selector=self.user or "",
+            incaAcceleratorName=inca_accelerator or "AD",
+            noSet=no_set,
+        )
+
+
+def machine_to_inca_server(machine: coi.Machine) -> t.Optional[str]:
+    """Return the InCA server to contact for a given machine.
+
+    Note that the mapping is surjective: some machines map to the same
+    domain.
+    """
+    return {
+        coi.Machine.NO_MACHINE: None,
+        coi.Machine.LINAC_2: "PSB",
+        coi.Machine.LINAC_3: "LEIR",
+        coi.Machine.LINAC_4: "PSB",
+        coi.Machine.LEIR: "LEIR",
+        coi.Machine.PS: "PS",
+        coi.Machine.PSB: "PSB",
+        coi.Machine.SPS: "SPS",
+        coi.Machine.AWAKE: "AWAKE",
+        coi.Machine.LHC: "LHC",
+        coi.Machine.ISOLDE: "ISOLDE",
+        coi.Machine.AD: "AD",
+        coi.Machine.ELENA: "ELENA",
+    }.get(machine)
 
 
 def machine_to_timing_domain(machine: coi.Machine) -> t.Optional[TimingBarDomain]:

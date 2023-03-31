@@ -6,10 +6,11 @@ from logging import getLogger
 try:
     from importlib import metadata
 except ImportError:
-    import importlib_metadata as metadata # type: ignore
+    import importlib_metadata as metadata  # type: ignore
 
 import jpype
 import pjlsa
+import pyjapc
 from accwidgets.app_frame import ApplicationFrame
 from accwidgets.log_console import LogConsole, LogConsoleDock, LogConsoleModel
 from accwidgets.rbac import RbaToken
@@ -141,18 +142,13 @@ class MainWindow(ApplicationFrame):
     def __init__(
         self,
         *,
+        japc: pyjapc.PyJapc,
         lsa: pjlsa.LSAClient,
         model: t.Optional[LogConsoleModel] = None,
-        japc_no_set: bool = False,
     ) -> None:
         super().__init__(use_timing_bar=True, use_rbac=True)
         self.appVersion = metadata.version(  # pylint: disable=invalid-name
             __package__.partition(".")[0]
-        )
-        self.setWindowTitle(
-            f"GeOFF v{self.appVersion} "
-            f"(LSA {get_lsa_server(lsa).upper()}"
-            f"{', NO SET' if japc_no_set else ''})"
         )
 
         mdi = MainMdiArea()
@@ -184,9 +180,7 @@ class MainWindow(ApplicationFrame):
         )
 
         self._control_pane = ControlPane(
-            lsa=lsa,
-            plot_manager=self._plot_manager,
-            japc_no_set=japc_no_set,
+            japc=japc, lsa=lsa, plot_manager=self._plot_manager
         )
         dock = DumbDockWidget()
         dock.setWidget(self._control_pane)

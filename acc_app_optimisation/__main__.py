@@ -11,7 +11,7 @@ import typing as t
 try:
     from importlib import metadata
 except ImportError:
-    import importlib_metadata as metadata # type: ignore
+    import importlib_metadata as metadata  # type: ignore
 
 import pjlsa
 from accwidgets.log_console import LogConsoleModel
@@ -176,12 +176,14 @@ def main(argv: list) -> int:
             except ValueError as exc:
                 errors.append(exc, "machine or user could not be pre-selected")
                 selection = gui.InitialSelection(None, None)
+            japc = selection.get_japc(no_set=args.japc_no_set) # Do this *after* LSA!
             app = QtWidgets.QApplication(argv)
             app.setApplicationName(__package__)
-            window = gui.MainWindow(
-                lsa=lsa,
-                model=model,
-                japc_no_set=args.japc_no_set,
+            window = gui.MainWindow(japc=japc, lsa=lsa, model=model)
+            window.setWindowTitle(
+                f"GeOFF v{window.appVersion} "
+                f"(LSA {args.lsa_server}"
+                f"{', NO SET' if args.japc_no_set else ''})"
             )
             try:
                 window.make_initial_selection(selection)
