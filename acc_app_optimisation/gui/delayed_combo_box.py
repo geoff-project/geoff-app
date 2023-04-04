@@ -4,8 +4,6 @@ import typing as t
 
 from PyQt5 import QtCore, QtWidgets
 
-from .task import ThreadPoolTask
-
 
 class DelayedComboBox(QtWidgets.QComboBox):
     """A combo box with additional signals for delayed updates.
@@ -49,55 +47,24 @@ class DelayedComboBox(QtWidgets.QComboBox):
     ) -> None:
         super().__init__(parent, **kwargs)  # type: ignore
         self.currentIndexChanged.connect(self._kick_off_timer)
-        self.last_timer = QtCore.QDeadlineTimer()
-        self._timeout = timeout
+        self._timer = QtCore.QTimer()
+        self._timer.setInterval(timeout)
+        self._timer.setSingleShot(True)
+        self._timer.timeout.connect(self._emit_stable_signal)
 
     def timeout(self) -> int:
         """Return the timeout in milliseconds."""
-        return self._timeout
+        return self._timer.interval()
 
     def setTimeout(self, msecs: int) -> None:  # pylint: disable = invalid-name
         """Change the timeout in milliseconds."""
-        self._timeout = msecs
+        self._timer.setInterval(msecs)
 
     def _kick_off_timer(self) -> None:
-        # If the last timer hasn't expired yet, let it keep running.
-        # This avoids creating more than one background task at a time.
-        if not self.last_timer.hasExpired():
-            self.last_timer.setRemainingTime(self._timeout)
-            return
-        # Avoid a race condition: Though the old timer is expired, the
-        # worker thread might still be running (and check the timer
-        # later). Create a new timer to avoid keeping the old worker
-        # alive.
-        self.last_timer = QtCore.QDeadlineTimer()
-        # Do not use the constructor `QDeadlineTimer(msecs)`. For some
-        # reason, the resulting timer is always expired, contrary to
-        # documentation. Tested on PyQt 5.12.
-        self.last_timer.setRemainingTime(self._timeout)
+        self._timer.start()
 
-        def wait_and_emit(timer: QtCore.QDeadlineTimer) -> None:
-            """Background task that eventually emits our signals."""
-            # Wait until the timer expires. We can't do a proper wait,
-            # since we don't have an event loop, so sleeping for the
-            # expected amount of time will have to suffice. Ensure to
-            # perform the has-expired check only once per iteration.
-            while True:
-                remaining = timer.remainingTime()
-                if remaining:
-                    QtCore.QThread.msleep(remaining)
-                else:
-                    break
-            # Make sure to use the latest text/index when emitting the
-            # signal. Whatever has been passed to the original signal
-            # handler could be updated. Make sure that text and index
-            # are coherent with each other.
-            index = self.currentIndex()
-            text = self.itemText(index)
-            self.stableIndexChanged.emit(index)
-            self.stableTextChanged.emit(text)
-
-        # Send the waiting task to the threadpool to avoid blocking the
-        # event loop.
-        pool = QtCore.QThreadPool.globalInstance()
-        pool.start(ThreadPoolTask(wait_and_emit, self.last_timer))
+    def _emit_stable_signal(self) -> None:
+        index = self.currentIndex()
+        text = self.itemText(index)
+        self.stableIndexChanged.emit(index)
+        self.stableTextChanged.emit(text)
