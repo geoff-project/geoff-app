@@ -85,7 +85,7 @@ class ControlPane(QtWidgets.QWidget):
         """Pre-select machine and user according to command-line arguments."""
         if self.lsa_selector.selected_context is not None:
             raise RuntimeError("initial selection has already been made")
-        self.machine_combo.setCurrentText(selection.machine.value)
+        self.machine_combo.setStableText(selection.machine.value)
         default_category = AbstractLsaSelectorContext.Category.OPERATIONAL
         try:
             if selection.user:

@@ -2,7 +2,10 @@
 
 ## Unreleased
 
-No changes yet!
+### Bug fixes
+
+- Fix bug in which `--user` could not pre-select a timing user from any machine
+  but the default selection.
 
 ## v0.8.5
 
