@@ -6,6 +6,11 @@
 
 - Fix bug in which `--user` could not pre-select a timing user from any machine
   but the default selection.
+- Fix spurious incompatibility with Python 3.7.
+
+### Build changes
+
+- Upgrade cern-isolde-offline-env requirement to 0.0.5.
 
 ## v0.8.5
 
