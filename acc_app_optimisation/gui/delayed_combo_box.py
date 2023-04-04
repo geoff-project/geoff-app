@@ -90,9 +90,12 @@ class DelayedComboBox(QtWidgets.QComboBox):
                     break
             # Make sure to use the latest text/index when emitting the
             # signal. Whatever has been passed to the original signal
-            # handler is likely outdated.
-            self.stableTextChanged.emit(self.currentText())
-            self.stableIndexChanged.emit(self.currentIndex())
+            # handler could be updated. Make sure that text and index
+            # are coherent with each other.
+            index = self.currentIndex()
+            text = self.itemText(index)
+            self.stableIndexChanged.emit(index)
+            self.stableTextChanged.emit(text)
 
         # Send the waiting task to the threadpool to avoid blocking the
         # event loop.
