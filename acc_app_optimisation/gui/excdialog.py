@@ -65,6 +65,9 @@ def exception_dialog(
         parent=parent,
         buttons=QtWidgets.QMessageBox.Close,
     )
+    print("AAA Exception:", "".join(exception.format()))
+    print("AAA Context:", "".join(exception.__context__.format()))
+    print("AAA Exception with context:", "".join(exception.format(chain=True)))
     dialog.setInformativeText("".join(exception.format_exception_only()))
     dialog.setDetailedText("".join(exception.format()))
     return dialog

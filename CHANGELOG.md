@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Visible changes
+
+- The command-line arguments `--user`, `--machine` and `--lsa-server` now
+  provide more sensible default behavior. When only one of `--machine` and
+  `--lsa-server` is passed, the other is assumed to match. Crucially, this
+  means that `--machine=LINAC_4` now implies e.g. `--lsa-server=psb`.
+  Furthermore, `--user=SPS.USER.ALL` now implies `--machine=SPS` and
+  `--lsa-server=sps`. Any obviously faulty combinations are caught and produce
+  an error on startup.
+
 ### Bug fixes
 
 - Fix bug in which `--user` could not pre-select a timing user from any machine

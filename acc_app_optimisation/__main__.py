@@ -23,6 +23,9 @@ from . import foreign_imports, logging_setup
 if t.TYPE_CHECKING:
     # pylint: disable = unused-import, ungrouped-imports
     import os
+    from types import SimpleNamespace
+
+    from acc_app_optimisation.gui import ExceptionQueue, InitialSelection
 
 
 def init_logging(
@@ -54,6 +57,27 @@ def import_all(paths: t.Iterable[str], *, builtins: bool) -> None:
     # Tricky ordering: foreign imports may override builtins.
     if builtins:
         from acc_app_optimisation.envs import builtin_envs as _
+
+
+def get_initial_selection(
+    args: SimpleNamespace, errors: ExceptionQueue
+) -> InitialSelection:
+    # pylint: disable = import-outside-toplevel
+    from acc_app_optimisation.gui import InitialSelection
+
+    try:
+        return InitialSelection(args.machine, args.user, args.lsa_server)
+    except ValueError as exc:
+        try:
+            selection = InitialSelection(None, None, args.lsa_server)
+        except ValueError as second_exc:
+            # Log both exceptions as one error.
+            second_exc.__suppress_context__ = False
+            second_exc.__context__ = exc
+            errors.append(second_exc, "LSA server could not be selected")
+            return InitialSelection(None, None, None)  # never raises an exception
+        errors.append(exc, "machine or user could not be pre-selected")
+        return selection
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -95,9 +119,8 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-s",
         "--lsa-server",
-        type=str,
+        type=str.lower,
         metavar="NAME",
-        default="gpn",
         help="The LSA server to connect to (default: gpn)",
     )
     parser.add_argument(
@@ -161,28 +184,24 @@ def main(argv: list) -> int:
         return 0
     model = init_logging(log_to_file=args.log_to_file, filename=args.log_file)
     with logging_setup.redirect_streams_to_logging():
-        lsa = pjlsa.LSAClient(server=args.lsa_server)
-        with lsa.java_api():
-            # pylint: disable = import-outside-toplevel
-            from acc_app_optimisation import gui
+        # pylint: disable = import-outside-toplevel
+        from acc_app_optimisation import gui
 
-            errors = gui.excdialog.ExceptionQueue(title="Error during initialization")
+        errors = gui.excdialog.ExceptionQueue(title="Error during initialization")
+        selection = get_initial_selection(args, errors)
+        lsa = pjlsa.LSAClient(server=selection.lsa_server)
+        with lsa.java_api():
             try:
                 import_all(args.foreign_imports, builtins=args.builtins)
             except Exception as exc:  # pylint: disable=broad-except
                 errors.append(exc, "not all plugins could be loaded")
-            try:
-                selection = gui.InitialSelection(machine=args.machine, user=args.user)
-            except ValueError as exc:
-                errors.append(exc, "machine or user could not be pre-selected")
-                selection = gui.InitialSelection(None, None)
-            japc = selection.get_japc(no_set=args.japc_no_set) # Do this *after* LSA!
+            japc = selection.get_japc(no_set=args.japc_no_set)  # Do this *after* LSA!
             app = QtWidgets.QApplication(argv)
             app.setApplicationName(__package__)
             window = gui.MainWindow(japc=japc, lsa=lsa, model=model)
             window.setWindowTitle(
                 f"GeOFF v{window.appVersion} "
-                f"(LSA {args.lsa_server}"
+                f"(LSA {selection.lsa_server.upper()}"
                 f"{', NO SET' if args.japc_no_set else ''})"
             )
             try:
