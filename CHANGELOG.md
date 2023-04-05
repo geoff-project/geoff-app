@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes yet!
+
+## v0.9.0
+
 ### Visible changes
 
 - The command-line arguments `--user`, `--machine` and `--lsa-server` now
