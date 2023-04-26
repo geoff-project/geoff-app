@@ -10,6 +10,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from .. import envs
 from ..job_control import rl
+from ..utils.typecheck import is_configurable
 from . import configuration
 from .excdialog import current_exception_dialog, exception_dialog
 from .plot_manager import PlotManager
@@ -175,7 +176,7 @@ class RlTrainTab(QtWidgets.QWidget):
 
     def _on_algo_config_clicked(self) -> None:
         factory = self._train_builder.agent_factory
-        if not isinstance(factory, coi.Configurable):
+        if not is_configurable(factory):
             LOG.error("not configurable: %s", factory)
             return
         dialog = configuration.PureDialog(factory, self.window())

@@ -2,9 +2,14 @@ import typing as t
 from logging import getLogger
 
 import numpy as np
-from cernml.coi import FunctionOptimizable, SingleOptimizable, cancellation
+from cernml.coi import cancellation
 
 from ...envs import make_env_by_name
+from ...utils.typecheck import (
+    is_any_optimizable,
+    is_function_optimizable,
+    is_single_optimizable,
+)
 from ..base import CannotBuildJob, JobBuilder
 from . import jobs, optimizers
 
@@ -55,9 +60,7 @@ class OptJobBuilder(JobBuilder):
                 token=self._token_source.token,
             ),
         )
-        assert isinstance(
-            problem.unwrapped, (SingleOptimizable, FunctionOptimizable)
-        ), type(problem.unwrapped)
+        assert is_any_optimizable(problem), type(problem.unwrapped)
         self._problem = problem
         return problem
 
@@ -77,7 +80,7 @@ class OptJobBuilder(JobBuilder):
         if self.optimizer_factory is None:
             raise CannotBuildJob("no optimizer selected")
         problem = self.make_problem() if self.problem is None else self.problem
-        if isinstance(problem.unwrapped, FunctionOptimizable):
+        if is_function_optimizable(problem):
             if self.skeleton_points is None or not np.shape(self.skeleton_points):
                 raise CannotBuildJob("no skeleton points selected")
             return jobs.FunctionOptimizableJob(
@@ -87,7 +90,7 @@ class OptJobBuilder(JobBuilder):
                 problem=problem,
                 skeleton_points=self.skeleton_points,
             )
-        assert isinstance(problem.unwrapped, SingleOptimizable), problem
+        assert is_single_optimizable(problem), problem.unwrapped
         return jobs.SingleOptimizableJob(
             token_source=self._token_source,
             signals=self.signals,

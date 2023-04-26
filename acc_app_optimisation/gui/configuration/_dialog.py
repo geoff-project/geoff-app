@@ -10,6 +10,7 @@ from cernml import coi
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QTabWidget, QVBoxLayout, QWidget
 
+from ...utils.typecheck import AnyOptimizable, is_configurable, is_function_optimizable
 from ..excdialog import exception_dialog
 from ._skeleton_points import SkeletonPointsWidget
 from ._widget import ConfigureWidget
@@ -112,12 +113,12 @@ class OptimizableDialog(_BaseDialog):
 
     def __init__(
         self,
-        target: t.Union[coi.SingleOptimizable, coi.FunctionOptimizable],
+        target: AnyOptimizable,
         skeleton_points: t.Optional[np.ndarray] = None,
         parent: t.Optional[QWidget] = None,
     ) -> None:
-        if isinstance(target.unwrapped, coi.Configurable):
-            super().__init__(t.cast(coi.Configurable, target), parent)
+        if is_configurable(target):
+            super().__init__(target, parent)
         else:
             super().__init__(None, parent)
             self.setWindowTitle(f"Configuring {_get_configurable_name(target)} …")
@@ -126,7 +127,7 @@ class OptimizableDialog(_BaseDialog):
         if self._cfgform is not None:
             tab_widget.addTab(self._cfgform, "Configuration")
         self._skeleton_points: t.Optional[np.ndarray]
-        if isinstance(target.unwrapped, coi.FunctionOptimizable):
+        if is_function_optimizable(target):
             if skeleton_points is not None:
                 self._skeleton_points = np.array(skeleton_points, dtype=float)
             else:
@@ -194,7 +195,7 @@ class ConfigTimeLimit(gym.Wrapper, coi.Configurable):
         self.value = initial_limit if initial_limit is not None else self.default_value
 
     def get_config(self) -> coi.Config:
-        if isinstance(self.env, coi.Configurable):
+        if is_configurable(self.env):
             config = self.env.get_config()
         else:
             config = coi.Config()
@@ -210,7 +211,7 @@ class ConfigTimeLimit(gym.Wrapper, coi.Configurable):
 
     def apply_config(self, values: SimpleNamespace) -> None:
         self.value = values.TimeLimit_max_episode_steps
-        if isinstance(self.env, coi.Configurable):
+        if is_configurable(self.env):
             self.env.apply_config(values)
 
 

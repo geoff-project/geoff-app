@@ -9,6 +9,11 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from .. import envs
 from ..job_control.single_objective import OptJob, OptJobBuilder, optimizers
+from ..utils.typecheck import (
+    is_any_optimizable,
+    is_configurable,
+    is_function_optimizable,
+)
 from . import configuration
 from .excdialog import current_exception_dialog, exception_dialog
 from .plot_manager import PlotManager
@@ -206,16 +211,15 @@ class NumOptTab(QtWidgets.QWidget):
     def _on_env_changed(self, name: str) -> None:
         self._opt_builder.problem_id = name
         self._clear_job()
+        enable_config_button = False
         if name:
             env_spec = coi.spec(name)
             # TODO: This does not work well with wrappers.
             env_class = env_spec.entry_point
-            is_configurable = issubclass(
+            enable_config_button = issubclass(
                 env_class, (coi.Configurable, coi.FunctionOptimizable)
             )
-        else:
-            is_configurable = False
-        self.env_config_button.setEnabled(is_configurable)
+        self.env_config_button.setEnabled(enable_config_button)
         LOG.debug("configurable: %s", is_configurable)
 
     def _on_env_config_clicked(self) -> None:
@@ -223,17 +227,17 @@ class NumOptTab(QtWidgets.QWidget):
         if problem is None:
             # Initialization failed, logs already made.
             return
-        if not isinstance(
-            problem.unwrapped, (coi.Configurable, coi.FunctionOptimizable)
-        ):
+        if not is_configurable(problem) and not is_function_optimizable(problem):
             LOG.error("not configurable: %s", problem)
             return
+        # Assert to guide MyPy.
+        assert isinstance(problem, coi.Problem) and is_any_optimizable(problem)
         dialog = configuration.OptimizableDialog(
             problem,
             skeleton_points=self._opt_builder.skeleton_points,
             parent=self.window(),
         )
-        if isinstance(problem.unwrapped, coi.FunctionOptimizable):
+        if is_function_optimizable(problem):
 
             def _set_skeleton_points() -> None:
                 skeleton_points = dialog.skeletonPoints()
@@ -248,11 +252,11 @@ class NumOptTab(QtWidgets.QWidget):
         factory_class = optimizers.ALL_OPTIMIZERS[name]
         factory = factory_class()
         self._opt_builder.optimizer_factory = factory
-        self.algo_config_button.setEnabled(isinstance(factory, coi.Configurable))
+        self.algo_config_button.setEnabled(is_configurable(factory))
 
     def _on_algo_config_clicked(self) -> None:
         factory = self._opt_builder.optimizer_factory
-        if not isinstance(factory, coi.Configurable):
+        if not is_configurable(factory):
             LOG.error("not configurable: %s", factory)
             return
         dialog = configuration.PureDialog(factory, self.window())
