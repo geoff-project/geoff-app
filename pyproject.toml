@@ -91,21 +91,21 @@ target-version = ['py37', 'py38', 'py39']
 [tool.isort]
 profile = 'black'
 
-[tool.pylint.MAIN]
+[tool.pylint.main]
 extension-pkg-allow-list = ['PyQt5']
 
-[tool.pylint.REPORTS]
+[tool.pylint.reports]
 score = false
 reports = false
-output-format = 'colorized'
+output-format = 'parseable'
 
-[tool.pylint.FORMAT]
+[tool.pylint.format]
 ignore-long-lines = '<?https?://\S+>?$'
 
-[tool.pylint.DESIGN]
+[tool.pylint.design]
 max-attributes = 14
 
-[tool.pylint.'MESSAGES CONTROL']
+[tool.pylint.'messages control']
 disable = [
     'duplicate-code',
     'fixme',
