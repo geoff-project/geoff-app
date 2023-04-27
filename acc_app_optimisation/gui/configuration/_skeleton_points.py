@@ -1,19 +1,75 @@
 import typing as t
 
-import numpy as np
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
 from ...utils.split_words import split_words_and_spaces
 
 
-class SkeletonPointsWidget(QtWidgets.QWidget):
-    """The tab page presented to set skeleton points."""
+class BaseSkeletonPointsWidget(QtWidgets.QWidget):
+    """Base class of `SkeletonPointsViewWidget` and `SkeletonPointsEditWidget`."""
+
+    # pylint: disable = invalid-name
+
+    def skeletonPoints(self) -> t.Tuple[float, ...]:
+        """Parse the skeleton points entered by the user."""
+        raise NotImplementedError()
+
+    def setSkeletonPoints(self, points: t.Tuple[float, ...]) -> None:
+        """Update the control to display the given points."""
+        raise NotImplementedError()
+
+
+class SkeletonPointsViewWidget(BaseSkeletonPointsWidget):
+    """The tab page presented to view unmodifiable skeleton points."""
+
+    def __init__(
+        self,
+        points: t.Tuple[float, ...],
+        parent: t.Optional[QtWidgets.QWidget] = None,
+    ) -> None:
+        super().__init__(parent)
+        description = QtWidgets.QLabel(
+            "This optimization problem has signaled that it manages "
+            "the skeleton points itself. You can preview them below. "
+            "Note that this view only gets updated if you click Apply "
+            "to save the current configuration."
+        )
+        description.setWordWrap(True)
+        self._points = tuple(sorted(points))
+        self.edit = QtWidgets.QLineEdit(self._get_points_text())
+        self.edit.setReadOnly(True)
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(description)
+        layout.addWidget(self.edit)
+        layout.addStretch(1)
+
+    def showEvent(self, _: QtGui.QShowEvent) -> None:  # pylint: disable = invalid-name
+        """Pre-select the line edit upon becoming visible."""
+        self.edit.setFocus()
+
+    def skeletonPoints(self) -> t.Tuple[float, ...]:
+        """Parse the skeleton points entered by the user."""
+        return self._points
+
+    def setSkeletonPoints(self, points: t.Tuple[float, ...]) -> None:
+        """Update the control to display the given points."""
+        self._points = tuple(sorted(points))
+        self.edit.setText(self._get_points_text())
+
+    def _get_points_text(self) -> str:
+        return " ".join(map(str, self._points))
+
+
+class SkeletonPointsEditWidget(BaseSkeletonPointsWidget):
+    """The tab page presented to change skeleton points."""
 
     # pylint: disable = invalid-name
 
     def __init__(
-        self, points: np.ndarray, parent: t.Optional[QtWidgets.QWidget] = None
+        self,
+        points: t.Tuple[float, ...],
+        parent: t.Optional[QtWidgets.QWidget] = None,
     ) -> None:
         super().__init__(parent)
         description = QtWidgets.QLabel(
@@ -44,7 +100,7 @@ class SkeletonPointsWidget(QtWidgets.QWidget):
         """Pre-select the line edit upon becoming visible."""
         self.edit.setFocus()
 
-    def skeletonPoints(self) -> np.ndarray:
+    def skeletonPoints(self) -> t.Tuple[float, ...]:
         """Parse the skeleton points entered by the user."""
         locale = self.edit.validator().locale()
         points: t.MutableSet[float] = set()
@@ -53,9 +109,9 @@ class SkeletonPointsWidget(QtWidgets.QWidget):
             if not success:
                 raise ValueError(f"could not convert string to float: {word!r}")
             points.add(point)
-        return np.array(sorted(points))
+        return tuple(sorted(points))
 
-    def setSkeletonPoints(self, points: np.ndarray) -> None:
+    def setSkeletonPoints(self, points: t.Tuple[float, ...]) -> None:
         """Update the control to display the given points."""
         self.edit.setText(" ".join(str(point) for point in points))
 

@@ -2,7 +2,20 @@
 
 ## Unreleased
 
-No changes yet!
+### Visible changes
+
+- Add support for `FunctionOptimizable.override_skeleton_points()`. If a
+  function optimization problem implements this method, it takes over the
+  selection of skeleton points from the user. The configuration window will in
+  that case provide a read-only view of the chosen points. The view is updated
+  every time the user clicks Apply. After applying the configuration, the
+  problem is allowed to switch between overriding the skeleton points or not;
+  the configuration window will be updated accordingly.
+
+### Build changes
+
+- Update cernml-coi requirement to 0.8.9. This adds support for
+  `FunctionOptimizable.override_skeleton_points()`.
 
 ## v0.9.0
 

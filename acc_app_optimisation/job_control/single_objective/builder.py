@@ -1,7 +1,6 @@
 import typing as t
 from logging import getLogger
 
-import numpy as np
 from cernml.coi import cancellation
 
 from ...envs import make_env_by_name
@@ -12,6 +11,7 @@ from ...utils.typecheck import (
 )
 from ..base import CannotBuildJob, JobBuilder
 from . import jobs, optimizers
+from .skeleton_points import gather_skeleton_points
 
 if t.TYPE_CHECKING:
     from pyjapc import PyJapc  # pylint: disable=import-error, unused-import
@@ -21,7 +21,7 @@ LOG = getLogger(__name__)
 
 class OptJobBuilder(JobBuilder):
     japc: t.Optional["PyJapc"]
-    skeleton_points: t.Optional[np.ndarray]
+    skeleton_points: t.Tuple[float, ...]
     optimizer_factory: t.Optional[optimizers.OptimizerFactory]
     signals: jobs.Signals
 
@@ -30,7 +30,7 @@ class OptJobBuilder(JobBuilder):
         self._problem_id = ""
         self._token_source = cancellation.TokenSource()
         self.japc = None
-        self.skeleton_points = None
+        self.skeleton_points = ()
         self.optimizer_factory = None
         self.signals = jobs.Signals()
 
@@ -81,14 +81,13 @@ class OptJobBuilder(JobBuilder):
             raise CannotBuildJob("no optimizer selected")
         problem = self.make_problem() if self.problem is None else self.problem
         if is_function_optimizable(problem):
-            if self.skeleton_points is None or not np.shape(self.skeleton_points):
-                raise CannotBuildJob("no skeleton points selected")
+            skeleton_points = gather_skeleton_points(problem, self.skeleton_points)
             return jobs.FunctionOptimizableJob(
                 token_source=self._token_source,
                 signals=self.signals,
                 optimizer_factory=self.optimizer_factory,
                 problem=problem,
-                skeleton_points=self.skeleton_points,
+                skeleton_points=skeleton_points,
             )
         assert is_single_optimizable(problem), problem.unwrapped
         return jobs.SingleOptimizableJob(

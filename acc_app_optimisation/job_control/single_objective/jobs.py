@@ -14,6 +14,7 @@ from ...envs import Metadata
 from ...utils.bounded import BoundedArray
 from ..base import BenignCancelledError, Job, catching_exceptions
 from . import constraints, optimizers
+from .skeleton_points import SkeletonPoints
 
 LOG = getLogger(__name__)
 
@@ -279,10 +280,10 @@ class FunctionOptimizableJob(OptJob):
         signals: Signals,
         problem: FunctionOptimizable,
         optimizer_factory: optimizers.OptimizerFactory,
-        skeleton_points: t.Iterable[float],
+        skeleton_points: SkeletonPoints,
     ) -> None:
         super().__init__(token_source=token_source, signals=signals, problem=problem)
-        self.skeleton_points = tuple(skeleton_points)
+        self.skeleton_points = skeleton_points
         self.all_x_0 = []
         for point in self.skeleton_points:
             unvalidated_x0 = problem.get_initial_params(point)
