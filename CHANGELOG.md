@@ -16,6 +16,8 @@
 
 - Update cernml-coi requirement to 0.8.9. This adds support for
   `FunctionOptimizable.override_skeleton_points()`.
+- Upgrade cernml-coi-utils to 0.2.6. This adds support for
+  `lsa_utils.trim_scalar_settings()`.
 
 ## v0.9.0
 
