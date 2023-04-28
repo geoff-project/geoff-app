@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+No changes yet!
+
+## v0.10.0
+
 ### Visible changes
 
 - Add support for `FunctionOptimizable.override_skeleton_points()`. If a
