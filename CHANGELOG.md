@@ -4,6 +4,16 @@
 
 No changes yet!
 
+### Visible changes
+
+- Log messages now distinguish between complete and incomplete cancellations.
+  Complete ones are those that either happen between calls to the optimization
+  problem, or that are acknowledged by the optimization problem as having been
+  handled. Incomplete cancellations mean that the GUI is not sure whether it's
+  safe to call the optimization problem without breaking anything. This
+  distinction is made to better diagnose cases in which an exception is raised
+  at a location that the optimization problem author did not expect.
+
 ### Bug fixes
 
 -- Remove superfluous debug code that raises an exception in certain cases.

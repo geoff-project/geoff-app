@@ -12,7 +12,6 @@ from PyQt5 import QtCore
 if t.TYPE_CHECKING:
     # pylint: disable = unused-import
     from logging import Logger
-    from types import TracebackType
 
 
 class BenignCancelledError(cancellation.CancelledError):
@@ -116,14 +115,26 @@ def catching_exceptions(
             token_source.token.complete_cancellation()
             token_source.reset_cancellation()
     except BenignCancelledError:
-        logger.info(f"cancelled {name}")
+        logger.info(f"cancelled {name} successfully!")
         token_source.token.complete_cancellation()
         token_source.reset_cancellation()
         on_cancel()
     except cancellation.CancelledError:
-        logger.info(f"cancelled {name}")
         if token_source.can_reset_cancellation:
+            logger.info(f"cancelled {name} successfully")
             token_source.reset_cancellation()
+        else:
+            logger.warning(
+                "the optimizable never called "
+                "`cancellation_token.complete_canellation()`"
+            )
+            logger.warning(
+                "this means we can't be sure it's still in a good state to be re-used"
+            )
+            logger.warning(
+                "if this is an issue, please contact the maintainer about it"
+            )
+            logger.warning(f"cancelled {name} incompletely!")
         on_cancel()
     except:
         logger.error(f"aborted {name}", exc_info=True)
