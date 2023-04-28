@@ -4,6 +4,10 @@
 
 No changes yet!
 
+### Bug fixes
+
+-- Remove superfluous debug code that raises an exception in certain cases.
+
 ## v0.10.0
 
 ### Visible changes
