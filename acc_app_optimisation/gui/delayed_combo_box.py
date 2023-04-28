@@ -54,28 +54,25 @@ class DelayedComboBox(QtWidgets.QComboBox):
     def __init__(
         self,
         parent: t.Optional[QtWidgets.QWidget] = None,
-        timeout: int = 100,
+        interval: int = 100,
         **kwargs: t.Any,
     ) -> None:
         super().__init__(parent, **kwargs)
         self.currentIndexChanged.connect(self._kick_off_timer)
+        self._interval = interval
         self._timer = QtCore.QTimer()
-        self._timer.setInterval(timeout)
+        self._timer.setInterval(interval)
         self._timer.setSingleShot(True)
         self._timer.timeout.connect(self._emit_stable_signal)
-        # Use this to block the timer from being started when
-        # setStable*() is called. In case of multi-threaded access, this
-        # is an integer instead of a boolean flag. Yes, this is
-        # paranoid.
-        self._timer_skip_count = 0
 
-    def timeout(self) -> int:
-        """Return the timeout in milliseconds."""
-        return self._timer.interval()
+    def interval(self) -> int:
+        """Return the timeout interval in milliseconds."""
+        return self._interval
 
-    def setTimeout(self, msecs: int) -> None:
-        """Change the timeout in milliseconds."""
-        self._timer.setInterval(msecs)
+    def setInterval(self, msec: int) -> None:
+        """Change the timeout interval in milliseconds."""
+        self._interval = msec
+        self._timer.setInterval(msec)
 
     def setStableIndex(self, index: int) -> None:
         """Set the current index and immediately stabilize.
@@ -85,10 +82,14 @@ class DelayedComboBox(QtWidgets.QComboBox):
         (`indexChanged`, `textChanged`, `stableIndexChanged`,
         `stableTextChanged`).
         """
-        self._timer.stop()
-        self._timer_skip_count += 1
-        self.setCurrentIndex(index)
-        self._emit_stable_signal()
+        # If we call `setCurrentIndex()` without actually changing the
+        # index, no signal is emitted and `self._kick_off_timer()` doesn't
+        # get called, which makes everything very messy.
+        current = self.currentIndex()
+        if index != current:
+            self._timer.setInterval(0)
+            # This implicitly calls `self._kick_off_timer()`.
+            self.setCurrentIndex(index)
 
     def setStableText(self, text: str) -> None:
         """Set the current text and immediately stabilize.
@@ -98,18 +99,22 @@ class DelayedComboBox(QtWidgets.QComboBox):
         (`indexChanged`, `textChanged`, `stableIndexChanged`,
         `stableTextChanged`).
         """
-        self._timer.stop()
-        self._timer_skip_count += 1
-        self.setCurrentText(text)
-        self._emit_stable_signal()
+        # If we call `setCurrentText()` without actually changing the
+        # index, no signal is emitted and `self._kick_off_timer()` doesn't
+        # get called, which makes everything very messy.
+        current = self.currentText()
+        if current != text:
+            self._timer.setInterval(0)
+            # This implicitly calls `self._kick_off_timer()`.
+            self.setCurrentText(text)
 
     def _kick_off_timer(self) -> None:
-        if self._timer_skip_count:
-            self._timer_skip_count -= 1
-        else:
-            self._timer.start()
+        self._timer.start()
 
     def _emit_stable_signal(self) -> None:
+        # Reset the interval if `self.setStable*()` set it to zero.
+        self._timer.setInterval(self._interval)
+        # Only access `self.current*()` once to avoid race conditions.
         index = self.currentIndex()
         text = self.itemText(index)
         self.stableIndexChanged.emit(index)

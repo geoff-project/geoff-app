@@ -12,6 +12,12 @@
   problem is allowed to switch between overriding the skeleton points or not;
   the configuration window will be updated accordingly.
 
+### Bug fixes
+
+- Fix bug in machine selection box that was introduced in v0.9.0. If the app
+  was started in the selection "no machine", the first choice in the box would
+  do nothing, and *then* the box would behave as expected.
+
 ### Build changes
 
 - Update cernml-coi requirement to 0.8.9. This adds support for
