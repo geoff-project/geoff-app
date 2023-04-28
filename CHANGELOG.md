@@ -16,7 +16,10 @@ No changes yet!
 
 ### Bug fixes
 
--- Remove superfluous debug code that raises an exception in certain cases.
+- Remove superfluous debug code that raises an exception in certain cases.
+- Fix a bug that delayed the call to `coi.Problem.close()` to a point where the
+  JVM might be shut down already, making all calls to
+  `PyJapc.SubscriptionHandle.stopMonitoring()` fail.
 
 ## v0.10.0
 

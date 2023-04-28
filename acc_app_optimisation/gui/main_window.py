@@ -222,6 +222,12 @@ class MainWindow(ApplicationFrame):
         """Pre-select machine and user according to command-line arguments."""
         self._control_pane.make_initial_selection(selection)
 
+    def closeEvent(self, event: QtGui.QCloseEvent)->None:
+        # Close events are only sent to the top-level window that gets
+        # closed. Forward this one to the control pane to properly
+        # invoke finalizers.
+        self._control_pane.closeEvent(event)
+
     def changeEvent(self, event: QtCore.QEvent) -> None:  # pylint: disable=invalid-name
         # The window manager is able to put our window into fullscreen
         # mode without going through our "fullscreen" menu item. If this
