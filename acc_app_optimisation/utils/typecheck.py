@@ -51,5 +51,5 @@ def is_env(problem: Problem) -> TypeGuard[Env]:
 
 
 def is_configurable(obj: t.Any) -> TypeGuard[Configurable]:
-    obj = getattr(obj, "unwrapped", None)
+    obj = getattr(obj, "unwrapped", obj)
     return isinstance(obj, Configurable)
