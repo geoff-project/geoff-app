@@ -4,6 +4,8 @@
 
 No changes yet!
 
+## v0.10.1
+
 ### Visible changes
 
 - Log messages now distinguish between complete and incomplete cancellations.
