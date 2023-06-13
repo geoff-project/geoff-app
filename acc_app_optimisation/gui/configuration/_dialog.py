@@ -15,8 +15,8 @@ from cernml import coi
 from PyQt5.QtCore import pyqtSignal
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QTabWidget, QVBoxLayout, QWidget
 
-from ...utils.disabled_updates import disabled_updates
 from ...utils.coerce_float import coerce_float_tuple
+from ...utils.disabled_updates import disabled_updates
 from ...utils.typecheck import AnyOptimizable, is_configurable, is_function_optimizable
 from ..excdialog import exception_dialog
 from ._skeleton_points import (

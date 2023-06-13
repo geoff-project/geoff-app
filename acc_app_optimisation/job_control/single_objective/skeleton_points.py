@@ -9,10 +9,12 @@
 import typing as t
 
 from cernml.coi import FunctionOptimizable
+
 from ...utils.coerce_float import coerce_float_tuple
 
 SkeletonPoints = t.NewType("SkeletonPoints", t.Tuple[float, ...])
 """Helper to ensure we don't forget to call `gather_skeleton_points()`."""
+
 
 class NoSkeletonPoints(Exception):
     """There are no skeleton points at which to optimize functions."""

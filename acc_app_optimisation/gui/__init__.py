@@ -8,3 +8,8 @@
 
 from ._translate import InitialSelection
 from .main_window import MainWindow
+
+__all__ = [
+    "InitialSelection",
+    "MainWindow",
+]

@@ -30,9 +30,9 @@ from . import foreign_imports, logging_setup
 if t.TYPE_CHECKING:
     # pylint: disable = unused-import, ungrouped-imports
     import os
-    from types import SimpleNamespace
 
-    from acc_app_optimisation.gui import ExceptionQueue, InitialSelection
+    from acc_app_optimisation.gui import InitialSelection
+    from acc_app_optimisation.gui.excdialog import ExceptionQueue
 
 
 def init_logging(
@@ -63,11 +63,11 @@ def import_all(paths: t.Iterable[str], *, builtins: bool) -> None:
         foreign_imports.import_from_path(path)
     # Tricky ordering: foreign imports may override builtins.
     if builtins:
-        from acc_app_optimisation.envs import builtin_envs as _
+        from acc_app_optimisation.envs import builtin_envs as _  # noqa
 
 
 def get_initial_selection(
-    args: SimpleNamespace, errors: ExceptionQueue
+    args: argparse.Namespace, errors: ExceptionQueue
 ) -> InitialSelection:
     # pylint: disable = import-outside-toplevel
     from acc_app_optimisation.gui import InitialSelection
@@ -82,7 +82,8 @@ def get_initial_selection(
             second_exc.__suppress_context__ = False
             second_exc.__context__ = exc
             errors.append(second_exc, "LSA server could not be selected")
-            return InitialSelection(None, None, None)  # never raises an exception
+            # This never raises an exception:
+            return InitialSelection(None, None, None)
         errors.append(exc, "machine or user could not be pre-selected")
         return selection
 
@@ -202,7 +203,8 @@ def main(argv: list) -> int:
                 import_all(args.foreign_imports, builtins=args.builtins)
             except Exception as exc:  # pylint: disable=broad-except
                 errors.append(exc, "not all plugins could be loaded")
-            japc = selection.get_japc(no_set=args.japc_no_set)  # Do this *after* LSA!
+            # Do this *after* LSA!
+            japc = selection.get_japc(no_set=args.japc_no_set)
             app = QtWidgets.QApplication(argv)
             app.setApplicationName(__package__)
             window = gui.MainWindow(japc=japc, lsa=lsa, model=model)

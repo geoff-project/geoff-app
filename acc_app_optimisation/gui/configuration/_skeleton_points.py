@@ -50,8 +50,9 @@ class SkeletonPointsViewWidget(BaseSkeletonPointsWidget):
         layout.addWidget(self.edit)
         layout.addStretch(1)
 
-    def showEvent(self, _: QtGui.QShowEvent) -> None:  # pylint: disable = invalid-name
+    def showEvent(self, _: QtGui.QShowEvent) -> None:
         """Pre-select the line edit upon becoming visible."""
+        # pylint: disable = invalid-name
         self.edit.setFocus()
 
     def skeletonPoints(self) -> t.Tuple[float, ...]:
@@ -102,8 +103,9 @@ class SkeletonPointsEditWidget(BaseSkeletonPointsWidget):
         layout.addWidget(reset, alignment=Qt.AlignRight)
         layout.addStretch(1)
 
-    def showEvent(self, _: QtGui.QShowEvent) -> None:  # pylint: disable = invalid-name
+    def showEvent(self, _: QtGui.QShowEvent) -> None:
         """Pre-select the line edit upon becoming visible."""
+        # pylint: disable = invalid-name
         self.edit.setFocus()
 
     def skeletonPoints(self) -> t.Tuple[float, ...]:

@@ -21,3 +21,13 @@ import cern_sps_splitter_opt_env
 import cern_sps_tune_env
 import cern_sps_zs_alignment_env
 import linac3_lebt_tuning
+
+__all__ = [
+    "cern_awake_env",
+    "cern_isolde_offline_env",
+    "cern_leir_transfer_line_env",
+    "cern_sps_splitter_opt_env",
+    "cern_sps_tune_env",
+    "cern_sps_zs_alignment_env",
+    "linac3_lebt_tuning",
+]

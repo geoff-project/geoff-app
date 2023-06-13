@@ -44,7 +44,7 @@ GROUPS = [
 ]
 
 ALL_MISMATCHED_GROUPS = [
-    group for group in itertools.product(*zip(*GROUPS)) if not group in GROUPS
+    group for group in itertools.product(*zip(*GROUPS)) if group not in GROUPS
 ]
 
 

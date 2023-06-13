@@ -17,9 +17,9 @@ from pytestqt.qtbot import QtBot
 # pylint: disable = wrong-import-position
 pytest.importorskip("PyQt5.QtWidgets")
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets  # noqa: E402
 
-import acc_app_optimisation.utils.layouts as layout_utils
+import acc_app_optimisation.utils.layouts as layout_utils  # noqa: E402
 
 
 @pytest.fixture

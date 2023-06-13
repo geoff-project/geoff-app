@@ -8,3 +8,10 @@
 
 from ._dialog import EnvDialog, OptimizableDialog, PureDialog
 from ._widget import ConfigureWidget
+
+__all__ = [
+    "ConfigureWidget",
+    "EnvDialog",
+    "OptimizableDialog",
+    "PureDialog",
+]

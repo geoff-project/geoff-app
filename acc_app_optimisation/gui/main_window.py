@@ -145,6 +145,8 @@ class MainMdiArea(PopoutMdiArea):
 class MainWindow(ApplicationFrame):
     """The main window."""
 
+    # pylint: disable=invalid-name
+
     def __init__(
         self,
         *,
@@ -153,9 +155,7 @@ class MainWindow(ApplicationFrame):
         model: t.Optional[LogConsoleModel] = None,
     ) -> None:
         super().__init__(use_timing_bar=True, use_rbac=True)
-        self.appVersion = metadata.version(  # pylint: disable=invalid-name
-            __package__.partition(".")[0]
-        )
+        self.appVersion = metadata.version(__package__.partition(".")[0])
 
         mdi = MainMdiArea()
         self.setCentralWidget(mdi)
@@ -228,13 +228,13 @@ class MainWindow(ApplicationFrame):
         """Pre-select machine and user according to command-line arguments."""
         self._control_pane.make_initial_selection(selection)
 
-    def closeEvent(self, event: QtGui.QCloseEvent)->None:
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         # Close events are only sent to the top-level window that gets
         # closed. Forward this one to the control pane to properly
         # invoke finalizers.
         self._control_pane.closeEvent(event)
 
-    def changeEvent(self, event: QtCore.QEvent) -> None:  # pylint: disable=invalid-name
+    def changeEvent(self, event: QtCore.QEvent) -> None:
         # The window manager is able to put our window into fullscreen
         # mode without going through our "fullscreen" menu item. If this
         # happens, we need to manually update the menu item's checkbox.
@@ -242,7 +242,7 @@ class MainWindow(ApplicationFrame):
             is_fullscreen = self.windowState() & Qt.WindowFullScreen  # type: ignore
             self._fullscreen_action.setChecked(bool(is_fullscreen))
 
-    def timingBarAction(self) -> QtWidgets.QAction:  # pylint: disable=invalid-name
+    def timingBarAction(self) -> QtWidgets.QAction:
         toolbar = self.main_toolbar()
         [timing_bar_action] = (
             action
