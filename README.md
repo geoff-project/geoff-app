@@ -1,3 +1,11 @@
+<!--
+SPDX-FileCopyrightText: 2020-2023 CERN
+SPDX-FileCopyrightText: 2023 GSI Helmholtzzentrum für Schwerionenforschung
+SPDX-FileNotice: All rights not expressly granted are reserved.
+
+SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
+-->
+
 Generic Optimisation Frontend and Framework (GeOFF)
 ===================================================
 
@@ -13,7 +21,6 @@ Table of Contents
 =================
 
 [[_TOC_]]
-
 
 Basic Usage
 ===========
@@ -208,6 +215,20 @@ $ $EDITOR acc_app_optimisation/envs/builtin_envs.py
 $ pip install .
 $ python -m acc_app_optimisation
 ```
+
+License
+-------
+
+Except as otherwise noted, this work is licensed under either of [GNU Public
+License, Version 3.0 or later](LICENSES/GPL-3.0-or-later.txt), or [European
+Union Public License, Version 1.2 or later](LICENSES/EUPL-1.2.txt), at your
+option. See [COPYING](COPYING) for details.
+
+Unless You explicitly state otherwise, any contribution intentionally submitted
+by You for inclusion in this Work (the Covered Work) shall be dual-licensed as
+above, without any additional terms or conditions.
+
+For full authorship information, see the version control history.
 
 [Acc-Py-Deploy]: https://gitlab.cern.ch/acc-co/devops/python/acc-py-deploy
 [Gitlab]: https://gitlab.cern.ch/geoff/geoff-app

@@ -1,10 +1,15 @@
-#!/usr/bin/env python
-"""Tests for `acc_app_optimisation.utils.layouts`."""
+# SPDX-FileCopyrightText: 2020-2023 CERN
+# SPDX-FileCopyrightText: 2023 GSI Helmholtzzentrum für Schwerionenforschung
+# SPDX-FileNotice: All rights not expressly granted are reserved.
+#
+# SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 # pylint: disable = missing-function-docstring
 # pylint: disable = missing-class-docstring
 # pylint: disable = import-outside-toplevel
 # pylint: disable = redefined-outer-name
+
+"""Tests for `acc_app_optimisation.utils.layouts`."""
 
 import pytest
 from pytestqt.qtbot import QtBot

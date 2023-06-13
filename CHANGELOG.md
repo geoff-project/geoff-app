@@ -1,8 +1,19 @@
+<!--
+SPDX-FileCopyrightText: 2020-2023 CERN
+SPDX-FileCopyrightText: 2023 GSI Helmholtzzentrum für Schwerionenforschung
+SPDX-FileNotice: All rights not expressly granted are reserved.
+
+SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
+-->
+
 # Changelog
 
 ## Unreleased
 
-No changes yet!
+### Other changes
+
+- The project has been open-sourced and license information has been added. See
+  [COPYING](COPYING) for more information.
 
 ## v0.10.1
 
