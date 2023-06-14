@@ -61,7 +61,7 @@ $ acc-py app run acc-app-optimisation
 
 ```shell-session
 $ # Run a specific version.
-$ acc-py app run --version 0.8.4 acc-app-optimisation
+$ acc-py app run --version 0.11.0 acc-app-optimisation
 ```
 
 This runs the GUI in a completely sealed virtual environment. This means that
