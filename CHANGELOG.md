@@ -13,6 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 ### Build changes
 
 - Add sps-blowup 1.0.0.
+- Add psb-extr-and-recomb-optim 1.0.0.
 
 ### Other changes
 

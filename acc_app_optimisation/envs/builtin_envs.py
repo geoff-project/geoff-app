@@ -21,6 +21,7 @@ import cern_sps_splitter_opt_env
 import cern_sps_tune_env
 import cern_sps_zs_alignment_env
 import linac3_lebt_tuning
+import psb_extr_and_recomb_optim.optimizer
 import sps_blowup
 
 __all__ = [
@@ -31,5 +32,6 @@ __all__ = [
     "cern_sps_tune_env",
     "cern_sps_zs_alignment_env",
     "linac3_lebt_tuning",
+    "psb_extr_and_recomb_optim",
     "sps_blowup",
 ]
