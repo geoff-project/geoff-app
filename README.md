@@ -15,7 +15,9 @@ reinforcement learning on CERN accelerators. It bundles:
 2. numerical optimisers and reinforcement learners that can use these
    interfaces.
 
-This repository is available on [CERN's Gitlab][Gitlab].
+This repository is available on CERN's [Gitlab][].
+
+[Gitlab]: https://gitlab.cern.ch/geoff/geoff-app
 
 Table of Contents
 =================
@@ -25,8 +27,10 @@ Table of Contents
 Basic Usage
 ===========
 
-We manage an [acc-py-deployed][acc-py-deploy] version of the app on the General
-and Technical Networks.
+We use [acc-py-deploy][] to manage a central installation of the app on the
+General and Technical Networks.
+
+[acc-py-deploy]: https://gitlab.cern.ch/acc-co/devops/python/acc-py-deploy
 
 Setup
 -----
@@ -82,6 +86,8 @@ Step 1: Acc-Py and Venv
 You can start out with two base distributions:
 - Acc-Py Base 2020.11 (slim distribution, incldudes the bare minimum);
 - Acc-Py 19.5.2 (full distribution, includes [Pjlsa][]).
+
+[Pjlsa]: https://gitlab.cern.ch/scripting-tools/pjlsa
 
 If you use Acc-Py Base, you can create a virtual environment based on it as
 follows:
@@ -191,8 +197,10 @@ You first have to install your own package (which requires a `setup.py`,
 can keep developing your environment without the need to reinstall it on each
 change. (Pip actually installs symlinks to your source tree in this case.)
 
-To make your project installable, refer to the [packaging guide of the
-PyPA][pack-guide].
+To make your project installable, refer to the [packaging guide][] of the
+PyPA.
+
+[packaging guide]: https://packaging.python.org/tutorials/packaging-projects/
 
 ```shell-session
 $ cd ~/Projects/my-project
@@ -203,6 +211,9 @@ The app imports all the environments and other optimisable problems in
 [builtin\_envs.py][]. If you call [`coi.register()`][] in your package as
 expected, all that is needed is that you add an import of your package to this
 file. After a reinstall, your environment should appear in the GUI.
+
+[builtin\_envs.py]: /acc_app_optimisation/envs/builtin_envs.py
+[`coi.register()`]: https://gitlab.cern.ch/geoff/cernml-coi/blob/master/cernml/coi/_registration.py
 
 ```shell-session
 $ cd ~/Projects/geoff-app
@@ -229,13 +240,3 @@ by You for inclusion in this Work (the Covered Work) shall be dual-licensed as
 above, without any additional terms or conditions.
 
 For full authorship information, see the version control history.
-
-[Acc-Py-Deploy]: https://gitlab.cern.ch/acc-co/devops/python/acc-py-deploy
-[Gitlab]: https://gitlab.cern.ch/geoff/geoff-app
-[Pjlsa]: https://gitlab.cern.ch/scripting-tools/pjlsa
-[Qt LSA Selector]: https://gitlab.cern.ch/nmadysa/qt-lsa-selector/
-[`coi.register()`]: https://gitlab.cern.ch/geoff/cernml-coi/blob/master/cernml/coi/_registration.py
-[acc-py-deploy]: https://gitlab.cern.ch/acc-co/devops/python/acc-py-deploy
-[accwidgets]: https://gitlab.cern.ch/acc-co/accsoft/gui/accsoft-gui-pyqt-widgets/
-[builtin\_envs.py]: /acc_app_optimisation/envs/builtin_envs.py
-[pack-guide]: https://packaging.python.org/tutorials/packaging-projects/
