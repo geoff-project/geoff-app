@@ -207,12 +207,14 @@ $ cd ~/Projects/my-project
 $ pip install --editable .
 ```
 
-The app imports all the environments and other optimisable problems in
-[builtin\_envs.py][]. If you call [`coi.register()`][] in your package as
-expected, all that is needed is that you add an import of your package to this
-file. After a reinstall, your environment should appear in the GUI.
+All built-in optimization problems are given in a list called `BUILTIN_ENVS` in
+[envs.py](/acc_app_optimisation/envs/builtin_envs.py#L20) and and the app
+imports them one-by-one via [`importlib.import_module()`][]. If you call
+[`coi.register()`][] in your package (as is expected), you only need the
+package name to this list. After a reinstall, your environment should appear in
+the GUI.
 
-[builtin\_envs.py]: /acc_app_optimisation/envs/builtin_envs.py
+[`importlib.import_module()`]: https://docs.python.org/3/library/importlib.html#importlib.import_module
 [`coi.register()`]: https://gitlab.cern.ch/geoff/cernml-coi/blob/master/cernml/coi/_registration.py
 
 ```shell-session
