@@ -10,7 +10,10 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ## Unreleased
 
-No changes yet!
+### Visible changes
+
+- The new command-line parameter `--keep-going` (`-k` for short) allows to
+  continue to import plugins even if one of them fails.
 
 ## v0.11.1
 

@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import logging
 import sys
 import typing as t
@@ -52,18 +53,47 @@ def init_logging(
     return LogConsoleModel()
 
 
-def import_all(paths: t.Iterable[str], *, builtins: bool) -> None:
+def import_all(
+    paths: t.Iterable[str], errors: ExceptionQueue, *, builtins: bool, keep_going: bool
+) -> None:
     """Import all foreign packages as well as builtin envs.
 
-    If an exception occurs at any point, it is caught, logged, and
-    returned. This allows displaying the error in the GUI later.
+    If *builtins* is True, built-in envs are loaded, otherwise not.
+    Built-in envs are always loaded after foreign ones.
+
+    If *keep_going* is True, all packages are attempted to be loaded,
+    even if one raises an exception. If *keep_going* is False, this
+    function returns on the first raised exception.
+
+    In any case, all exceptions are appended to *errors* instead of
+    being raised.
     """
     # pylint: disable = import-outside-toplevel
+    message_template = (
+        "could not load {kind} plugin"
+        if keep_going
+        else "aborted import sequence due to {kind} plugin"
+    )
+    plugin_kind = "external"
     for path in paths:
-        foreign_imports.import_from_path(path)
+        try:
+            foreign_imports.import_from_path(path)
+        except Exception as exc:  # pylint: disable=broad-exception-caught
+            errors.append(exc, message_template.format(kind=plugin_kind))
+            if not keep_going:
+                return
     # Tricky ordering: foreign imports may override builtins.
+    plugin_kind = "built-in"
     if builtins:
-        from acc_app_optimisation.envs import builtin_envs as _  # noqa
+        from acc_app_optimisation.envs import BUILTIN_ENVS
+
+        for env in BUILTIN_ENVS:
+            try:
+                importlib.import_module(env)
+            except Exception as exc:  # pylint: disable=broad-exception-caught
+                errors.append(exc, message_template.format(kind=plugin_kind))
+                if not keep_going:
+                    return
 
 
 def get_initial_selection(
@@ -160,6 +190,13 @@ def get_parser() -> argparse.ArgumentParser:
         dest="builtins",
         help="Disable loading of built-in optimization problems",
     )
+    parser.add_argument(
+        "-k",
+        "--keep-going",
+        action="store_true",
+        help="Continue importing built-in and foreign optimization "
+        "problems, even if one of them fails",
+    )
     logger = parser.add_mutually_exclusive_group()
     logger.add_argument(
         "--enable-logging",
@@ -200,7 +237,12 @@ def main(argv: list) -> int:
         lsa = pjlsa.LSAClient(server=selection.lsa_server)
         with lsa.java_api():
             try:
-                import_all(args.foreign_imports, builtins=args.builtins)
+                import_all(
+                    args.foreign_imports,
+                    errors,
+                    builtins=args.builtins,
+                    keep_going=args.keep_going,
+                )
             except Exception as exc:  # pylint: disable=broad-except
                 errors.append(exc, "not all plugins could be loaded")
             # Do this *after* LSA!
