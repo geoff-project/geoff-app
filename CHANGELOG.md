@@ -14,6 +14,8 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 - The new command-line parameter `--keep-going` (`-k` for short) allows to
   continue to import plugins even if one of them fails.
+- If multiple exceptions are raised during initialization, the error dialog now
+  shows the number of remaining exceptions in the queue.
 
 ## v0.11.1
 

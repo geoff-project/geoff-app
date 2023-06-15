@@ -37,9 +37,9 @@ class ExceptionQueue:
         if not self._queue:
             return
         text, exception = self._queue.popleft()
-        dialog = exception_dialog(
-            exception, title=self._title, text=text, parent=parent
-        )
+        remainder = len(self._queue)
+        title = self._title if not remainder else f"{self._title} (+{remainder} more)"
+        dialog = exception_dialog(exception, title, text, parent)
         dialog.finished.connect(lambda _res: self.show_all(parent))
         dialog.show()
 
