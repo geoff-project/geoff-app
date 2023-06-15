@@ -12,6 +12,16 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 No changes yet!
 
+## v0.11.1
+
+### Bug fixes
+
+- Fix race condition that broke the `--user` command-line parameter.
+
+### Build changes
+
+- Update psb-extr-and-recomb-optim requirement to 1.0.2.
+
 ## v0.11.0
 
 ### Build changes
