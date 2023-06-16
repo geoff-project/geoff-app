@@ -11,7 +11,14 @@ import sys
 import typing as t
 from traceback import TracebackException
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import Qt
+
+__all__ = [
+    "ExceptionQueue",
+    "current_exception_dialog",
+    "exception_dialog",
+]
 
 
 class ExceptionQueue:
@@ -64,7 +71,7 @@ def exception_dialog(
     """
     if not isinstance(exception, TracebackException):
         exception = TracebackException.from_exception(exception)
-    dialog = QtWidgets.QMessageBox(
+    dialog = _ResizeableMessageBox(
         QtWidgets.QMessageBox.Warning,
         title,
         text,
@@ -102,3 +109,37 @@ def current_exception_dialog(
         text=text,
         parent=parent,
     )
+
+
+class _ResizeableMessageBox(QtWidgets.QMessageBox):
+    """A message box that can be resized if the detailed text is visible."""
+
+    # pylint: disable = invalid-name
+    # pylint: disable = too-many-arguments
+
+    def __init__(
+        self,
+        icon: QtWidgets.QMessageBox.Icon,
+        title: str,
+        text: str,
+        buttons: t.Union[
+            QtWidgets.QMessageBox.StandardButtons,
+            QtWidgets.QMessageBox.StandardButton,
+        ] = QtWidgets.QMessageBox.NoButton,
+        parent: t.Optional[QtWidgets.QWidget] = None,
+        flags: Qt.WindowFlags = Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint,
+    ) -> None:
+        super().__init__(icon, title, text, buttons, parent, flags)
+        self._max_size = self.maximumSize()
+
+    def setDetailedText(self, text: str) -> None:
+        super().setDetailedText(text)
+        edit = t.cast(
+            t.Optional[QtWidgets.QTextEdit], self.findChild(QtWidgets.QTextEdit)
+        )
+        if edit:
+            edit.setMaximumSize(self._max_size)
+
+    def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
+        self.setMaximumSize(self._max_size)
+        return super().resizeEvent(event)
