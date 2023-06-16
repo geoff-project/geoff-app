@@ -16,8 +16,9 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
   continue to import plugins even if one of them fails.
 - If multiple exceptions are raised during initialization, the error dialog now
   shows the number of remaining exceptions in the queue.
-- The error dialog is now resizeable when showing the traceback of an
-  exception.
+- The error dialog to show plugin-related exceptions has been overhauled. It's
+  now resizeable, colors the the exception traceback in a useful manner and
+  automatically scrolls to the exception message.
 
 ## v0.11.1
 

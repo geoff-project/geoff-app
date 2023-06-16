@@ -11,7 +11,7 @@ import sys
 import typing as t
 from traceback import TracebackException
 
-from PyQt5 import QtGui, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
 __all__ = [
@@ -71,12 +71,13 @@ def exception_dialog(
     """
     if not isinstance(exception, TracebackException):
         exception = TracebackException.from_exception(exception)
-    dialog = _ResizeableMessageBox(
+    dialog = _ExceptionMessageBox(
         QtWidgets.QMessageBox.Warning,
         title,
         text,
         parent=parent,
         buttons=QtWidgets.QMessageBox.Close,
+        keywords=tuple(exc.exc_type.__name__ for exc in _iter_exc_chain(exception)),
     )
     dialog.setInformativeText("".join(exception.format_exception_only()))
     dialog.setDetailedText("".join(exception.format()))
@@ -111,8 +112,17 @@ def current_exception_dialog(
     )
 
 
-class _ResizeableMessageBox(QtWidgets.QMessageBox):
-    """A message box that can be resized if the detailed text is visible."""
+class _ExceptionMessageBox(QtWidgets.QMessageBox):
+    """A message box suitable for showing exceptions.
+
+    There are three differences in behavior from a standard message box:
+
+    1. it is resizeable;
+    2. the detailed text is shown in a monospace font;
+    3. a syntax highlighter is applied to the detailed text. It
+       highlights Python code location lines and the exception
+       that was raised.
+    """
 
     # pylint: disable = invalid-name
     # pylint: disable = too-many-arguments
@@ -128,9 +138,12 @@ class _ResizeableMessageBox(QtWidgets.QMessageBox):
         ] = QtWidgets.QMessageBox.NoButton,
         parent: t.Optional[QtWidgets.QWidget] = None,
         flags: Qt.WindowFlags = Qt.Dialog | Qt.MSWindowsFixedSizeDialogHint,
+        keywords: t.Tuple[str, ...] = (),
     ) -> None:
         super().__init__(icon, title, text, buttons, parent, flags)
         self._max_size = self.maximumSize()
+        self._keywords = keywords
+        self._highlighter: t.Optional[QtGui.QSyntaxHighlighter] = None
 
     def setDetailedText(self, text: str) -> None:
         super().setDetailedText(text)
@@ -139,7 +152,59 @@ class _ResizeableMessageBox(QtWidgets.QMessageBox):
         )
         if edit:
             edit.setMaximumSize(self._max_size)
+            edit.setFont(_find_monospace_font())
+            edit.moveCursor(QtGui.QTextCursor.End)
+            self._highlighter = _TracebackHighlighter(self._keywords, edit)
 
     def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
         self.setMaximumSize(self._max_size)
         return super().resizeEvent(event)
+
+
+class _TracebackHighlighter(QtGui.QSyntaxHighlighter):
+    """Highlight important parts of a standard Python traceback."""
+
+    # pylint: disable = invalid-name
+
+    def __init__(self, keywords: t.Tuple[str, ...], parent: QtCore.QObject) -> None:
+        super().__init__(parent)
+        self.re_location_line = QtCore.QRegularExpression(
+            r"^\s+File (\".*\"), line (\d+), in ([^\s]+)$"
+        )
+        # Only highlight exception names at the start of the line.
+        re_keywords = "^" + "|".join(map(QtCore.QRegularExpression.escape, keywords))
+        self.re_keywords = (
+            QtCore.QRegularExpression(re_keywords) if re_keywords else None
+        )
+
+    def highlightBlock(self, text: str) -> None:
+        match = self.re_location_line.match(text)
+        if match.hasMatch():
+            for i, color in enumerate([Qt.darkGreen, Qt.darkGreen, Qt.blue], 1):
+                self.setFormat(match.capturedStart(i), match.capturedLength(i), color)
+            return
+        if self.re_keywords:
+            matches = self.re_keywords.globalMatch(text)
+            while matches.hasNext():
+                match = matches.next()
+                self.setFormat(match.capturedStart(0), match.capturedLength(0), Qt.red)
+
+
+def _iter_exc_chain(
+    exc: t.Optional[TracebackException],
+) -> t.Iterator[TracebackException]:
+    """Iterate through the names of all types in the given exception chain.
+
+    This searches depth-first for both contexts and causes of the given
+    exception.
+    """
+    while exc:
+        yield exc
+        exc = exc.__cause__ or (None if exc.__suppress_context__ else exc.__context__)
+
+
+def _find_monospace_font() -> QtGui.QFont:
+    """Return the default monospace font."""
+    font = QtGui.QFont("monospace")
+    font.setStyleHint(QtGui.QFont.Monospace)
+    return font
