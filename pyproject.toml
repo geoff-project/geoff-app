@@ -82,9 +82,6 @@ platforms = [
     'CERN Technical Network',
 ]
 
-[tool.setuptools.packages.find]
-include = ['acc_app_optimisation*']
-
 [tool.setuptools_scm]
 
 [tool.black]
