@@ -10,6 +10,10 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ## Unreleased
 
+No changes yet!
+
+## v0.12.0
+
 ### Visible changes
 
 - The new command-line parameter `--keep-going` (`-k` for short) allows to
