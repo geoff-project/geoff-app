@@ -78,26 +78,26 @@ Installation
 The information in this section is only relevant if you want to install this
 application into your own environment. You typically want to do this when
 developing a plugin for your own optimization problem. This section is
-up-to-date as of April 2021.
+up-to-date as of July 2023.
 
 Step 1: Acc-Py and Venv
 -----------------------
 
-You can start out with two base distributions:
-- Acc-Py Base 2020.11 (slim distribution, incldudes the bare minimum);
-- Acc-Py 19.5.2 (full distribution, includes [Pjlsa][]).
-
-[Pjlsa]: https://gitlab.cern.ch/scripting-tools/pjlsa
-
-If you use Acc-Py Base, you can create a virtual environment based on it as
-follows:
+As before, you have the choice between basing your environment either on the
+Base or the Interactive distribution of Acc-Py. See [*Getting Started with
+Acc-Py*][Acc-Py] for a full explanation. Once this is set up, you can create
+and activate a *virtual environment*, or [*venv*][venv] for short. This helps
+isolate installed dependencies from your system and makes it easier to work on
+multiple independent projects.
 
 ```shell-session
 $ # Set up production-stage release of Acc-Py Base, switch to Python 3.7.
 $ source /acc/local/share/python/acc-py/base/pro/setup.sh
 
-$ # Make some space for virtual environments. If you run out of space in your
-$ # HOME, consider putting them into /opt/venvs instead.
+$ # At CERN, HOME is on the AFS filesystem and is strictly limited in space.
+$ # Because GeOFF has some very large dependencies, we recommend putting your
+$ # venv somewhere else when on a CERN machine. If you have a BE-provided VPC,
+$ # one possibility is /opt/venvs.
 $ mkdir -p ~/venvs
 
 $ # Make a virtual environment based on Acc-Py base and activate it.
@@ -105,22 +105,8 @@ $ acc-py venv ~/venvs/geoff
 $ source ~/venvs/geoff/bin/activate
 ```
 
-If you use Acc-Py 19.5.2, the setup is very similar, but you need to *isolate*
-your environment from the packages provided by it.
-
-```shell-session
-$ # Use the production-stage release of Acc-Py (19.5.2 at the moment), stay on
-$ # Python 3.6.
-$ source /acc/local/share/python/acc-py-pyqt/pro/setup.sh
-
-$ # Make some space for virtual environments. If you run out of space in your
-$ # HOME, consider putting them into /opt/venvs instead.
-$ mkdir -p ~/venvs
-
-$ # Make a virtual environment isolated from Acc-Py and activate it.
-$ acc-py venv ~/venvs/geoff
-$ source ~/venvs/geoff
-```
+[Acc-Py]: https://wikis.cern.ch/display/ACCPY/Getting+started+with+Acc-Py
+[venv]: https://docs.python.org/3/library/venv.html
 
 Of course, you're free to set up your virtual environment however you prefer.
 The steps above have been tested to work.
@@ -148,6 +134,39 @@ If you have decided to clone this repository, you can install this clone
 $ git clone https://gitlab.cern.ch/geoff/geoff-app
 $ cd geoff-app
 $ pip install .
+```
+
+Step 2B: Installing the App outside of CERN
+-------------------------------------------
+
+Note that GeOFF has only been published on the [Acc-Py Package Index][]. If you
+wish to install it outside the CERN network, you can create a proxy to tunnel
+into the CERN network.
+
+[Acc-Py Package Index]: https://wikis.cern.ch/display/ACCPY/Python+package+index
+
+To tunnel into the CERN network, you first need to install SOCKS support for
+Pip and starts a SOCKS proxy:
+
+```shell-session
+$ pip install -U requests[socks]
+$ ssh -ND localhost:12345 lxtunnel.cern.ch &
+```
+
+Then you can install GeOFF from the Acc-Py index by specifying its URL and
+telling Pip to use the proxy:
+
+```shell-session
+$ https_proxy=socks5://localhost:12345 pip install \
+    --index-url https://acc-py-repo.cern.ch/repository/vr-py-releases/ \
+    acc-app-optimisation
+```
+
+If you wish to use the Acc-Py package index permanently while inside your venv,
+you can install a hook for this:
+
+```shell-session
+$ pip install git+https://gitlab.cern.ch/acc-co/devops/python/acc-py-pip-config
 ```
 
 Step 3: Using Your Own Optimisation Problem
@@ -179,7 +198,8 @@ resolve any package-relative imports in `submodule.py`. The double-colon chain
 can obviously be extended to import the submodule of a submodule.
 
 To import more than one module, simply pass the paths to all of them as
-separate arguments.
+separate arguments. You can pass `--keep-going` to continue loading packages
+even if one of them fails.
 
 Of course, if you have installed the application into your own environment, you
 need to replace `acc-py app run acc-app-optimisation` with `python -m
