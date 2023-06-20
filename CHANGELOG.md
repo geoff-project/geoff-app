@@ -11,6 +11,11 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 ## Unreleased
 
 No changes yet!
+## v0.12.1
+
+- Changed project directory structure to
+  [src-layout](https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#src-layout.)
+- Redeployed to fix a bug caused by a stale deployment cache.
 
 ## v0.12.0
 
