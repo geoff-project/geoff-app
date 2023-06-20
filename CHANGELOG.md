@@ -11,11 +11,17 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 ## Unreleased
 
 No changes yet!
+
+## v0.12.2
+
+### Build changes
+
+- Update linac3-lebt-tuning requirement to 1.0.2.
+
 ## v0.12.1
 
 - Changed project directory structure to
-  [src-layout](https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#src-layout.)
-- Redeployed to fix a bug caused by a stale deployment cache.
+  [src-layout](https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#src-layout)
 
 ## v0.12.0
 
@@ -104,6 +110,11 @@ No changes yet!
   `--lsa-server` is passed, the other is assumed to match. Crucially, this
   means that `--machine=LINAC_4` now implies e.g. `--lsa-server=psb`.
   Furthermore, `--user=SPS.USER.ALL` now implies `--machine=SPS` and
+  `--lsa-server=sps`. Any obviously faulty combinations are caught and produce
+  an error on startup.
+
+### Bug fixes
+
   `--lsa-server=sps`. Any obviously faulty combinations are caught and produce
   an error on startup.
 
@@ -661,11 +672,6 @@ Consequently, all dependent packages are upgraded as well:
 - Log caught exceptions via `logging` module.
 
 ## v0.0.2
-
-### Build changes
-
-- Upgrade build setup to use `pyproject.toml`.
-- Make `accwidgets` requirement stricter (0.4.X instead of >=0.4).
 - Fix conflicting test dependencies (Require PyTest as modern as required by
   PyTest-Mock).
 
