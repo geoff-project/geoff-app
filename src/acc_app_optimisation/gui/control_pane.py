@@ -67,7 +67,7 @@ class ControlPane(QtWidgets.QWidget):
             ),
         )
         self.lsa_selector.userSelectionChanged.connect(self._on_lsa_user_changed)
-        self.lsa_selector.showCategoryFilter = True
+        self.lsa_selector.showCategoryFilter = True  # type: ignore # mypy bug #9911
         self.tabs = QtWidgets.QTabWidget()
         self.num_opt_tab = NumOptTab(plot_manager=plot_manager)
         self.rl_train_tab = RlTrainTab(plot_manager=plot_manager)
@@ -146,8 +146,10 @@ class ControlPane(QtWidgets.QWidget):
         # selected a context for this machine, re-select it.
         machine = coi.Machine(value)
         last_selection = self._last_lsa_selection.get(value, None)
-        self.lsa_selector.accelerator = (
-            _translate.machine_to_lsa_accelerator(machine) or LsaSelectorAccelerator.LHC
+        self.lsa_selector.accelerator = t.cast(
+            t.Any,
+            _translate.machine_to_lsa_accelerator(machine)
+            or LsaSelectorAccelerator.LHC,
         )
         if last_selection:
             self.lsa_selector.select_user(last_selection)

@@ -155,7 +155,8 @@ class MainWindow(ApplicationFrame):
         model: t.Optional[LogConsoleModel] = None,
     ) -> None:
         super().__init__(use_timing_bar=True, use_rbac=True)
-        self.appVersion = metadata.version(__package__.partition(".")[0])
+        version = metadata.version(__package__.partition(".")[0])
+        self.appVersion = version  # type: ignore # mypy bug #9911
 
         mdi = MainMdiArea()
         self.setCentralWidget(mdi)
@@ -174,7 +175,7 @@ class MainWindow(ApplicationFrame):
             lambda _: LOG.warning("RBAC token expired")
         )
 
-        self.useScreenshot = True
+        self.useScreenshot = True  # type: ignore # mypy bug #9911
         self.screenshot_widget.captureFailed.connect(
             lambda error: LOG.error("Screenshot error: %s", error)
         )
@@ -199,9 +200,10 @@ class MainWindow(ApplicationFrame):
         self._on_machine_changed(self._control_pane.machine_combo.currentText())
 
         console = LogConsole(model=model)
-        console.expanded = False
+        console.expanded = False  # type: ignore # mypy bug #9911
         log_dock = LogConsoleDock(
-            console=console, allowed_areas=Qt.BottomDockWidgetArea
+            console=console,
+            allowed_areas=Qt.DockWidgetAreas(Qt.BottomDockWidgetArea),
         )
         log_dock.setFeatures(log_dock.DockWidgetFloatable)
         # Attach the dock to the window via ApplicationFrame.

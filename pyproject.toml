@@ -116,7 +116,8 @@ disable = [
 
 [tool.mypy]
 disallow_untyped_defs = true
-namespace_packages = true
+explicit_package_bases = true
+mypy_path = '$MYPY_CONFIG_FILE_DIR/src'
 
 [[tool.mypy.overrides]]
 module = [

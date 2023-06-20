@@ -392,7 +392,9 @@ class PlotManager:
             assert len(names) == num, f"{len(names)} == {num}"
             for name, (color, layer_name) in zip(names, _iter_colored_layers(num)):
                 if layer_name:
-                    self._constraints_plot.add_layer(layer_name, pen=color)
+                    self._constraints_plot.add_layer(
+                        layer_name, pen=pyqtgraph.mkPen(color)
+                    )
                 curves = _make_curve_with_bounds(
                     color=color, name=name, layer=layer_name, symbol="+"
                 )
