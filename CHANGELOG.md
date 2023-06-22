@@ -12,6 +12,12 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 No changes yet!
 
+## v0.12.4
+
+### Build changes
+
+- Update sps-blowup requirement to 1.0.2.
+
 ## v0.12.3
 
 ### Build changes
