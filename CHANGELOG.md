@@ -10,6 +10,27 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ## Unreleased
 
+### Visible changes
+
+- GeOFF now uses [Global Trim Request Hooks](https://acc-py.web.cern.ch/gitlab/geoff/cernml-coi-utils/docs/stable/guide/lsa_utils.html#global-trim-request-hooks)
+  to modify all trims that are made through the [CernML COI Utilities](https://gitlab.cern.ch/geoff/cernml-coi-utils).
+  Specifically:
+  - All trims are marked as transient *except* the final step of any numerical
+    optimization (the one that evaluates `x_optimal` a final time) and
+    whenever the user clicks the Reset button.
+  - All trim descriptions are enhanced with various information that is easily
+    accessible within GeOFF but not so within its plugins. This information
+    includes, in this order:
+    1. the context of the trim (initializing, resetting, optimizing, …);
+    2. step index, episode index, skeleton point, and any related information;
+    3. the name and version, or at least file path of the optimization problem;
+    4. GeOFF's name and version.
+    This information is only added if the trims are made through
+    `cernml.lsa_utils`. To make full use of this feature, plugin authors are
+    encouraged to avoid using the raw Java API of LSA. If the utilities do not
+    suit your needs for any reasons, you are [encouraged to report an
+    issue](https://gitlab.cern.ch/geoff/cernml-coi-utils/-/issues) to have the required functionality added.
+
 ### Build changes
 
 - Wrappers around numerical optimization algorithms have been outsourced into

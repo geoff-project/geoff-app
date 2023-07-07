@@ -9,11 +9,6 @@
 import typing as t
 from logging import getLogger
 
-try:
-    from importlib import metadata
-except ImportError:
-    import importlib_metadata as metadata  # type: ignore
-
 import jpype
 import pjlsa
 import pyjapc
@@ -26,6 +21,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
 from .. import translate
+from ..lsa_utils_hooks import GeoffHooks
 from .control_pane import ControlPane
 from .plot_manager import PlotManager
 from .popout_mdi_area import PopoutMdiArea
@@ -150,12 +146,13 @@ class MainWindow(ApplicationFrame):
     def __init__(
         self,
         *,
+        version: str,
         japc: pyjapc.PyJapc,
         lsa: pjlsa.LSAClient,
+        lsa_hooks: GeoffHooks,
         model: t.Optional[LogConsoleModel] = None,
     ) -> None:
         super().__init__(use_timing_bar=True, use_rbac=True)
-        version = metadata.version(__package__.partition(".")[0])
         self.appVersion = version  # type: ignore # mypy bug #9911
 
         mdi = MainMdiArea()
@@ -187,7 +184,7 @@ class MainWindow(ApplicationFrame):
         )
 
         self._control_pane = ControlPane(
-            japc=japc, lsa=lsa, plot_manager=self._plot_manager
+            japc=japc, lsa=lsa, lsa_hooks=lsa_hooks, plot_manager=self._plot_manager
         )
         dock = DumbDockWidget()
         dock.setWidget(self._control_pane)

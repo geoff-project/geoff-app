@@ -223,45 +223,56 @@ def get_parser() -> argparse.ArgumentParser:
 
 def main(argv: list) -> int:
     """Main function. Pass sys.argv."""
+    # pylint: disable = import-outside-toplevel
     args = get_parser().parse_args(argv[1:])
+    version = metadata.version(__package__)
     if args.version:
-        print(f"GeOFF v{metadata.version(__package__)}")
+        print(f"GeOFF v{version}")
         return 0
     model = init_logging(log_to_file=args.log_to_file, filename=args.log_file)
     with logging_setup.redirect_streams_to_logging():
-        # pylint: disable = import-outside-toplevel
-        from acc_app_optimisation import gui
+        from acc_app_optimisation.gui.excdialog import ExceptionQueue
 
-        errors = gui.excdialog.ExceptionQueue(title="Error during initialization")
+        errors = ExceptionQueue(title="Error during initialization")
         selection = get_initial_selection(args, errors)
         lsa = pjlsa.LSAClient(server=selection.lsa_server)
         with lsa.java_api():
-            try:
-                import_all(
-                    args.foreign_imports,
-                    errors,
-                    builtins=args.builtins,
-                    keep_going=args.keep_going,
+            from acc_app_optimisation.gui.main_window import MainWindow
+            from acc_app_optimisation.lsa_utils_hooks import GeoffHooks
+
+            with GeoffHooks("GeOFF", version) as lsa_hooks:
+                try:
+                    import_all(
+                        args.foreign_imports,
+                        errors,
+                        builtins=args.builtins,
+                        keep_going=args.keep_going,
+                    )
+                except Exception as exc:  # pylint: disable=broad-except
+                    errors.append(exc, "not all plugins could be loaded")
+                # Do this *after* LSA!
+                japc = selection.get_japc(no_set=args.japc_no_set)
+                app = QtWidgets.QApplication(argv)
+                app.setApplicationName(__package__)
+                window = MainWindow(
+                    version=version,
+                    lsa_hooks=lsa_hooks,
+                    japc=japc,
+                    lsa=lsa,
+                    model=model,
                 )
-            except Exception as exc:  # pylint: disable=broad-except
-                errors.append(exc, "not all plugins could be loaded")
-            # Do this *after* LSA!
-            japc = selection.get_japc(no_set=args.japc_no_set)
-            app = QtWidgets.QApplication(argv)
-            app.setApplicationName(__package__)
-            window = gui.MainWindow(japc=japc, lsa=lsa, model=model)
-            window.setWindowTitle(
-                f"GeOFF v{window.appVersion} "
-                f"(LSA {selection.lsa_server.upper()}"
-                f"{', NO SET' if args.japc_no_set else ''})"
-            )
-            try:
-                window.make_initial_selection(selection)
-            except ValueError as exc:
-                errors.append(exc, "user could not be pre-selected")
-            window.show()
-            errors.show_all(parent=window)
-            return app.exec_()
+                window.setWindowTitle(
+                    f"GeOFF v{version} "
+                    f"(LSA {selection.lsa_server.upper()}"
+                    f"{', NO SET' if args.japc_no_set else ''})"
+                )
+                try:
+                    window.make_initial_selection(selection)
+                except ValueError as exc:
+                    errors.append(exc, "user could not be pre-selected")
+                window.show()
+                errors.show_all(parent=window)
+                return app.exec_()
 
 
 if __name__ == "__main__":

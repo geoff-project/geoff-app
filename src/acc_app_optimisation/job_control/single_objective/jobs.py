@@ -35,24 +35,91 @@ class PreOptimizationMetadata:
     """Message object that provides information just before optimization.
 
     Attributes:
+        problem_id: The registered name of the optimization problem that
+            is being optimized.
         objective_name: The physical meaning of the objective function,
             e.g. a device name.
         param_names: The physical meaning of each parameter, e.g. a
             device name.
         constraint_names: The physical meaning of each constraint, e.g.
             a device name.
+        max_function_evaluations: A parameter configured on the
+            optimization algorithm that limits the number of function
+            evaluations. `None` if there is no limit or no limit could
+            be found (e.g. because GeOFF does not know the parameter's
+            name).
     """
 
+    problem_id: str
     objective_name: str
     param_names: t.Tuple[str, ...]
     constraint_names: t.Tuple[str, ...]
+    max_function_evaluations: t.Optional[int]
+
+
+@dataclass(frozen=True)
+class PreStepMetadata:
+    """Message object that provides info right before a step happens.
+
+    Attributes:
+        action: The next action sent to the optimization problem.
+        final_step: False during optimization. True for the final
+            evaluation of :math:`f(x^*)` after optimization.
+    """
+
+    action: np.ndarray
+    final_step: bool
 
 
 class Signals(QtCore.QObject):
+    """Signals emitted by `OptJob`.
+
+    Attributes:
+        new_optimisation_started:
+            Emitted before optimization starts, but after *x₀* has been
+            extracted via `AnyOptimizable.get_initial_params()`.
+        step_started:
+            Emitted right before evaluation of
+            `SingleOptimizable.compute_single_objective()` and
+            `FunctionOptimizable.compute_function_objective()`.
+        new_skeleton_point_selected:
+            Emitted whenever `FunctionOptimizableJob` switches to a new
+            skeleton point. This happens while extracting *x₀*, during
+            optimization and while resetting.
+        actors_updated:
+            Emitted at the end of an optimization step. First parameter
+            is an array of shape :math:`(N,)` with all iteration indices
+            as X coordinates, second parameter is a 2D array of shape
+            :math:`(N, A)` with the history of all actions send to the
+            optimization problem.
+        constraints_updated:
+            Emitted at the end of an optimization step, together with
+            *actors_updated*, but only if the optimization problem
+            defines any constraints. Contains the bounds and current
+            values of all constraints in a similar format to
+            *actors_updated*, but with a `BoundedArray` wrapping around
+            the Y coordinates.
+        objective_updated:
+            Emitted at the end of an optimization step, together with
+            *actors_updated*. Contains the history of the objective
+            function values. Similar format to *actors_updated*, but the
+            second parameter is a 1D array of shape :math:`(N,)`.
+        optimisation_finished:
+            Emitted at the end of optimization. The Boolean argument is
+            True if optimization ran until completion, False if it was
+            cancelled by the user.
+        optimisation_failed:
+            Emitted after optimization ended irregularly through an
+            exception *other than*
+            `cernml.coi.cancellation.CancelledError`.
+    """
+
     new_optimisation_started = QtCore.pyqtSignal(PreOptimizationMetadata)
+    step_started = QtCore.pyqtSignal(PreStepMetadata)
+    new_skeleton_point_selected = QtCore.pyqtSignal(float)
+    objective_updated = QtCore.pyqtSignal(np.ndarray, np.ndarray)
     actors_updated = QtCore.pyqtSignal(np.ndarray, np.ndarray)
     constraints_updated = QtCore.pyqtSignal(np.ndarray, BoundedArray)
-    objective_updated = QtCore.pyqtSignal(np.ndarray, np.ndarray)
     optimisation_finished = QtCore.pyqtSignal(bool)
     optimisation_failed = QtCore.pyqtSignal(traceback.TracebackException)
 
@@ -138,8 +205,16 @@ class OptJob(Job):
         ):
             self.run_optimization()
 
-    def _env_callback(self, action: np.ndarray) -> float:
-        """The callback function provided to BaseOptimizer.solve()."""
+    def _env_callback(self, action: np.ndarray, final_step: bool = False) -> float:
+        """The callback function provided to BaseOptimizer.solve().
+
+        Args:
+            action: The next evaluation point suggested by the
+                optimization algorithm.
+            final_step: Usually False. Subclasses should pass True for
+                the final evaluation :math:`f(x^*)`. This is used to
+                emit the `~Signals.step_started` signal.
+        """
         if self._token_source.token.cancellation_requested:
             raise BenignCancelledError()
         # Yield at least once per optimization step. This releases
@@ -150,6 +225,7 @@ class OptJob(Job):
         # out-of-bounds.
         opt_space = self.get_optimization_space()
         action = np.clip(action, opt_space.low, opt_space.high)
+        self._signals.step_started.emit(PreStepMetadata(action.copy(), final_step))
         # Calculate loss function.
         loss = self.compute_loss(action.copy())
         assert np.ndim(loss) == 0, "non-scalar loss"
@@ -252,9 +328,11 @@ class SingleOptimizableJob(OptJob):
         )
         self._signals.new_optimisation_started.emit(
             PreOptimizationMetadata(
+                problem_id=self.problem_id,
                 objective_name=str(self.problem.objective_name),
                 param_names=self.get_param_names(),
                 constraint_names=self.get_constraint_names(),
+                max_function_evaluations=_guess_maxfevs(self.optimizer),
             )
         )
         opt_space = self.problem.optimization_space
@@ -262,7 +340,7 @@ class SingleOptimizableJob(OptJob):
             (opt_space.low, opt_space.high), self.wrapped_constraints
         )
         optimum = solve(self._env_callback, self.x_0.copy())
-        self._env_callback(optimum.x)
+        self._env_callback(optimum.x, final_step=True)
 
     def get_param_names(self) -> t.Tuple[str, ...]:
         """Read the problem's parameter names or supply defaults.
@@ -310,6 +388,7 @@ class FunctionOptimizableJob(OptJob):
         self.skeleton_points = skeleton_points
         self.all_x_0 = []
         for point in self.skeleton_points:
+            self._signals.new_skeleton_point_selected.emit(point)
             unvalidated_x0 = problem.get_initial_params(point)
             try:
                 self.all_x_0.append(validate_x0(unvalidated_x0))
@@ -336,6 +415,7 @@ class FunctionOptimizableJob(OptJob):
                     raise BenignCancelledError()
                 LOG.info("next skeleton point: %g", point)
                 LOG.info("x0 = %s", x_0)
+                self._signals.new_skeleton_point_selected.emit(point)
                 self._current_point = point
                 self._env_callback(x_0)
 
@@ -372,9 +452,11 @@ class FunctionOptimizableJob(OptJob):
         # will have to change this eventually.
         self._signals.new_optimisation_started.emit(
             PreOptimizationMetadata(
+                problem_id=self.problem_id,
                 objective_name=str(self.problem.get_objective_function_name()),
                 param_names=self.get_param_names(),
                 constraint_names=self.get_constraint_names(),
+                max_function_evaluations=_guess_maxfevs(self.optimizer),
             )
         )
         for point, x_0 in zip(self.skeleton_points, self.all_x_0):
@@ -382,6 +464,7 @@ class FunctionOptimizableJob(OptJob):
                 raise BenignCancelledError()
             LOG.info("next skeleton point: %g", point)
             LOG.info("x0 = %s", x_0)
+            self._signals.new_skeleton_point_selected.emit(point)
             self._current_point = point
             op_space = self.get_optimization_space()
             solve = self.optimizer.make_solve_func(
@@ -389,7 +472,7 @@ class FunctionOptimizableJob(OptJob):
                 self.wrapped_constraints,
             )
             optimum = solve(self._env_callback, x_0.copy())
-            self._env_callback(optimum.x)
+            self._env_callback(optimum.x, final_step=True)
 
     def get_param_names(self) -> t.Tuple[str, ...]:
         """Read the problem's parameter names or supply defaults.
@@ -450,3 +533,14 @@ def _get_any_obj_repr(obj: t.Any) -> str:
         return repr(obj)
     module: str = getattr(class_, "__module__", "<unknown module>")
     return ".".join((module, name))
+
+
+def _guess_maxfevs(optimizer: opt.Optimizer) -> t.Optional[int]:
+    for attr in ["maxfun", "max_calls", "n_calls", "total_timesteps"]:
+        maxfevs = getattr(optimizer, attr, None)
+        if maxfevs is not None:
+            try:
+                return int(maxfevs)
+            except TypeError:
+                pass
+    return None

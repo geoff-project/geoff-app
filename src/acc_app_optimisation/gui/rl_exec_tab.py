@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import typing as t
 from logging import getLogger
 from pathlib import Path
@@ -16,6 +17,7 @@ from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from .. import envs
+from .. import lsa_utils_hooks as _hooks
 from ..job_control import rl
 from . import configuration
 from .excdialog import current_exception_dialog, exception_dialog
@@ -44,7 +46,11 @@ class CreatingEnvDialog(QtWidgets.QDialog):
 
 class RlExecTab(QtWidgets.QWidget):
     def __init__(
-        self, parent: t.Optional[QtWidgets.QWidget] = None, *, plot_manager: PlotManager
+        self,
+        parent: t.Optional[QtWidgets.QWidget] = None,
+        *,
+        lsa_hooks: _hooks.GeoffHooks,
+        plot_manager: PlotManager,
     ) -> None:
         # pylint: disable = too-many-statements
         super().__init__(parent)
@@ -53,7 +59,9 @@ class RlExecTab(QtWidgets.QWidget):
         self._exec_builder = rl.ExecJobBuilder()
         self._current_exec_job: t.Optional[rl.ExecJob] = None
         self._plot_manager = plot_manager
+        self._lsa_hooks = lsa_hooks
         # Bind the job factories signals to the outside world.
+        self._exec_builder.signals.new_run_started.connect(self._on_run_started)
         self._exec_builder.signals.new_run_started.connect(
             lambda metadata: self._plot_manager.reset_default_plots(
                 objective_name=metadata.objective_name,
@@ -70,6 +78,10 @@ class RlExecTab(QtWidgets.QWidget):
         self._exec_builder.signals.reward_lists_updated.connect(
             self._plot_manager.set_reward_curve_data
         )
+        self._exec_builder.signals.new_episode_started.connect(
+            self._on_run_episode_started
+        )
+        self._exec_builder.signals.step_started.connect(self._on_run_step_started)
         self._exec_builder.signals.run_finished.connect(self._on_run_finished)
         self._exec_builder.signals.run_failed.connect(self._on_run_failed)
         # Build the GUI.
@@ -131,6 +143,9 @@ class RlExecTab(QtWidgets.QWidget):
         try:
             yield
         finally:
+            self._lsa_hooks.update_problem_state(
+                _hooks.Closing(), problem=self._exec_builder.env_id
+            )
             self._exec_builder.unload_env()
             self._exec_builder.japc = None
 
@@ -141,6 +156,9 @@ class RlExecTab(QtWidgets.QWidget):
         please_wait_dialog.show()
         try:
             LOG.debug("initializing new problem: %s", self._exec_builder.env_id)
+            self._lsa_hooks.update_problem_state(
+                _hooks.Constructing(), problem=self._exec_builder.env_id
+            )
             return self._exec_builder.make_env()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
@@ -165,7 +183,11 @@ class RlExecTab(QtWidgets.QWidget):
         )
 
     def _on_env_changed(self, name: str) -> None:
+        self._lsa_hooks.update_problem_state(
+            _hooks.Closing(), problem=self._exec_builder.env_id
+        )
         self._exec_builder.env_id = name
+        self._lsa_hooks.update_problem(name)
         self._clear_job()
         enable_config_button = False
         if name:
@@ -181,6 +203,9 @@ class RlExecTab(QtWidgets.QWidget):
         if env is None:
             # Initialization failed, logs already made.
             return
+        self._lsa_hooks.update_problem_state(
+            _hooks.Configuring(), problem=self._exec_builder.env_id
+        )
         dialog = configuration.EnvDialog(
             env, self._exec_builder.time_limit, parent=self.window()
         )
@@ -206,10 +231,15 @@ class RlExecTab(QtWidgets.QWidget):
             self._exec_builder.agent_path = None
 
     def _on_start_clicked(self) -> None:
+        # Let `self.get_or_load_env()` create the Env object so that we
+        # get a please-wait dialog. `build_job()` would also create it,
+        # but without visual feedback.
         env = self.get_or_load_env()
         if env is None:
             return
         try:
+            # No need for `self._lsa_hooks.update_problem_state()` here,
+            # ExecJobBuilder does not run user code.
             self._current_exec_job = self._exec_builder.build_job()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
@@ -225,6 +255,72 @@ class RlExecTab(QtWidgets.QWidget):
         self._add_render_output(env)
         threadpool = QtCore.QThreadPool.globalInstance()
         threadpool.start(self._current_exec_job)
+
+    def _on_run_started(self, metadata: rl.PreRunMetadata) -> None:
+        # This is called right before the execution loop, i.e. before
+        # the first reset. `StartingEpisode` is as good a state to
+        # switch to as any.
+        # CAREFUL: we set `episode=0` and rely on
+        # `_on_training_episode_started()` to increase it to 1, the
+        # first episode.
+        self._lsa_hooks.update_problem_state(
+            _hooks.StartingEpisode(
+                episode=_hooks.LimitedInt(0),
+                max_step_per_episode=metadata.time_limit,
+                total_step=_hooks.LimitedInt(0, metadata.total_timesteps),
+            ),
+            problem=metadata.env_id,
+        )
+
+    def _on_run_episode_started(self) -> None:
+        prev = self._lsa_hooks.problem_state
+        if isinstance(prev, _hooks.StartingEpisode):
+            # This is the case on the first reset() of a run.
+            state = dataclasses.replace(
+                prev,
+                episode=prev.episode.incremented(),
+            )
+        elif isinstance(prev, _hooks.Optimizing):
+            # This is the case on each subsequent reset().
+            if prev.episode is None:
+                LOG.error("no episode information: %r", prev)
+                episode = _hooks.LimitedInt(1)
+            else:
+                episode = prev.episode.incremented()
+            state = _hooks.StartingEpisode(
+                episode=episode,
+                max_step_per_episode=prev.step.max,
+                total_step=prev.total_step,
+            )
+        else:
+            LOG.error("unexpected state in _on_training_episode_started: %r", prev)
+            state = _hooks.StartingEpisode(
+                episode=_hooks.LimitedInt(1),
+                max_step_per_episode=None,
+                total_step=None,
+            )
+        self._lsa_hooks.update_problem_state(state, problem=self._exec_builder.env_id)
+
+    def _on_run_step_started(self) -> None:
+        prev = self._lsa_hooks.problem_state
+        if isinstance(prev, _hooks.StartingEpisode):
+            # This is the case on the first step() of an episode.
+            state = _hooks.Optimizing(
+                step=_hooks.LimitedInt(1, prev.max_step_per_episode),
+                total_step=prev.total_step or _hooks.LimitedInt(1),
+                episode=prev.episode,
+            )
+        elif isinstance(prev, _hooks.Optimizing):
+            # This is the case on each subsequent step().
+            state = prev.incremented_step()
+        else:
+            LOG.error("unexpected state in _on_training_episode_started: %r", prev)
+            state = _hooks.Optimizing(
+                step=_hooks.LimitedInt(1),
+                total_step=_hooks.LimitedInt(1),
+                episode=_hooks.LimitedInt(1),
+            )
+        self._lsa_hooks.update_problem_state(state, problem=self._exec_builder.env_id)
 
     def _on_stop_clicked(self) -> None:
         if self._current_exec_job is None:
@@ -242,6 +338,7 @@ class RlExecTab(QtWidgets.QWidget):
                 "Job has terminated successfully.",
                 parent=self.window(),
             ).show()
+        self._lsa_hooks.update_problem_state(None, problem=self._exec_builder.env_id)
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
 

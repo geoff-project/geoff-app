@@ -5,9 +5,3 @@
 # SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 """Module containing the GUI elements of this application."""
-
-from .main_window import MainWindow
-
-__all__ = [
-    "MainWindow",
-]

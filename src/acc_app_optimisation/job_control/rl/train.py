@@ -130,7 +130,11 @@ class TrainJob(Job):
             "start training of %s in env %s", type(self._agent).__name__, self.env_id
         )
         self._finished = False
-        self._signals.new_run_started.emit(PreRunMetadata.from_env(self._env))
+        self._signals.new_run_started.emit(
+            PreRunMetadata.from_env(
+                self._env, self.env_id, total_timesteps=self._total_timesteps
+            )
+        )
         with catching_exceptions(
             "training",
             LOG,

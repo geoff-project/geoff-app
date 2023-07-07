@@ -29,6 +29,7 @@ if t.TYPE_CHECKING:
     import pjlsa
     from accwidgets.rbac import RbaToken as AccWidgetsRbaToken
 
+    from ..lsa_utils_hooks import GeoffHooks
     from .plot_manager import PlotManager
 
 LOG = getLogger(__name__)
@@ -41,6 +42,7 @@ class ControlPane(QtWidgets.QWidget):
         *,
         japc: pyjapc.PyJapc,
         lsa: "pjlsa.LSAClient",
+        lsa_hooks: "GeoffHooks",
         plot_manager: "PlotManager",
     ) -> None:
         super().__init__(parent)
@@ -69,9 +71,9 @@ class ControlPane(QtWidgets.QWidget):
         self.lsa_selector.userSelectionChanged.connect(self._on_lsa_user_changed)
         self.lsa_selector.showCategoryFilter = True  # type: ignore # mypy bug #9911
         self.tabs = QtWidgets.QTabWidget()
-        self.num_opt_tab = NumOptTab(plot_manager=plot_manager)
-        self.rl_train_tab = RlTrainTab(plot_manager=plot_manager)
-        self.rl_exec_tab = RlExecTab(plot_manager=plot_manager)
+        self.num_opt_tab = NumOptTab(lsa_hooks=lsa_hooks, plot_manager=plot_manager)
+        self.rl_train_tab = RlTrainTab(lsa_hooks=lsa_hooks, plot_manager=plot_manager)
+        self.rl_exec_tab = RlExecTab(lsa_hooks=lsa_hooks, plot_manager=plot_manager)
         self.tabs.addTab(self.num_opt_tab, "Num. Optimization")
         self.tabs.addTab(self.rl_train_tab, "Train RL Agent")
         self.tabs.addTab(self.rl_exec_tab, "Run RL Agent")

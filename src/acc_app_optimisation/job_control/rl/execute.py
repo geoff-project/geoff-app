@@ -136,9 +136,11 @@ class ExecJob(Job):
         LOG.info(
             "start execution of %s in env %s", type(self._agent).__name__, self.env_id
         )
-        self._signals.new_run_started.emit(PreRunMetadata.from_env(self._env))
+        self._signals.new_run_started.emit(
+            PreRunMetadata.from_env(self._env, self.env_id, total_timesteps=None)
+        )
         with catching_exceptions(
-            "training",
+            "execution",
             LOG,
             token_source=self._token_source,
             on_success=lambda: self._signals.run_finished.emit(True),

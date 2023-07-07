@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import typing as t
 from logging import getLogger
 
@@ -15,6 +16,7 @@ from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from .. import envs
+from .. import lsa_utils_hooks as _hooks
 from ..job_control import rl
 from ..utils.typecheck import is_configurable
 from . import configuration
@@ -43,7 +45,11 @@ class CreatingEnvDialog(QtWidgets.QDialog):
 
 class RlTrainTab(QtWidgets.QWidget):
     def __init__(
-        self, parent: t.Optional[QtWidgets.QWidget] = None, *, plot_manager: PlotManager
+        self,
+        parent: t.Optional[QtWidgets.QWidget] = None,
+        *,
+        lsa_hooks: _hooks.GeoffHooks,
+        plot_manager: PlotManager,
     ) -> None:
         # pylint: disable = too-many-statements
         super().__init__(parent)
@@ -52,7 +58,9 @@ class RlTrainTab(QtWidgets.QWidget):
         self._train_builder = rl.TrainJobBuilder()
         self._current_train_job: t.Optional[rl.TrainJob] = None
         self._plot_manager = plot_manager
+        self._lsa_hooks = lsa_hooks
         # Bind the job factories signals to the outside world.
+        self._train_builder.signals.new_run_started.connect(self._on_training_started)
         self._train_builder.signals.new_run_started.connect(
             lambda metadata: self._plot_manager.reset_default_plots(
                 objective_name=metadata.objective_name,
@@ -69,6 +77,10 @@ class RlTrainTab(QtWidgets.QWidget):
         self._train_builder.signals.reward_lists_updated.connect(
             self._plot_manager.set_reward_curve_data
         )
+        self._train_builder.signals.new_episode_started.connect(
+            self._on_training_episode_started
+        )
+        self._train_builder.signals.step_started.connect(self._on_training_step_started)
         self._train_builder.signals.run_finished.connect(self._on_training_finished)
         self._train_builder.signals.run_failed.connect(self._on_training_failed)
         # Build the GUI.
@@ -123,6 +135,9 @@ class RlTrainTab(QtWidgets.QWidget):
         try:
             yield
         finally:
+            self._lsa_hooks.update_problem_state(
+                _hooks.Closing(), problem=self._train_builder.env_id
+            )
             self._train_builder.unload_env()
             self._train_builder.japc = None
 
@@ -133,6 +148,9 @@ class RlTrainTab(QtWidgets.QWidget):
         please_wait_dialog.show()
         try:
             LOG.debug("initializing new problem: %s", self._train_builder.env_id)
+            self._lsa_hooks.update_problem_state(
+                _hooks.Constructing(), problem=self._train_builder.env_id
+            )
             return self._train_builder.make_env()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
@@ -157,7 +175,11 @@ class RlTrainTab(QtWidgets.QWidget):
         )
 
     def _on_env_changed(self, name: str) -> None:
+        self._lsa_hooks.update_problem_state(
+            _hooks.Closing(), problem=self._train_builder.env_id
+        )
         self._train_builder.env_id = name
+        self._lsa_hooks.update_problem(name)
         self._clear_job()
         enable_config_button = False
         if name:
@@ -173,6 +195,9 @@ class RlTrainTab(QtWidgets.QWidget):
         if env is None:
             # Initialization failed, logs already made.
             return
+        self._lsa_hooks.update_problem_state(
+            _hooks.Configuring(), problem=self._train_builder.env_id
+        )
         dialog = configuration.EnvDialog(
             env, self._train_builder.time_limit, parent=self.window()
         )
@@ -197,10 +222,15 @@ class RlTrainTab(QtWidgets.QWidget):
         dialog.open()
 
     def _on_start_clicked(self) -> None:
+        # Let `self.get_or_load_env()` create the Env object so that we
+        # get a please-wait dialog. `build_job()` would also create it,
+        # but without visual feedback.
         env = self.get_or_load_env()
         if env is None:
             return
         try:
+            # No need for `self._lsa_hooks.update_problem_state()` here,
+            # TrainJobBuilder does not run user code.
             self._current_train_job = self._train_builder.build_job()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
@@ -218,6 +248,68 @@ class RlTrainTab(QtWidgets.QWidget):
         threadpool = QtCore.QThreadPool.globalInstance()
         threadpool.start(self._current_train_job)
 
+    def _on_training_started(self, metadata: rl.PreRunMetadata) -> None:
+        # This is called right before `agent.learn(total_timesteps)`,
+        # i.e. before the first reset. `StartingEpisode` is as good a
+        # state to switch to as any.
+        # CAREFUL: we set `episode=0` and `total_step=0` and rely on
+        # `_on_training_episode_started()` and
+        # `_on_training_step_started()` to increase them to 1, the first
+        # episode and the first step. This means that during the first
+        # `reset()`, `total_step` is invalid. This is fine, however,
+        # because `StartingEpisode` documents that it only carries
+        # `total_step` through and does not use it.
+        assert metadata.total_timesteps is not None, "set by AgentFactory"
+        self._lsa_hooks.update_problem_state(
+            _hooks.StartingEpisode(
+                episode=_hooks.LimitedInt(0),
+                max_step_per_episode=metadata.time_limit,
+                total_step=_hooks.LimitedInt(0, metadata.total_timesteps),
+            ),
+            problem=metadata.env_id,
+        )
+
+    def _on_training_episode_started(self) -> None:
+        prev = self._lsa_hooks.problem_state
+        if isinstance(prev, _hooks.StartingEpisode):
+            # This is the case on the first reset() of a training run.
+            state = dataclasses.replace(
+                prev,
+                episode=prev.episode.incremented(),
+            )
+        elif isinstance(prev, _hooks.RlTraining):
+            # This is the case on each subsequent reset().
+            state = prev.restarted()
+        else:
+            LOG.error("unexpected state in _on_training_episode_started: %r", prev)
+            state = _hooks.StartingEpisode(
+                episode=_hooks.LimitedInt(1),
+                max_step_per_episode=None,
+                total_step=None,
+            )
+        self._lsa_hooks.update_problem_state(state, problem=self._train_builder.env_id)
+
+    def _on_training_step_started(self) -> None:
+        prev = self._lsa_hooks.problem_state
+        if isinstance(prev, _hooks.StartingEpisode):
+            # This is the case on the first step() of an episode.
+            state = _hooks.RlTraining(
+                step=_hooks.LimitedInt(1, prev.max_step_per_episode),
+                total_step=prev.total_step or _hooks.LimitedInt(1),
+                episode=prev.episode,
+            )
+        elif isinstance(prev, _hooks.RlTraining):
+            # This is the case on each subsequent step().
+            state = prev.incremented_step()
+        else:
+            LOG.error("unexpected state in _on_training_episode_started: %r", prev)
+            state = _hooks.RlTraining(
+                step=_hooks.LimitedInt(1),
+                total_step=_hooks.LimitedInt(1),
+                episode=_hooks.LimitedInt(1),
+            )
+        self._lsa_hooks.update_problem_state(state, problem=self._train_builder.env_id)
+
     def _on_stop_clicked(self) -> None:
         if self._current_train_job is None:
             LOG.error("there is nothing to stop")
@@ -234,6 +326,7 @@ class RlTrainTab(QtWidgets.QWidget):
                 "Job has terminated successfully.",
                 parent=self.window(),
             ).show()
+        self._lsa_hooks.update_problem_state(None, problem=self._train_builder.env_id)
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
         self.save_button.setEnabled(True)

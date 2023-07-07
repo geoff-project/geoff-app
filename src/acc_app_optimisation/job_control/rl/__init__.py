@@ -8,6 +8,7 @@ from . import agents
 from .agents import ALL_AGENTS, AgentFactory, BaseAlgorithm
 from .execute import ExecJob, ExecJobBuilder
 from .train import CannotBuildJob, TrainJob, TrainJobBuilder
+from .wrapper import PreRunMetadata
 
 __all__ = [
     "ALL_AGENTS",
@@ -16,6 +17,7 @@ __all__ = [
     "CannotBuildJob",
     "ExecJob",
     "ExecJobBuilder",
+    "PreRunMetadata",
     "TrainJob",
     "TrainJobBuilder",
     "agents",
