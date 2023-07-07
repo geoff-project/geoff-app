@@ -10,7 +10,9 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ## Unreleased
 
-No changes yet!
+### Build changes
+
+- Update cern-sps-splitter-opt-env requirement to 0.0.9.
 
 ## v0.12.4
 
