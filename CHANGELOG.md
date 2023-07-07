@@ -13,6 +13,9 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 ### Build changes
 
 - Update cern-sps-splitter-opt-env requirement to 0.0.9.
+- Update cernml-coi-utils requirement to 0.2.10.
+- Update pjlsa requirement to 0.2.18.
+- Update pyjapc requirement to 2.6.
 
 ## v0.12.4
 
