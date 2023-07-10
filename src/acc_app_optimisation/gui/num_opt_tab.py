@@ -99,28 +99,30 @@ class NumOptTab(QtWidgets.QWidget):
         super().__init__(parent)
         # Set up internal attributes.
         self._machine = coi.Machine.NO_MACHINE
-        self._opt_builder = OptJobBuilder()
+        self._opt_job_builder = OptJobBuilder()
         self._current_opt_job: t.Optional[OptJob] = None
         self._plot_manager = plot_manager
         # Bind the job factories signals to the outside world.
-        self._opt_builder.signals.new_optimisation_started.connect(
+        self._opt_job_builder.signals.new_optimisation_started.connect(
             lambda metadata: self._plot_manager.reset_default_plots(
                 objective_name=metadata.objective_name,
                 actor_names=metadata.param_names,
                 constraint_names=metadata.constraint_names,
             )
         )
-        self._opt_builder.signals.objective_updated.connect(
+        self._opt_job_builder.signals.objective_updated.connect(
             self._plot_manager.set_objective_curve_data
         )
-        self._opt_builder.signals.actors_updated.connect(
+        self._opt_job_builder.signals.actors_updated.connect(
             self._plot_manager.set_actors_curve_data
         )
-        self._opt_builder.signals.constraints_updated.connect(
+        self._opt_job_builder.signals.constraints_updated.connect(
             self._plot_manager.set_constraints_curve_data
         )
-        self._opt_builder.signals.optimisation_finished.connect(self._on_opt_finished)
-        self._opt_builder.signals.optimisation_failed.connect(self._on_opt_failed)
+        self._opt_job_builder.signals.optimisation_finished.connect(
+            self._on_opt_finished
+        )
+        self._opt_job_builder.signals.optimisation_failed.connect(self._on_opt_failed)
         # Build the GUI.
         large = QtGui.QFont()
         large.setPointSize(12)
@@ -174,22 +176,22 @@ class NumOptTab(QtWidgets.QWidget):
 
     @contextlib.contextmanager
     def create_lsa_context(self, japc: PyJapc) -> t.Iterator[None]:
-        assert self._opt_builder.japc is None, "nested LSA context"
-        self._opt_builder.japc = japc
+        assert self._opt_job_builder.japc is None, "nested LSA context"
+        self._opt_job_builder.japc = japc
         try:
             yield
         finally:
-            self._opt_builder.unload_problem()
-            self._opt_builder.japc = None
+            self._opt_job_builder.unload_problem()
+            self._opt_job_builder.japc = None
 
     def get_or_load_problem(self) -> t.Optional[AnyOptimizable]:
-        if self._opt_builder.problem is not None:
-            return self._opt_builder.problem
+        if self._opt_job_builder.problem is not None:
+            return self._opt_job_builder.problem
         please_wait_dialog = CreatingEnvDialog(self.window())
         please_wait_dialog.show()
         try:
-            LOG.debug("initializing new problem: %s", self._opt_builder.problem_id)
-            return self._opt_builder.make_problem()
+            LOG.debug("initializing new problem: %s", self._opt_job_builder.problem_id)
+            return self._opt_job_builder.make_problem()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
             current_exception_dialog(
@@ -216,7 +218,7 @@ class NumOptTab(QtWidgets.QWidget):
         )
 
     def _on_env_changed(self, name: str) -> None:
-        self._opt_builder.problem_id = name
+        self._opt_job_builder.problem_id = name
         self._clear_job()
         enable_config_button = False
         if name:
@@ -241,7 +243,7 @@ class NumOptTab(QtWidgets.QWidget):
         assert isinstance(problem, coi.Problem) and is_any_optimizable(problem)
         dialog = configuration.OptimizableDialog(
             problem,
-            skeleton_points=self._opt_builder.skeleton_points,
+            skeleton_points=self._opt_job_builder.skeleton_points,
             parent=self.window(),
         )
         if is_function_optimizable(problem):
@@ -250,18 +252,18 @@ class NumOptTab(QtWidgets.QWidget):
                 skeleton_points = dialog.skeletonPoints()
                 assert skeleton_points is not None
                 LOG.info("new skeleton points: %s", skeleton_points)
-                self._opt_builder.skeleton_points = skeleton_points
+                self._opt_job_builder.skeleton_points = skeleton_points
 
             dialog.config_applied.connect(_set_skeleton_points)
         dialog.open()
 
     def _on_algo_changed(self, name: str) -> None:
         opt = optimizers.make(name)
-        self._opt_builder.optimizer_factory = opt
+        self._opt_job_builder.optimizer = opt
         self.algo_config_button.setEnabled(is_configurable(opt))
 
     def _on_algo_config_clicked(self) -> None:
-        opt = self._opt_builder.optimizer_factory
+        opt = self._opt_job_builder.optimizer
         if not is_configurable(opt):
             LOG.error("not configurable: %s", opt)
             return
@@ -276,7 +278,7 @@ class NumOptTab(QtWidgets.QWidget):
         if problem is None:
             return
         try:
-            self._current_opt_job = self._opt_builder.build_job()
+            self._current_opt_job = self._opt_job_builder.build_job()
         except:  # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
             current_exception_dialog(

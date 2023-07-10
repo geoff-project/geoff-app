@@ -12,7 +12,6 @@ from logging import getLogger
 import cernml.optimizers as opt
 import gym
 import numpy as np
-import scipy.optimize
 from cernml.coi import FunctionOptimizable, SingleOptimizable, cancellation
 from cernml.mpl_utils import iter_matplotlib_figures
 from PyQt5 import QtCore
@@ -74,8 +73,10 @@ class OptJob(Job):
         token_source: cancellation.TokenSource,
         signals: Signals,
         problem: AnyOptimizable,
+        optimizer: opt.Optimizer,
     ) -> None:
         super().__init__(token_source)
+        self.optimizer = optimizer
         self.problem = problem
         self.wrapped_constraints = [
             constraints.CachedNonlinearConstraint.from_any_constraint(c)
@@ -87,14 +88,22 @@ class OptJob(Job):
         self._constraints_log: t.List[np.ndarray] = []
 
     @property
+    def optimizer_id(self) -> str:
+        """The name of the optimization algorithm."""
+        optimizer = self.optimizer
+        spec: t.Optional[opt.OptimizerSpec] = getattr(optimizer, "spec", None)
+        if spec:
+            return spec.name
+        return _get_any_obj_repr(optimizer)
+
+    @property
     def problem_id(self) -> str:
         """The name of the optimization problem."""
         problem = self.problem.unwrapped
-        spec = getattr(problem, "spec", None)
+        spec: t.Optional[gym.envs.registration.EnvSpec] = getattr(problem, "spec", None)
         if spec:
             return spec.id
-        problem_class = type(problem)
-        return ".".join([problem_class.__module__, problem_class.__qualname__])
+        return _get_any_obj_repr(problem)
 
     def get_optimization_space(self) -> gym.spaces.Box:
         """Extract the optimization space from the problem."""
@@ -201,22 +210,20 @@ class SingleOptimizableJob(OptJob):
         token_source: cancellation.TokenSource,
         signals: Signals,
         problem: SingleOptimizable,
-        optimizer_factory: opt.Optimizer,
+        optimizer: opt.Optimizer,
     ) -> None:
-        super().__init__(token_source=token_source, signals=signals, problem=problem)
+        super().__init__(
+            token_source=token_source,
+            signals=signals,
+            problem=problem,
+            optimizer=optimizer,
+        )
         unvalidated_x0 = self.problem.get_initial_params()
         try:
             self.x_0 = validate_x0(unvalidated_x0)
         except BadInitialPoint:
             LOG.warning("x0=%r", unvalidated_x0)
             raise
-        self._factory_name = type(optimizer_factory).__name__
-        self._solve = optimizer_factory.make_solve_func(
-            scipy.optimize.Bounds(
-                problem.optimization_space.low, problem.optimization_space.high
-            ),
-            self.wrapped_constraints,
-        )
 
     def reset(self) -> None:
         with catching_exceptions(
@@ -227,7 +234,7 @@ class SingleOptimizableJob(OptJob):
             on_cancel=lambda: self._signals.optimisation_finished.emit(False),
             on_exception=self._signals.optimisation_failed.emit,
         ):
-            LOG.info("start reset of %s using %s", self.problem_id, self._factory_name)
+            LOG.info("start reset of %s using %s", self.problem_id, self.optimizer_id)
             self._env_callback(self.x_0)
 
     def format_reset_point(self) -> str:
@@ -241,7 +248,7 @@ class SingleOptimizableJob(OptJob):
 
     def run_optimization(self) -> None:
         LOG.info(
-            "start optimization of %s using %s", self.problem_id, self._factory_name
+            "start optimization of %s using %s", self.problem_id, self.optimizer_id
         )
         self._signals.new_optimisation_started.emit(
             PreOptimizationMetadata(
@@ -250,7 +257,11 @@ class SingleOptimizableJob(OptJob):
                 constraint_names=self.get_constraint_names(),
             )
         )
-        optimum = self._solve(self._env_callback, self.x_0.copy())
+        opt_space = self.problem.optimization_space
+        solve = self.optimizer.make_solve_func(
+            (opt_space.low, opt_space.high), self.wrapped_constraints
+        )
+        optimum = solve(self._env_callback, self.x_0.copy())
         self._env_callback(optimum.x)
 
     def get_param_names(self) -> t.Tuple[str, ...]:
@@ -287,10 +298,15 @@ class FunctionOptimizableJob(OptJob):
         token_source: cancellation.TokenSource,
         signals: Signals,
         problem: FunctionOptimizable,
-        optimizer_factory: opt.Optimizer,
+        optimizer: opt.Optimizer,
         skeleton_points: SkeletonPoints,
     ) -> None:
-        super().__init__(token_source=token_source, signals=signals, problem=problem)
+        super().__init__(
+            token_source=token_source,
+            signals=signals,
+            problem=problem,
+            optimizer=optimizer,
+        )
         self.skeleton_points = skeleton_points
         self.all_x_0 = []
         for point in self.skeleton_points:
@@ -301,7 +317,6 @@ class FunctionOptimizableJob(OptJob):
                 LOG.warning("t=%g ms, x0=%r", point, unvalidated_x0)
                 raise
         self._current_point: t.Optional[float] = None
-        self._factory = optimizer_factory
 
     def reset(self) -> None:
         with catching_exceptions(
@@ -312,11 +327,7 @@ class FunctionOptimizableJob(OptJob):
             on_cancel=lambda: self._signals.optimisation_finished.emit(False),
             on_exception=self._signals.optimisation_failed.emit,
         ):
-            LOG.info(
-                "start reset of %s using %s",
-                self.problem_id,
-                type(self._factory).__name__,
-            )
+            LOG.info("start reset of %s using %s", self.problem_id, self.optimizer_id)
             # TODO: Only reset up to and including the current point.
             token = self._token_source.token
             for point, x_0 in zip(self.skeleton_points, self.all_x_0):
@@ -354,9 +365,7 @@ class FunctionOptimizableJob(OptJob):
 
     def run_optimization(self) -> None:
         LOG.info(
-            "start optimization of %s using %s",
-            self.problem_id,
-            type(self._factory).__name__,
+            "start optimization of %s using %s", self.problem_id, self.optimizer_id
         )
         # TODO: Right now, we create one plot for all optimizations.
         # This is fundamentally incompatible with our promise to allow
@@ -376,8 +385,8 @@ class FunctionOptimizableJob(OptJob):
             LOG.info("x0 = %s", x_0)
             self._current_point = point
             op_space = self.get_optimization_space()
-            solve = self._factory.make_solve_func(
-                scipy.optimize.Bounds(op_space.low, op_space.high),
+            solve = self.optimizer.make_solve_func(
+                (op_space.low, op_space.high),
                 self.wrapped_constraints,
             )
             optimum = solve(self._env_callback, x_0.copy())
@@ -432,3 +441,13 @@ def all_into_flat_array(values: t.Iterable[t.Union[float, np.ndarray]]) -> np.nd
     """Dump arrays, scalars, etc. into a flat NumPy array."""
     flat_arrays = [np.ravel(np.asanyarray(value)) for value in values]
     return np.concatenate(flat_arrays) if flat_arrays else np.array([])
+
+
+def _get_any_obj_repr(obj: t.Any) -> str:
+    class_ = type(obj)
+    name: t.Optional[str] = getattr(obj, "__qualname__", None)
+    name = name or getattr(class_, "__name__", None)
+    if not name:
+        return repr(obj)
+    module: str = getattr(class_, "__module__", "<unknown module>")
+    return ".".join((module, name))

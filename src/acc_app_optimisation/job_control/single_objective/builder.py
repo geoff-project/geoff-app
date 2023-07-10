@@ -30,7 +30,7 @@ LOG = getLogger(__name__)
 class OptJobBuilder(JobBuilder):
     japc: t.Optional["PyJapc"]
     skeleton_points: t.Tuple[float, ...]
-    optimizer_factory: t.Optional[Optimizer]
+    optimizer: t.Optional[Optimizer]
     signals: Signals
 
     def __init__(self) -> None:
@@ -39,7 +39,7 @@ class OptJobBuilder(JobBuilder):
         self._token_source = cancellation.TokenSource()
         self.japc = None
         self.skeleton_points = ()
-        self.optimizer_factory = None
+        self.optimizer = None
         self.signals = Signals()
 
     @property
@@ -85,7 +85,7 @@ class OptJobBuilder(JobBuilder):
             self._problem = None
 
     def build_job(self) -> OptJob:
-        if self.optimizer_factory is None:
+        if self.optimizer is None:
             raise CannotBuildJob("no optimizer selected")
         problem = self.make_problem() if self.problem is None else self.problem
         if is_function_optimizable(problem):
@@ -93,7 +93,7 @@ class OptJobBuilder(JobBuilder):
             return FunctionOptimizableJob(
                 token_source=self._token_source,
                 signals=self.signals,
-                optimizer_factory=self.optimizer_factory,
+                optimizer=self.optimizer,
                 problem=problem,
                 skeleton_points=skeleton_points,
             )
@@ -101,6 +101,6 @@ class OptJobBuilder(JobBuilder):
         return SingleOptimizableJob(
             token_source=self._token_source,
             signals=self.signals,
-            optimizer_factory=self.optimizer_factory,
+            optimizer=self.optimizer,
             problem=problem,
         )
