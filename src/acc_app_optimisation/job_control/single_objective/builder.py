@@ -8,15 +8,17 @@ import typing as t
 from logging import getLogger
 
 from cernml.coi import cancellation
+from cernml.optimizers import Optimizer
 
 from ...envs import make_env_by_name
 from ...utils.typecheck import (
+    AnyOptimizable,
     is_any_optimizable,
     is_function_optimizable,
     is_single_optimizable,
 )
 from ..base import CannotBuildJob, JobBuilder
-from . import jobs, optimizers
+from .jobs import FunctionOptimizableJob, OptJob, Signals, SingleOptimizableJob
 from .skeleton_points import gather_skeleton_points
 
 if t.TYPE_CHECKING:
@@ -28,17 +30,17 @@ LOG = getLogger(__name__)
 class OptJobBuilder(JobBuilder):
     japc: t.Optional["PyJapc"]
     skeleton_points: t.Tuple[float, ...]
-    optimizer_factory: t.Optional[optimizers.OptimizerFactory]
-    signals: jobs.Signals
+    optimizer_factory: t.Optional[Optimizer]
+    signals: Signals
 
     def __init__(self) -> None:
-        self._problem: t.Optional[optimizers.Optimizable] = None
+        self._problem: t.Optional[AnyOptimizable] = None
         self._problem_id = ""
         self._token_source = cancellation.TokenSource()
         self.japc = None
         self.skeleton_points = ()
         self.optimizer_factory = None
-        self.signals = jobs.Signals()
+        self.signals = Signals()
 
     @property
     def problem_id(self) -> str:
@@ -51,15 +53,15 @@ class OptJobBuilder(JobBuilder):
         self._problem_id = new_value
 
     @property
-    def problem(self) -> t.Optional[optimizers.Optimizable]:
+    def problem(self) -> t.Optional[AnyOptimizable]:
         return self._problem
 
-    def make_problem(self) -> optimizers.Optimizable:
+    def make_problem(self) -> AnyOptimizable:
         if not self.problem_id:
             raise CannotBuildJob("no optimization problem selected")
         self.unload_problem()
         problem = t.cast(
-            optimizers.Optimizable,
+            AnyOptimizable,
             make_env_by_name(
                 self.problem_id,
                 make_japc=self._get_japc_or_raise,
@@ -82,13 +84,13 @@ class OptJobBuilder(JobBuilder):
             self._problem.close()
             self._problem = None
 
-    def build_job(self) -> jobs.OptJob:
+    def build_job(self) -> OptJob:
         if self.optimizer_factory is None:
             raise CannotBuildJob("no optimizer selected")
         problem = self.make_problem() if self.problem is None else self.problem
         if is_function_optimizable(problem):
             skeleton_points = gather_skeleton_points(problem, self.skeleton_points)
-            return jobs.FunctionOptimizableJob(
+            return FunctionOptimizableJob(
                 token_source=self._token_source,
                 signals=self.signals,
                 optimizer_factory=self.optimizer_factory,
@@ -96,7 +98,7 @@ class OptJobBuilder(JobBuilder):
                 skeleton_points=skeleton_points,
             )
         assert is_single_optimizable(problem), problem.unwrapped
-        return jobs.SingleOptimizableJob(
+        return SingleOptimizableJob(
             token_source=self._token_source,
             signals=self.signals,
             optimizer_factory=self.optimizer_factory,

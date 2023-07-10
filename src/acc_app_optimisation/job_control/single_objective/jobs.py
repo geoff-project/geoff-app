@@ -9,6 +9,7 @@ import typing as t
 from dataclasses import dataclass
 from logging import getLogger
 
+import cernml.optimizers as opt
 import gym
 import numpy as np
 import scipy.optimize
@@ -18,8 +19,9 @@ from PyQt5 import QtCore
 
 from ...envs import Metadata
 from ...utils.bounded import BoundedArray
+from ...utils.typecheck import AnyOptimizable
 from ..base import BenignCancelledError, Job, catching_exceptions
-from . import constraints, optimizers
+from . import constraints
 from .skeleton_points import SkeletonPoints
 
 LOG = getLogger(__name__)
@@ -64,14 +66,14 @@ class OptJob(Job):
     """
 
     wrapped_constraints: t.List[constraints.CachedNonlinearConstraint]
-    problem: optimizers.Optimizable
+    problem: AnyOptimizable
 
     def __init__(
         self,
         *,
         token_source: cancellation.TokenSource,
         signals: Signals,
-        problem: optimizers.Optimizable,
+        problem: AnyOptimizable,
     ) -> None:
         super().__init__(token_source)
         self.problem = problem
@@ -199,7 +201,7 @@ class SingleOptimizableJob(OptJob):
         token_source: cancellation.TokenSource,
         signals: Signals,
         problem: SingleOptimizable,
-        optimizer_factory: optimizers.OptimizerFactory,
+        optimizer_factory: opt.Optimizer,
     ) -> None:
         super().__init__(token_source=token_source, signals=signals, problem=problem)
         unvalidated_x0 = self.problem.get_initial_params()
@@ -249,7 +251,7 @@ class SingleOptimizableJob(OptJob):
             )
         )
         optimum = self._solve(self._env_callback, self.x_0.copy())
-        self._env_callback(optimum)
+        self._env_callback(optimum.x)
 
     def get_param_names(self) -> t.Tuple[str, ...]:
         """Read the problem's parameter names or supply defaults.
@@ -285,7 +287,7 @@ class FunctionOptimizableJob(OptJob):
         token_source: cancellation.TokenSource,
         signals: Signals,
         problem: FunctionOptimizable,
-        optimizer_factory: optimizers.OptimizerFactory,
+        optimizer_factory: opt.Optimizer,
         skeleton_points: SkeletonPoints,
     ) -> None:
         super().__init__(token_source=token_source, signals=signals, problem=problem)
@@ -379,7 +381,7 @@ class FunctionOptimizableJob(OptJob):
                 self.wrapped_constraints,
             )
             optimum = solve(self._env_callback, x_0.copy())
-            self._env_callback(optimum)
+            self._env_callback(optimum.x)
 
     def get_param_names(self) -> t.Tuple[str, ...]:
         """Read the problem's parameter names or supply defaults.

@@ -10,12 +10,13 @@ import contextlib
 import typing as t
 from logging import getLogger
 
-from cernml import coi
+from cernml import coi, optimizers
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 from .. import envs
-from ..job_control.single_objective import OptJob, OptJobBuilder, optimizers
+from ..job_control.single_objective import OptJob, OptJobBuilder
 from ..utils.typecheck import (
+    AnyOptimizable,
     is_any_optimizable,
     is_configurable,
     is_function_optimizable,
@@ -168,7 +169,7 @@ class NumOptTab(QtWidgets.QWidget):
         run_control.addWidget(self.reset_button)
         layout.addLayout(run_control)
         # Fill all GUI elements, fire any events based on that.
-        self.algo_combo.addItems(optimizers.ALL_OPTIMIZERS.keys())
+        self.algo_combo.addItems(optimizers.registry.keys())
         self.setMachine(self._machine)
 
     @contextlib.contextmanager
@@ -181,7 +182,7 @@ class NumOptTab(QtWidgets.QWidget):
             self._opt_builder.unload_problem()
             self._opt_builder.japc = None
 
-    def get_or_load_problem(self) -> t.Optional[optimizers.Optimizable]:
+    def get_or_load_problem(self) -> t.Optional[AnyOptimizable]:
         if self._opt_builder.problem is not None:
             return self._opt_builder.problem
         please_wait_dialog = CreatingEnvDialog(self.window())
@@ -255,17 +256,16 @@ class NumOptTab(QtWidgets.QWidget):
         dialog.open()
 
     def _on_algo_changed(self, name: str) -> None:
-        factory_class = optimizers.ALL_OPTIMIZERS[name]
-        factory = factory_class()
-        self._opt_builder.optimizer_factory = factory
-        self.algo_config_button.setEnabled(is_configurable(factory))
+        opt = optimizers.make(name)
+        self._opt_builder.optimizer_factory = opt
+        self.algo_config_button.setEnabled(is_configurable(opt))
 
     def _on_algo_config_clicked(self) -> None:
-        factory = self._opt_builder.optimizer_factory
-        if not is_configurable(factory):
-            LOG.error("not configurable: %s", factory)
+        opt = self._opt_builder.optimizer_factory
+        if not is_configurable(opt):
+            LOG.error("not configurable: %s", opt)
             return
-        dialog = configuration.PureDialog(factory, self.window())
+        dialog = configuration.PureDialog(opt, self.window())
         dialog.open()
 
     def _on_start_clicked(self) -> None:

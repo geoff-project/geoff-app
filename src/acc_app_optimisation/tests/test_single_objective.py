@@ -17,15 +17,12 @@ import cernml.coi
 import gym.envs.registration
 import numpy as np
 import pytest
+from cernml.optimizers import make, registry
 from PyQt5 import QtCore
 from pytest_mock import MockerFixture
 from scipy.optimize import NonlinearConstraint
 
-from acc_app_optimisation.job_control.single_objective import (
-    ALL_OPTIMIZERS,
-    OptimizerFactory,
-    OptJobBuilder,
-)
+from acc_app_optimisation.job_control.single_objective import OptJobBuilder
 
 
 def make_mock_constraint(shape: t.Tuple[int, ...]) -> NonlinearConstraint:
@@ -66,13 +63,13 @@ def optimizable() -> cernml.coi.SingleOptimizable:
     return result
 
 
-@pytest.mark.parametrize("optimizer_factory_class", ALL_OPTIMIZERS.values())
+@pytest.mark.parametrize("opt_name", list(registry.keys()))
 def test_runner(
     mocker: MockerFixture,
     threadpool: QtCore.QThreadPool,
     optimizable: cernml.coi.SingleOptimizable,
     *,
-    optimizer_factory_class: t.Type[OptimizerFactory],
+    opt_name: str,
 ) -> None:
     # Given:
     # TODO: It is no longer clear what the below line does. Uncomment it
@@ -85,7 +82,7 @@ def test_runner(
     recv = Mock()
     job_builder = OptJobBuilder()
     job_builder.problem_id = optimizable.spec.id  # type:ignore
-    job_builder.optimizer_factory = optimizer_factory_class()
+    job_builder.optimizer_factory = make(opt_name)
     # Ensure that ExtremumSeeking terminates.
     if hasattr(job_builder.optimizer_factory, "max_calls"):
         t.cast(t.Any, job_builder.optimizer_factory).max_calls = 10

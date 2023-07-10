@@ -12,6 +12,8 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ### Build changes
 
+- Wrappers around numerical optimization algorithms have been outsourced into
+  [cernml-coi-optimizers](https://gitlab.cern.ch/geoff/cernml-coi-optimizers/).
 - Update cern-sps-splitter-opt-env requirement to 0.0.9.
 - Update cernml-coi-utils requirement to 0.2.10.
 - Update pjlsa requirement to 0.2.18.
