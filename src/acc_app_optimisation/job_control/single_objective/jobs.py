@@ -333,10 +333,9 @@ class FunctionOptimizableJob(OptJob):
             for point, x_0 in zip(self.skeleton_points, self.all_x_0):
                 if token.cancellation_requested:
                     token.complete_cancellation()
-                    raise cancellation.CancelledError()
+                    raise BenignCancelledError()
                 LOG.info("next skeleton point: %g", point)
                 LOG.info("x0 = %s", x_0)
-                self.problem.compute_function_objective(point, x_0)
                 self._current_point = point
                 self._env_callback(x_0)
 

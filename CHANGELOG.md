@@ -19,6 +19,11 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 - Update pjlsa requirement to 0.2.18.
 - Update pyjapc requirement to 2.6.
 
+### Bug fixes
+
+- Remove extraneous call to `compute_function_ojective()` when resetting a
+  `FunctionOptimizable` problem.
+
 ## v0.12.4
 
 ### Build changes
