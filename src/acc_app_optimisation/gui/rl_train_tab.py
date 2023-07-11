@@ -159,6 +159,14 @@ class RlTrainTab(QtWidgets.QWidget):
     def _on_env_changed(self, name: str) -> None:
         self._train_builder.env_id = name
         self._clear_job()
+        enable_config_button = False
+        if name:
+            env_spec = coi.spec(name)
+            # TODO: This does not work well with wrappers.
+            env_class = env_spec.entry_point
+            enable_config_button = issubclass(env_class, coi.Configurable)
+        self.env_config_button.setEnabled(enable_config_button)
+        LOG.debug("configurable: %s", enable_config_button)
 
     def _on_env_config_clicked(self) -> None:
         env = self.get_or_load_env()
