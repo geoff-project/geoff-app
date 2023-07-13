@@ -17,7 +17,7 @@ import typing as t
 import pytest
 from cernml.coi import Machine
 
-from acc_app_optimisation.gui import InitialSelection
+from acc_app_optimisation.translate import InitialSelection
 
 # Every tuple in this list describes one set of `coi.Machine`, timing
 # selectors and LSA servers that correspond to each other. There are

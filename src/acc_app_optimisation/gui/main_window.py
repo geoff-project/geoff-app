@@ -25,7 +25,7 @@ from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
-from . import _translate
+from .. import translate
 from .control_pane import ControlPane
 from .plot_manager import PlotManager
 from .popout_mdi_area import PopoutMdiArea
@@ -226,7 +226,7 @@ class MainWindow(ApplicationFrame):
         LOG.info("RBAC: Attempting automatic location-based login")
         self.rba_widget.model.login_by_location(interactively_select_roles=False)
 
-    def make_initial_selection(self, selection: _translate.InitialSelection) -> None:
+    def make_initial_selection(self, selection: translate.InitialSelection) -> None:
         """Pre-select machine and user according to command-line arguments."""
         self._control_pane.make_initial_selection(selection)
 
@@ -255,10 +255,10 @@ class MainWindow(ApplicationFrame):
 
     def _on_machine_changed(self, value: str) -> None:
         machine = coi.Machine(value)
-        self.screenshot_widget.model.logbook_activities = (
-            _translate.machine_to_activity(machine)
+        self.screenshot_widget.model.logbook_activities = translate.machine_to_activity(
+            machine
         )
-        timing_domain = _translate.machine_to_timing_domain(machine)
+        timing_domain = translate.machine_to_timing_domain(machine)
         if timing_domain:
             self.timing_bar.model.domain = timing_domain
             self.timingBarAction().setVisible(True)

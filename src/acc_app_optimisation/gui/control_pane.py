@@ -18,7 +18,7 @@ from accwidgets.lsa_selector import (
 from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-from . import _translate
+from .. import translate
 from .delayed_combo_box import DelayedComboBox
 from .num_opt_tab import NumOptTab
 from .rl_exec_tab import RlExecTab
@@ -87,7 +87,7 @@ class ControlPane(QtWidgets.QWidget):
         # Fill all GUI elements, fire any events based on that.
         self._on_machine_changed(self.machine_combo.currentText())
 
-    def make_initial_selection(self, selection: _translate.InitialSelection) -> None:
+    def make_initial_selection(self, selection: translate.InitialSelection) -> None:
         """Pre-select machine and user according to command-line arguments."""
         if self.lsa_selector.selected_context is not None:
             raise RuntimeError("initial selection has already been made")
@@ -148,8 +148,7 @@ class ControlPane(QtWidgets.QWidget):
         last_selection = self._last_lsa_selection.get(value, None)
         self.lsa_selector.accelerator = t.cast(
             t.Any,
-            _translate.machine_to_lsa_accelerator(machine)
-            or LsaSelectorAccelerator.LHC,
+            translate.machine_to_lsa_accelerator(machine) or LsaSelectorAccelerator.LHC,
         )
         if last_selection:
             self.lsa_selector.select_user(last_selection)

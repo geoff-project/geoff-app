@@ -32,8 +32,8 @@ if t.TYPE_CHECKING:
     # pylint: disable = unused-import, ungrouped-imports
     import os
 
-    from acc_app_optimisation.gui import InitialSelection
     from acc_app_optimisation.gui.excdialog import ExceptionQueue
+    from acc_app_optimisation.translate import InitialSelection
 
 
 def init_logging(
@@ -100,7 +100,7 @@ def get_initial_selection(
     args: argparse.Namespace, errors: ExceptionQueue
 ) -> InitialSelection:
     # pylint: disable = import-outside-toplevel
-    from acc_app_optimisation.gui import InitialSelection
+    from acc_app_optimisation.translate import InitialSelection
 
     try:
         return InitialSelection(args.machine, args.user, args.lsa_server)
