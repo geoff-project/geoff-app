@@ -12,29 +12,28 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ### Visible changes
 
-- GeOFF now uses [Global Trim Request Hooks](https://acc-py.web.cern.ch/gitlab/geoff/cernml-coi-utils/docs/stable/guide/lsa_utils.html#global-trim-request-hooks)
-  to modify all trims that are made through the [CernML COI Utilities](https://gitlab.cern.ch/geoff/cernml-coi-utils).
-  Specifically:
+- GeOFF now uses [Global Trim Request Hooks][coi-utils-docs-hooks] to modify
+  all trims that are made through the [cernml-coi-utils][]. Specifically:
   - All trims are marked as transient *except* the final step of any numerical
-    optimization (the one that evaluates `x_optimal` a final time) and
-    whenever the user clicks the Reset button.
+    optimization (the one that evaluates `x_optimal` a final time) and whenever
+    the user clicks the Reset button.
   - All trim descriptions are enhanced with various information that is easily
     accessible within GeOFF but not so within its plugins. This information
     includes, in this order:
     1. the context of the trim (initializing, resetting, optimizing, …);
     2. step index, episode index, skeleton point, and any related information;
     3. the name and version, or at least file path of the optimization problem;
-    4. GeOFF's name and version.
-    This information is only added if the trims are made through
-    `cernml.lsa_utils`. To make full use of this feature, plugin authors are
-    encouraged to avoid using the raw Java API of LSA. If the utilities do not
-    suit your needs for any reasons, you are [encouraged to report an
-    issue](https://gitlab.cern.ch/geoff/cernml-coi-utils/-/issues) to have the required functionality added.
+    4. GeOFF's name and version. This information is only added if the trims
+    are made through `cernml.lsa_utils`. To make full use of this feature,
+    plugin authors are encouraged to avoid using the raw Java API of LSA. If
+    the utilities do not suit your needs for any reasons, you are [encouraged
+    to report an issue][cernml-coi-utils-issues] to have the required
+    functionality added.
 
 ### Build changes
 
 - Wrappers around numerical optimization algorithms have been outsourced into
-  [cernml-coi-optimizers](https://gitlab.cern.ch/geoff/cernml-coi-optimizers/).
+  [cernml-coi-optimizers][].
 - Update cern-sps-splitter-opt-env requirement to 0.0.9.
 - Update cernml-coi-utils requirement to 0.2.10.
 - Update pjlsa requirement to 0.2.18.
@@ -66,7 +65,7 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 ## v0.12.1
 
 - Changed project directory structure to
-  [src-layout](https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#src-layout)
+  [src-layout][setuptools-docs-src-layout].
 
 ## v0.12.0
 
@@ -313,8 +312,7 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
   performance improvements and quality-of-life changes. In particular, curves
   on the **actor plot** can now be selectively hidden by clicking their
   respective **icon** in the graph's legend.
-- Provide new screenshot button provided by
-  [AccWidgets](https://acc-py.web.cern.ch/gitlab/acc-co/accsoft/gui/accsoft-gui-pyqt-widgets/docs/stable/widgets/screenshot/index.html).
+- Provide new screenshot button provided by [AccWidgets][].
 
 ### Build changes
 
@@ -327,18 +325,14 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ### Visible changes
 
-- Add Extremum Seeking via
-  [cernml-extremum-seeking](https://gitlab.cern.ch/geoff/optimizers/cernml-extremum-seeking/)
-  as a numerical optimization scheme.
+- Add Extremum Seeking via [cernml-extremum-seeking][] as a numerical
+  optimization scheme.
 
 ### Build changes
 
-- Use [setuptools-scm](https://pypi.org/project/setuptools-scm/) for version
-  management. This is a breaking change, as it removes the
-  `acc_app_optimisation.__version__` constant. Please use
-  [`importlib.metadata`](https://docs.python.org/3/library/importlib.metadata.html)
-  (backported as
-  [`importlib_metadata`](https://importlib_metadata.readthedocs.io/) before
+- Use [setuptools-scm][] for version management. This is a breaking change, as
+  it removes the `acc_app_optimisation.__version__` constant. Please use
+  [`importlib.metadata`][] (backported as [`importlib_metadata`][] before
   Python 3.8) to query the app's version programmatically.
 
 ## v0.3.4
@@ -359,10 +353,9 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 - Resets of numerical optimization can now be cancelled. For most problems,
   this only does anything if the optimization problem is
-  [cancellable](https://cernml-coi.docs.cern.ch/guide/cancellation.html#cancellation).
-  For [function
-  optimization](https://cernml-coi.docs.cern.ch/guide/funcopt.html), this may
-  interrupt the reset between manipulated time points.
+  [cancellable][coi-docs-cancellation]. For [function
+  optimization][coi-docs-funcopt], this may interrupt the reset between
+  manipulated time points.
 - If a plugin raises an exception, the log console expands automatically now.
 
 ### Build changes
@@ -379,9 +372,8 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ### Visible changes
 
-- Add Bayesian optimization via
-  [scikit-optimize](https://scikit-optimize.github.io/) as a numerical
-  optimization scheme.
+- Add Bayesian optimization via [scikit-optimize][] as a numerical optimization
+  scheme.
 
 ### Build changes
 
@@ -457,16 +449,13 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
   done and finishes the initial prototype phase.
 - Upgrade cernml-coi to 0.7.6. This is the last version that contains both
   interaces and utilities. Authors of optimization problems are encouraged to
-  use
-  [cernml-coi-utils](https://gitlab.cern.ch/geoff/cernml-coi-utils/)
-  for the latter. If their code works with cernml-coi 0.7.6 without deprecation
-  warnings, it will likely work with the upcoming cernml-coi 0.8.0 as well.
+  use [cernml-coi-utils][] for the latter. If their code works with cernml-coi
+  0.7.6 without deprecation warnings, it will likely work with the upcoming
+  cernml-coi 0.8.0 as well.
 - Upgrade cernml-coi-funcs to 0.2.4. This is the final release. The
   `FunctionOptimizable` interface has been integrated into cernml-coi; the LSA
-  utilities have been integrated into
-  [cernml-coi-utils](https://gitlab.cern.ch/geoff/cernml-coi-utils/).
-  Authors of optimization problems are encouraged to change their code
-  accordingly.
+  utilities have been integrated into [cernml-coi-utils][]. Authors of
+  optimization problems are encouraged to change their code accordingly.
 - Add dependency on cernml-coi-utils v0.2.2. Having both the new utilities
   package and a cernml-coi version that still has its utilities will make
   transitioning to the new API easier.
@@ -545,10 +534,9 @@ Consequently, all dependent packages are upgraded as well:
 
 ### Visible changes
 
-- Add [Singular Value Decomposition
-  (SVD)](https://gitlab.cern.ch/geoff/optimizers/cernml-svd/) as an RL
-  algorithm. It works best on linear problems that can be described by an
-  invertible response matrix. Thanks to @ivojskov for the implementation!
+- Add [Singular Value Decomposition (SVD)][cernml-svd] as an RL algorithm. It
+  works best on linear problems that can be described by an invertible response
+  matrix. Thanks to @ivojskov for the implementation!
 - Update the simulated AWAKE electron beam steering problem. It now provides a
   new version v1, which does not include the first BPM (which cannot be
   influenced) nor the last kicker (whose effect cannot be observed). This
@@ -584,11 +572,11 @@ Consequently, all dependent packages are upgraded as well:
 ### Visible changes
 
 - Add initial, extremely fragile implementation of reinforcement learning (RL)
-  via [Stable Baselines 3](https://stable-baselines3.readthedocs.io/).
+  via [Stable Baselines 3][].
 - Add more built-in optimization problems:
-    - [SPS ZS Alignment](https://gitlab.cern.ch/geoff/example-envs/sps-zs-alignment),
-    - [SPS Tune](https://gitlab.cern.ch/geoff/example-envs/sps-tune/),
-    - [LEIR Transfer Line](https://gitlab.cern.ch/geoff/example-envs/leir-transfer-line).
+    - [SPS ZS Alignment][sps-zs-alignment],
+    - [SPS Tune][sps-tune],
+    - [LEIR Transfer Line][leir-transfer-line].
 - Add argument `--no-builtins` to start the app without loading the built-in
   optimization problems. In this case, all optimization problems must be
   provided as foreign imports. This mode is best used for debugging.
@@ -653,7 +641,7 @@ Consequently, all dependent packages are upgraded as well:
 ### Visible changes
 
 - Upgraded the LSA selector from a built-in version to the version provided by
-  [AccWidgets](https://acc-py.web.cern.ch/gitlab/acc-co/accsoft/gui/accsoft-gui-pyqt-widgets/docs/stable/widgets/lsa_selector/index.html).
+  [AccWidgets][].
 - Changed default LSA server from *next* to *gpn*.
 - Made LSA server configurable on the command line: pass either `-sNAME` or
   `--lsa-server NAME`.
@@ -723,3 +711,22 @@ Consequently, all dependent packages are upgraded as well:
 ## v0.0.1
 
 - Initial release.
+
+[coi-utils-docs-hooks]: https://acc-py.web.cern.ch/gitlab/geoff/cernml-coi-utils/docs/stable/guide/lsa_utils.html#global-trim-request-hooks
+[cernml-coi-utils-issues]: https://gitlab.cern.ch/geoff/cernml-coi-utils/-/issues
+[cernml-coi-optimizers]: https://gitlab.cern.ch/geoff/cernml-coi-optimizers/
+[setuptools-docs-src-layout]: https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#src-layout
+[cernml-extremum-seeking]: https://gitlab.cern.ch/geoff/optimizers/cernml-extremum-seeking/
+[setuptools-scm]: https://pypi.org/project/setuptools-scm/
+[`importlib.metadata`]: https://docs.python.org/3/library/importlib.metadata.html
+[`importlib_metadata`]: https://importlib_metadata.readthedocs.io/
+[coi-docs-cancellation]: https://cernml-coi.docs.cern.ch/guide/cancellation.html#cancellation
+[coi-docs-funcopt]: https://cernml-coi.docs.cern.ch/guide/funcopt.html
+[scikit-optimize]: https://scikit-optimize.github.io/
+[cernml-coi-utils]: https://gitlab.cern.ch/geoff/cernml-coi-utils/
+[cernml-svd]: https://gitlab.cern.ch/geoff/optimizers/cernml-svd/
+[Stable Baselines 3]: https://stable-baselines3.readthedocs.io/
+[sps-zs-alignment]: https://gitlab.cern.ch/geoff/example-envs/sps-zs-alignment
+[sps-tune]: https://gitlab.cern.ch/geoff/example-envs/sps-tune/
+[leir-transfer-line]: https://gitlab.cern.ch/geoff/example-envs/leir-transfer-line
+[AccWidgets]: https://acc-py.web.cern.ch/gitlab/acc-co/accsoft/gui/accsoft-gui-pyqt-widgets/docs/stable/widgets/lsa_selector/index.html
