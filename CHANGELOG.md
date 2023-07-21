@@ -10,6 +10,10 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ## Unreleased
 
+No changes yet!
+
+## v0.13.0
+
 ### Visible changes
 
 - GeOFF now uses [Global Trim Request Hooks][coi-utils-docs-hooks] to modify
