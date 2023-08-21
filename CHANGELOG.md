@@ -13,6 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 ### Bug fixes
 
 - Fix missing function-call parentheses in global trip request hooks code.
+- Fix crash in configure dialog for optimizers.
 
 ### Build changes
 

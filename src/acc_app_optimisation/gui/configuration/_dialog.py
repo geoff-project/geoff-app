@@ -6,8 +6,10 @@
 
 """Provide a dialog for configuring optimization problems."""
 
-import logging
+from __future__ import annotations
+
 import typing as t
+from logging import getLogger
 
 import gym
 import numpy as np
@@ -26,7 +28,12 @@ from ._skeleton_points import (
 )
 from ._widget import ConfigureWidget
 
-LOG = logging.getLogger(__name__)
+if t.TYPE_CHECKING:
+    # pylint: disable = unused-import, ungrouped-imports
+    from cernml import optimizers
+
+
+LOG = getLogger(__name__)
 
 
 class _BaseDialog(QDialog):
@@ -278,9 +285,21 @@ def _show_skeleton_points_failed(exc: Exception, parent: t.Optional[QWidget]) ->
 
 
 def _get_configurable_name(configurable: t.Any) -> str:
-    spec = getattr(configurable, "spec", None)
+    spec: t.Union[
+        None, gym.envs.registration.EnvSpec, optimizers.OptimizerSpec
+    ] = getattr(configurable, "spec", None)
     if spec is not None:
-        return spec.id
+        name: t.Optional[str] = getattr(spec, "id", None) or getattr(spec, "name", None)
+        if name:
+            return name
+        entry_point = getattr(spec, "entry_point", None)
+        if isinstance(entry_point, str):
+            return entry_point
+        name = getattr(entry_point, "__name__", None)
+        if name:
+            return name
+        if entry_point is not None:
+            return str(entry_point)
     unwrapped = getattr(configurable, "unwrapped", None)
     if unwrapped is not None:
         return type(unwrapped).__name__
