@@ -10,7 +10,9 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ## Unreleased
 
-No changes yet!
+### Build changes
+
+- Upgrade accwidgets requirement to 2.0.
 
 ## v0.13.0
 

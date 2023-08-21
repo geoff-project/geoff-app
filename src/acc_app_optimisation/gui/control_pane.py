@@ -27,7 +27,7 @@ from .rl_train_tab import RlTrainTab
 if t.TYPE_CHECKING:
     # pylint: disable = import-error, ungrouped-imports, unused-import
     import pjlsa
-    from accwidgets.rbac import RbaToken as AccWidgetsRbaToken
+    import pyrbac
 
     from ..lsa_utils_hooks import GeoffHooks
     from .plot_manager import PlotManager
@@ -105,22 +105,13 @@ class ControlPane(QtWidgets.QWidget):
         finally:
             self.lsa_selector.model.filter_categories = {default_category}
 
-    def rbac_login(self, pyrbac_token: "AccWidgetsRbaToken") -> None:
+    def rbac_login(self, token: "pyrbac.Token") -> None:
         # pylint: disable = import-error, import-outside-toplevel
         from cern.rbac.common import RbaToken
         from cern.rbac.util.holder import ClientTierTokenHolder  # type: ignore
         from java.nio import ByteBuffer
 
-        # We have to lie about our types here. pjlsa 0.2.12 annotates
-        # `wrap()` as accepting List[int], which expects signed bytes.
-        # However, the method factually also accepts `bytes`. Converting
-        # a `bytes` to a `List[int]` is non-trivial, since `list()`
-        # returns unsigned bytes. It is simpler to just pass the `bytes`
-        # unmodified.
-        # TODO: A patch has been submitted to pjlsa under
-        # <https://gitlab.cern.ch/scripting-tools/pjlsa/-/merge_requests/15>.
-        # Once a new release has been made, this cast should be removed.
-        byte_buffer = ByteBuffer.wrap(t.cast(t.List[int], pyrbac_token.get_encoded()))
+        byte_buffer = ByteBuffer.wrap(token.encode())
         java_token = RbaToken.parseAndValidate(byte_buffer)
         ClientTierTokenHolder.setRbaToken(java_token)
         japc_token = self._japc.rbacGetToken()

@@ -12,9 +12,9 @@ from logging import getLogger
 import jpype
 import pjlsa
 import pyjapc
+import pyrbac
 from accwidgets.app_frame import ApplicationFrame
 from accwidgets.log_console import LogConsole, LogConsoleDock, LogConsoleModel
-from accwidgets.rbac import RbaToken
 from accwidgets.timing_bar import TimingBar
 from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -262,7 +262,7 @@ class MainWindow(ApplicationFrame):
         else:
             self.timingBarAction().setVisible(False)
 
-    def _on_rba_login(self, token: RbaToken) -> None:
+    def _on_rba_login(self, token: pyrbac.Token) -> None:
         self._control_pane.rbac_login(token)
 
     def _on_rba_logout(self) -> None:
