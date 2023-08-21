@@ -10,6 +10,10 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ## Unreleased
 
+### Bug fixes
+
+- Fix missing function-call parentheses in global trip request hooks code.
+
 ### Build changes
 
 - Upgrade accwidgets requirement to 2.0.

@@ -235,7 +235,7 @@ class Optimizing(State):
         return dataclasses.replace(
             self,
             step=self.step.incremented(),
-            total_step=self.total_step and self.total_step.incremented,
+            total_step=self.total_step and self.total_step.incremented(),
         )
 
     def finalized(self) -> "FinalStep":
