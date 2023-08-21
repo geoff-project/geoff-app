@@ -10,6 +10,10 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ## Unreleased
 
+No changes yet!
+
+## v0.13.1
+
 ### Bug fixes
 
 - Fix missing function-call parentheses in global trip request hooks code.
