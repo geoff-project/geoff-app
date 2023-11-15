@@ -99,6 +99,7 @@ ignore-long-lines = '<?https?://\S+>?$'
 
 [tool.pylint.design]
 max-attributes = 14
+max-args = 7
 
 [tool.pylint.'messages control']
 disable = [
