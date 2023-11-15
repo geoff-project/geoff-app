@@ -253,7 +253,7 @@ def main(argv: list) -> int:
                 # Do this *after* LSA!
                 japc = selection.get_japc(no_set=args.japc_no_set)
                 app = QtWidgets.QApplication(argv)
-                app.setApplicationName(__package__)
+                app.setApplicationName(__package__)  # type: ignore[call-arg,misc]
                 window = MainWindow(
                     version=version,
                     lsa_hooks=lsa_hooks,
