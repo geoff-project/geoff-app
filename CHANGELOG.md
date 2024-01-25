@@ -12,6 +12,14 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 No changes yet!
 
+## v0.14.1
+
+### Build changes
+
+- The app now gets CI-tested on Acc-Py 2023.06 and Python 3.11.
+- Upgrade sps-blowup requirement to 1.0.3. This fixes a bug that prevented
+  installation of this application on Acc-Py 2023.06.
+
 ## v0.14.0
 
 ### Build changes
