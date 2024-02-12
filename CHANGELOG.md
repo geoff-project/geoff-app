@@ -12,6 +12,13 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 No changes yet!
 
+## v0.14.2
+
+### Bug fixes
+
+- On Acc-Py 2023.06 and Python 3.11, non-existant `.pth` files of unrelated
+  distribution packages no longer cause distribution package detection to fail.
+
 ## v0.14.1
 
 ### Build changes

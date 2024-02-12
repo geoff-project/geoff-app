@@ -5,17 +5,22 @@
 # SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 """Locate distributions that provide a certain type."""
+
 import inspect
 import os
 import sys
 import typing as t
 from dataclasses import dataclass
+from logging import getLogger
 from pathlib import Path
 
 if sys.version_info < (3, 8):
     import importlib_metadata as metadata
 else:
     from importlib import metadata
+
+
+LOG = getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -84,10 +89,19 @@ def iter_path_config_paths(dist: metadata.Distribution) -> t.Iterator[os.PathLik
         return
     for path in dist.files:
         if path.suffix == ".pth":
-            yield from filter(
-                os.path.exists,
-                map(dist.locate_file, read_path_config_file(path.locate())),
-            )
+            try:
+                yield from filter(
+                    os.path.exists,
+                    map(dist.locate_file, read_path_config_file(path.locate())),
+                )
+            except OSError as exc:
+                exc.__suppress_context__ = True
+                LOG.debug(
+                    "distribution %s v%s: ignoring .pth file",
+                    dist.name,
+                    dist.version,
+                    exc_info=exc.with_traceback(None),
+                )
 
 
 def read_path_config_file(path: os.PathLike) -> t.List[str]:
