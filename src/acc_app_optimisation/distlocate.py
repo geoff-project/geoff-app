@@ -98,8 +98,8 @@ def iter_path_config_paths(dist: metadata.Distribution) -> t.Iterator[os.PathLik
                 exc.__suppress_context__ = True
                 LOG.debug(
                     "distribution %s v%s: ignoring .pth file",
-                    dist.name,
-                    dist.version,
+                    dist.metadata["name"],
+                    dist.metadata["version"],
                     exc_info=exc.with_traceback(None),
                 )
 
