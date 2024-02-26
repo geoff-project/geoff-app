@@ -23,6 +23,9 @@ No changes yet!
 
 - Update env psb-extr-and-recomb-optim to 1.0.3
 
+### Other changes
+
+- Add various assert statements to silence "false" linter errors
 
 ## v0.14.2
 
