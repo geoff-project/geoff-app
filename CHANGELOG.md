@@ -12,6 +12,18 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 No changes yet!
 
+## v0.14.3
+
+### Bug fix
+
+- Typecast np.float64 to int in function make_int_spinbox(..) in 
+  gui/configuration/_field_widgets.py.
+
+### Build changes
+
+- Update env psb-extr-and-recomb-optim to 1.0.3
+
+
 ## v0.14.2
 
 ### Bug fixes
