@@ -7,15 +7,24 @@
 """Functionality to search and load environments."""
 
 import typing as t
+from logging import getLogger
 
 from cernml import coi
 from gym.envs.registration import EnvSpec
 
+try:
+    import importlib.metadata as importlib_metadata
+except ImportError:
+    import importlib_metadata  # type: ignore
+
 if t.TYPE_CHECKING:
     # pylint: disable = ungrouped-imports, unused-import, import-error
     from cernml.coi import cancellation
+    from cernml.optimizers import Optimizer
     from pyjapc import PyJapc
 
+
+LOG = getLogger(__name__)
 
 BUILTIN_ENVS = [
     "cern_awake_env.machine",
@@ -106,3 +115,45 @@ def make_env_by_name(
     if metadata.cancellable:
         kwargs["cancellation_token"] = token
     return spec.make(**kwargs)
+
+
+def get_custom_optimizers(spec: EnvSpec) -> t.Mapping[str, "Optimizer"]:
+    """Return all custom optimizers provided for the environment.
+
+    This takes all endpoints into account: both the interface on the
+    environment itself and entry-points.
+    """
+    optimizers = {}
+    if issubclass(spec.entry_point, coi.CustomOptimizerProvider):
+        optimizers.update(spec.entry_point.get_optimizers())
+    all_entry_points = importlib_metadata.entry_points()
+    if hasattr(all_entry_points, "select"):
+        entry_points = all_entry_points.select(
+            group="cernml.custom_optimizers", name=spec.id
+        )
+    else:
+        # Deprecated API:
+        entry_points = tuple(
+            ep
+            for ep in all_entry_points.get("cernml.custom_optimizers", ())
+            if ep.name == spec.id
+        )
+    duplicate_names = set()
+    for ep in entry_points:
+        provider = ep.load()
+        if isinstance(provider, coi.CustomOptimizerProvider):
+            next_batch = provider.get_optimizers()
+        elif callable(provider):
+            next_batch = provider()
+        else:
+            LOG.warning("cannot retrieve optimizers from loaded entry point: %s", ep)
+            continue
+        duplicate_names.update(optimizers.keys() & next_batch.keys())
+        optimizers.update(next_batch)
+    if duplicate_names:
+        LOG.warning(
+            "duplicate names of custom optimizers loaded for %s: %r",
+            spec.id,
+            duplicate_names,
+        )
+    return optimizers

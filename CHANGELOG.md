@@ -12,6 +12,18 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 No changes yet!
 
+## v0.15.0
+
+### Visible changes
+
+- GeOFF now supports [custom optimizer
+  providers][coi-custom-optimizer-providers] that allow authors of optimization
+  problems to define optimizers that are tailored to their specific problem.
+
+### Build changes
+
+- Update cernml-coi requirement to 0.8.15.
+
 ## v0.14.3
 
 ### Bug fixes
@@ -764,6 +776,7 @@ Consequently, all dependent packages are upgraded as well:
 
 - Initial release.
 
+[coi-custom-optimizer-providers]: https://cernml-coi.docs.cern.ch/guide/otherenvs.html#customoptimizerprovider
 [coi-utils-docs-hooks]: https://acc-py.web.cern.ch/gitlab/geoff/cernml-coi-utils/docs/stable/guide/lsa_utils.html#global-trim-request-hooks
 [cernml-coi-utils-issues]: https://gitlab.cern.ch/geoff/cernml-coi-utils/-/issues
 [cernml-coi-optimizers]: https://gitlab.cern.ch/geoff/cernml-coi-optimizers/

@@ -32,6 +32,7 @@ if t.TYPE_CHECKING:
     # pylint: disable=import-error, unused-import, ungrouped-imports
     from traceback import TracebackException
 
+    from gym.envs.registration import EnvSpec
     from pyjapc import PyJapc
 
     from ..job_control.single_objective.jobs import (
@@ -115,6 +116,7 @@ class NumOptTab(QtWidgets.QWidget):
         self._current_opt_job: t.Optional[OptJob] = None
         self._plot_manager = plot_manager
         self._lsa_hooks = lsa_hooks
+        self._custom_optimizers: t.Mapping[str, optimizers.Optimizer] = {}
         # Bind the job factories signals to the outside world.
         self._opt_job_builder.signals.new_optimisation_started.connect(
             self._on_optimization_started
@@ -220,7 +222,7 @@ class NumOptTab(QtWidgets.QWidget):
                 _hooks.Constructing(), problem=self._opt_job_builder.problem_id
             )
             return self._opt_job_builder.make_problem()
-        except:  # pylint: disable=bare-except
+        except:  # noqa: E722 # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
             current_exception_dialog(
                 title="Numerical optimization",
@@ -245,6 +247,15 @@ class NumOptTab(QtWidgets.QWidget):
             )
         )
 
+    def _remove_custom_algos(self) -> None:
+        self.algo_combo.clear()
+        self._custom_optimizers = {}
+        self.algo_combo.addItems(optimizers.registry.keys())
+
+    def _add_custom_algos(self, env_spec: EnvSpec) -> None:
+        self._custom_optimizers = envs.get_custom_optimizers(env_spec)
+        self.algo_combo.insertItems(0, self._custom_optimizers.keys())
+
     def _on_env_changed(self, name: str) -> None:
         self._lsa_hooks.update_problem_state(
             _hooks.Closing(), problem=self._opt_job_builder.problem_id
@@ -253,15 +264,19 @@ class NumOptTab(QtWidgets.QWidget):
         self._lsa_hooks.update_problem(name)
         self._clear_job()
         enable_config_button = False
+        self._remove_custom_algos()
         if name:
             env_spec = coi.spec(name)
             # TODO: This does not work well with wrappers.
             env_class = env_spec.entry_point
+            LOG.info("class: %s", env_class)
             enable_config_button = issubclass(
                 env_class, (coi.Configurable, coi.FunctionOptimizable)
             )
+            LOG.info("config enabled: %s", enable_config_button)
+            self._add_custom_algos(env_spec)
         self.env_config_button.setEnabled(enable_config_button)
-        LOG.debug("configurable: %s", is_configurable)
+        LOG.debug("configurable: %s", enable_config_button)
 
     def _on_env_config_clicked(self) -> None:
         problem = self.get_or_load_problem()
@@ -293,7 +308,9 @@ class NumOptTab(QtWidgets.QWidget):
         dialog.open()
 
     def _on_algo_changed(self, name: str) -> None:
-        opt = optimizers.make(name)
+        opt = self._custom_optimizers.get(name, None)
+        if opt is None:
+            opt = optimizers.make(name)
         self._opt_job_builder.optimizer = opt
         self.algo_config_button.setEnabled(is_configurable(opt))
 
@@ -320,7 +337,7 @@ class NumOptTab(QtWidgets.QWidget):
                 problem=self._opt_job_builder.problem_id,
             )
             self._current_opt_job = self._opt_job_builder.build_job()
-        except:  # pylint: disable=bare-except
+        except:  # noqa: E722 # pylint: disable=bare-except
             LOG.error("aborted initialization", exc_info=True)
             current_exception_dialog(
                 title="Numerical optimization",
