@@ -26,6 +26,9 @@ from .control_pane import ControlPane
 from .plot_manager import PlotManager
 from .popout_mdi_area import PopoutMdiArea
 
+if t.TYPE_CHECKING:
+    from pylogbook.models import Activity
+
 LOG = getLogger(__name__)
 
 
@@ -152,7 +155,7 @@ class MainWindow(ApplicationFrame):
         lsa_hooks: GeoffHooks,
         model: t.Optional[LogConsoleModel] = None,
     ) -> None:
-        super().__init__(use_timing_bar=True, use_rbac=True)
+        super().__init__(use_timing_bar=True, use_rbac=True, use_screenshot=True)
         self.appVersion = version  # type: ignore # mypy bug #9911
 
         mdi = MainMdiArea()
@@ -163,6 +166,7 @@ class MainWindow(ApplicationFrame):
         toolbar = self.main_toolbar()
         toolbar.setAllowedAreas(Qt.TopToolBarArea)
 
+        assert self.rba_widget is not None, "we passed use_rbac=True"
         self.rba_widget.loginSucceeded.connect(self._on_rba_login)
         self.rba_widget.logoutFinished.connect(self._on_rba_logout)
         self.rba_widget.loginFailed.connect(
@@ -172,7 +176,7 @@ class MainWindow(ApplicationFrame):
             lambda _: LOG.warning("RBAC token expired")
         )
 
-        self.useScreenshot = True  # type: ignore # mypy bug #9911
+        assert self.screenshot_widget is not None, "we passed use_screenshot=True"
         self.screenshot_widget.captureFailed.connect(
             lambda error: LOG.error("Screenshot error: %s", error)
         )
@@ -252,10 +256,14 @@ class MainWindow(ApplicationFrame):
 
     def _on_machine_changed(self, value: str) -> None:
         machine = coi.Machine(value)
-        self.screenshot_widget.model.logbook_activities = translate.machine_to_activity(
-            machine
+        assert self.screenshot_widget is not None, "we passed use_screenshot=True"
+        self.screenshot_widget.model.logbook_activities = t.cast(
+            # This cast circumvents the issue mypy#3004.
+            t.Sequence["Activity"],
+            translate.machine_to_activity(machine),
         )
         timing_domain = translate.machine_to_timing_domain(machine)
+        assert self.timing_bar is not None, "we passed use_timing_bar=True"
         if timing_domain:
             self.timing_bar.model.domain = timing_domain
             self.timingBarAction().setVisible(True)

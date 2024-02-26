@@ -285,9 +285,9 @@ def _show_skeleton_points_failed(exc: Exception, parent: t.Optional[QWidget]) ->
 
 
 def _get_configurable_name(configurable: t.Any) -> str:
-    spec: t.Union[
-        None, gym.envs.registration.EnvSpec, optimizers.OptimizerSpec
-    ] = getattr(configurable, "spec", None)
+    spec: t.Union[None, gym.envs.registration.EnvSpec, optimizers.OptimizerSpec] = (
+        getattr(configurable, "spec", None)
+    )
     if spec is not None:
         name: t.Optional[str] = getattr(spec, "id", None) or getattr(spec, "name", None)
         if name:

@@ -162,8 +162,7 @@ class WhitespaceDelimitedDoubleValidator(QtGui.QDoubleValidator):
                 if pos > token.begin:
                     pos += len(part) - len(token.text)
             parts.append(part)
-            if state < final_state:
-                final_state = state
+            final_state = min(final_state, state)
         # Final adjustment: If the text consists of nothing _but_
         # whitespace, we just discard it.
         if all(part.isspace() for part in parts):
