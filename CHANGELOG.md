@@ -14,14 +14,14 @@ No changes yet!
 
 ## v0.14.3
 
-### Bug fix
+### Bug fixes
 
-- Typecast np.float64 to int in function make_int_spinbox(..) in
-  gui/configuration/_field_widgets.py.
+- Fix an error that prevents configuration dialogs from showing up on Python
+  3.11 if at least one field defines a range of validity.
 
 ### Build changes
 
-- Update env psb-extr-and-recomb-optim to 1.0.3
+- Update psb-extr-and-recomb-optim requirement to 1.0.3.
 
 ### Other changes
 
