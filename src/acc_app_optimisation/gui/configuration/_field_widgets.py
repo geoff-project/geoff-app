@@ -127,8 +127,8 @@ def make_int_spinbox(value: int, range_: t.Tuple[int, int]) -> QtWidgets.QSpinBo
     """Create either an integer or a floating-point spin box."""
     # Ensure that the range limits are valid integers.
     low, high = range_
-    low = np.clip(np.floor(low), -(2 << 30), (2 << 30) - 1)
-    high = np.clip(np.ceil(high), -(2 << 30), (2 << 30) - 1)
+    low = int(np.clip(np.floor(low), -(2 << 30), (2 << 30) - 1))
+    high = int(np.clip(np.ceil(high), -(2 << 30), (2 << 30) - 1))
     widget = QtWidgets.QSpinBox()
     widget.setStepType(widget.AdaptiveDecimalStepType)
     widget.setGroupSeparatorShown(True)
