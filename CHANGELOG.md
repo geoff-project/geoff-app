@@ -16,7 +16,7 @@ No changes yet!
 
 ### Bug fix
 
-- Typecast np.float64 to int in function make_int_spinbox(..) in 
+- Typecast np.float64 to int in function make_int_spinbox(..) in
   gui/configuration/_field_widgets.py.
 
 ### Build changes
