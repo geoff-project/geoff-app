@@ -63,9 +63,12 @@ class ControlPane(QtWidgets.QWidget):
             parent=self,
             model=LsaSelectorModel(
                 accelerator=LsaSelectorAccelerator.LHC,
-                lsa=lsa,
-                resident_only=True,
                 categories=set(AbstractLsaSelectorContext.Category),
+                lsa=lsa,
+                # Without `resident_only`, we'd also fetch non-resident
+                # contexts, which don't fire the `userSelectionChanged`
+                # event that we connect to.
+                resident_only=True,
             ),
         )
         self.lsa_selector.userSelectionChanged.connect(self._on_lsa_user_changed)

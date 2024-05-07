@@ -166,6 +166,10 @@ class MainWindow(ApplicationFrame):
         toolbar = self.main_toolbar()
         toolbar.setAllowedAreas(Qt.TopToolBarArea)
 
+        assert self.timing_bar is not None, "we passed use_timing_bar=True"
+        self.timing_bar.indicateHeartbeat = False
+        self.timing_bar.highlightedUser = ""
+
         assert self.rba_widget is not None, "we passed use_rbac=True"
         self.rba_widget.loginSucceeded.connect(self._on_rba_login)
         self.rba_widget.logoutFinished.connect(self._on_rba_logout)
@@ -196,6 +200,9 @@ class MainWindow(ApplicationFrame):
 
         self._control_pane.machine_combo.stableTextChanged.connect(
             self._on_machine_changed
+        )
+        self._control_pane.lsa_selector.userSelectionChanged.connect(
+            self._on_lsa_user_changed
         )
         LOG.info("Setting up timing bar, which uses its own PyJapc instance")
         self._on_machine_changed(self._control_pane.machine_combo.currentText())
@@ -269,6 +276,11 @@ class MainWindow(ApplicationFrame):
             self.timingBarAction().setVisible(True)
         else:
             self.timingBarAction().setVisible(False)
+
+    def _on_lsa_user_changed(self, user_name: str) -> None:
+        bare_user = user_name.rpartition(".")[-1]
+        assert self.timing_bar is not None, "we passed use_timing_bar=True"
+        self.timing_bar.highlightedUser = bare_user
 
     def _on_rba_login(self, token: pyrbac.Token) -> None:
         self._control_pane.rbac_login(token)

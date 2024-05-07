@@ -10,7 +10,11 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ## Unreleased
 
-No changes yet!
+### Visible changes
+
+- The timing bar no longer flashes for each cycle (its "heartbeat"). In
+  addition, whenever an LSA context is selected, it is highlighted in the
+  timing bar.
 
 ## v0.15.3
 
