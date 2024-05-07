@@ -150,9 +150,9 @@ class OptJob(Job):
             for c in problem.constraints
         ]
         self._signals = signals
-        self._objectives_log: t.List[float] = []
-        self._actions_log: t.List[np.ndarray] = []
-        self._constraints_log: t.List[np.ndarray] = []
+        self.objectives_log: t.List[float] = []
+        self.actions_log: t.List[np.ndarray] = []
+        self.constraints_log: t.List[np.ndarray] = []
 
     @property
     def optimizer_id(self) -> str:
@@ -186,6 +186,15 @@ class OptJob(Job):
 
     def reset(self) -> None:
         """Evaluate the problem at x_0."""
+        raise NotImplementedError()
+
+    def get_param_names(self) -> t.Tuple[str, ...]:
+        raise NotImplementedError()
+
+    def get_constraint_names(self) -> t.Tuple[str, ...]:
+        raise NotImplementedError()
+
+    def get_objective_name(self) -> str:
         raise NotImplementedError()
 
     def format_reset_point(self) -> str:
@@ -238,24 +247,24 @@ class OptJob(Job):
         # Log inputs and outputs. Only adjust the logs after all user
         # functions have been called. Otherwise, we risk unequal lengths
         # between the log arrays.
-        self._actions_log.append(action.flatten())
-        self._objectives_log.append(loss)
+        self.actions_log.append(action.flatten())
+        self.objectives_log.append(loss)
         if self.wrapped_constraints:
-            self._constraints_log.append(constraints_values)
+            self.constraints_log.append(constraints_values)
         self._emit_all_signals()
         self._render_env()
         # Clear all constraint caches.
         return loss
 
     def _emit_all_signals(self) -> None:
-        iterations = np.arange(len(self._objectives_log))
-        self._signals.objective_updated.emit(iterations, np.array(self._objectives_log))
-        self._signals.actors_updated.emit(iterations, np.array(self._actions_log))
+        iterations = np.arange(len(self.objectives_log))
+        self._signals.objective_updated.emit(iterations, np.array(self.objectives_log))
+        self._signals.actors_updated.emit(iterations, np.array(self.actions_log))
         if self.wrapped_constraints:
             self._signals.constraints_updated.emit(
                 iterations,
                 BoundedArray(
-                    values=np.array(self._constraints_log),
+                    values=np.array(self.constraints_log),
                     lower=all_into_flat_array(c.lb for c in self.wrapped_constraints),
                     upper=all_into_flat_array(c.ub for c in self.wrapped_constraints),
                 ),
@@ -329,7 +338,7 @@ class SingleOptimizableJob(OptJob):
         self._signals.new_optimisation_started.emit(
             PreOptimizationMetadata(
                 problem_id=self.problem_id,
-                objective_name=str(self.problem.objective_name),
+                objective_name=self.get_objective_name(),
                 param_names=self.get_param_names(),
                 constraint_names=self.get_constraint_names(),
                 max_function_evaluations=_guess_maxfevs(self.optimizer),
@@ -363,6 +372,9 @@ class SingleOptimizableJob(OptJob):
         return tuple(self.problem.constraint_names) or tuple(
             f"Constraint {i}" for i in indices
         )
+
+    def get_objective_name(self) -> str:
+        return str(self.problem.objective_name) or "Objective function"
 
 
 class FunctionOptimizableJob(OptJob):
@@ -453,7 +465,7 @@ class FunctionOptimizableJob(OptJob):
         self._signals.new_optimisation_started.emit(
             PreOptimizationMetadata(
                 problem_id=self.problem_id,
-                objective_name=str(self.problem.get_objective_function_name()),
+                objective_name=self.get_objective_name(),
                 param_names=self.get_param_names(),
                 constraint_names=self.get_constraint_names(),
                 max_function_evaluations=_guess_maxfevs(self.optimizer),
@@ -498,6 +510,9 @@ class FunctionOptimizableJob(OptJob):
         return tuple(getattr(self.problem, "constraint_names", ())) or tuple(
             f"Constraint {i}" for i in indices
         )
+
+    def get_objective_name(self) -> str:
+        return str(self.problem.get_objective_function_name()) or "Objective function"
 
 
 def validate_x0(array: np.ndarray) -> np.ndarray:

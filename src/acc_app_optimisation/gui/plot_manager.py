@@ -334,10 +334,7 @@ class PlotManager:
         self._constraints_plot.clear()
         self._reward_plot.clear()
         self._episode_length_plot.clear()
-        self._objective_plot.setLabel(
-            axis="left",
-            text=objective_name or "Objective function",
-        )
+        self._objective_plot.setLabel(axis="left", text=objective_name)
         self._actor_names = actor_names
         self._constraint_names = constraint_names
 
