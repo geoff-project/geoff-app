@@ -12,6 +12,12 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ### Visible changes
 
+- The tab for numerical optimization now has an **Export** button that lets you
+  export all actors, constraints and objectives of a run to a file. This
+  internally uses [`numpy.savetxt()`][numpy-savetxt], so the supported file
+  formats are `*.csv` (comma-separated values) and `*.csv.gz` (the same but
+  GZip-compressed). The values in the exported file are *actually* separated by
+  commas and not pure whitespace.
 - The timing bar no longer flashes for each cycle (its "heartbeat"). In
   addition, whenever an LSA context is selected, it is highlighted in the
   timing bar.
@@ -798,6 +804,7 @@ Consequently, all dependent packages are upgraded as well:
 
 - Initial release.
 
+[numpy-savetxt]: https://numpy.org/doc/stable/reference/generated/numpy.savetxt.html
 [coi-custom-optimizer-providers]: https://cernml-coi.docs.cern.ch/guide/otherenvs.html#customoptimizerprovider
 [coi-utils-docs-hooks]: https://acc-py.web.cern.ch/gitlab/geoff/cernml-coi-utils/docs/stable/guide/lsa_utils.html#global-trim-request-hooks
 [cernml-coi-utils-issues]: https://gitlab.cern.ch/geoff/cernml-coi-utils/-/issues

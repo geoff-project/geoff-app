@@ -8,9 +8,11 @@ from __future__ import annotations
 
 import contextlib
 import dataclasses
+import enum
 import typing as t
 from logging import getLogger
 
+import numpy as np
 from cernml import coi, optimizers
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -56,7 +58,7 @@ class CreatingEnvDialog(QtWidgets.QDialog):
 
 
 class ConfirmationDialog(QtWidgets.QDialog):
-    """Qt dialog showing a job's reset point and asks for confirmation.
+    """Qt dialog to show a job's reset point and ask for confirmation.
 
     Args:
         job: The job about to be reset.
@@ -98,6 +100,58 @@ class ConfirmationDialog(QtWidgets.QDialog):
         no_button = buttons.button(QtWidgets.QDialogButtonBox.No)
         no_button.setDefault(True)
         no_button.setFocus()
+
+
+class RunControlButtons(QtWidgets.QWidget):
+    """Row of buttons to start/stop/reset a run."""
+
+    @enum.unique
+    class State(enum.Enum):
+        READY = "ready"
+        RUNNING = "running"
+        STOPPING = "stopping"
+        FINISHED = "finished"
+
+    def __init__(self, parent: t.Optional[QtWidgets.QWidget] = None) -> None:
+        super().__init__(parent)
+        self.start = QtWidgets.QPushButton("Start")
+        self.stop = QtWidgets.QPushButton("Stop")
+        self.reset = QtWidgets.QPushButton("Reset")
+        self.export = QtWidgets.QPushButton("Export")
+        self.stop.setEnabled(False)
+        self.reset.setEnabled(False)
+        self.export.setEnabled(False)
+        layout = QtWidgets.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.start)
+        layout.addWidget(self.stop)
+        layout.addWidget(self.reset)
+        layout.addWidget(self.export)
+
+    def transition(self, state: State) -> None:
+        State = self.State
+        if state == State.READY:
+            self.start.setEnabled(True)
+            self.stop.setEnabled(False)
+            self.reset.setEnabled(False)
+            self.export.setEnabled(False)
+        elif state == State.RUNNING:
+            self.start.setEnabled(False)
+            self.stop.setEnabled(True)
+            self.reset.setEnabled(False)
+            self.export.setEnabled(False)
+        elif state == State.STOPPING:
+            self.start.setEnabled(False)
+            self.stop.setEnabled(False)
+            self.reset.setEnabled(False)
+            self.export.setEnabled(False)
+        elif state == State.FINISHED:
+            self.start.setEnabled(True)
+            self.stop.setEnabled(False)
+            self.reset.setEnabled(True)
+            self.export.setEnabled(True)
+        else:
+            raise ValueError(f"expected State object, got {state!r}")
 
 
 class NumOptTab(QtWidgets.QWidget):
@@ -170,14 +224,11 @@ class NumOptTab(QtWidgets.QWidget):
         self.algo_config_button.clicked.connect(self._on_algo_config_clicked)
         separator = QtWidgets.QFrame()
         separator.setFrameStyle(QtWidgets.QFrame.HLine | QtWidgets.QFrame.Sunken)
-        self.start_button = QtWidgets.QPushButton("Start")
-        self.start_button.clicked.connect(self._on_start_clicked)
-        self.stop_button = QtWidgets.QPushButton("Stop")
-        self.stop_button.clicked.connect(self._on_stop_clicked)
-        self.stop_button.setEnabled(False)
-        self.reset_button = QtWidgets.QPushButton("Reset")
-        self.reset_button.clicked.connect(self._on_reset_clicked)
-        self.reset_button.setEnabled(False)
+        self.run_ctrl = RunControlButtons(self)
+        self.run_ctrl.start.clicked.connect(self._on_start_clicked)
+        self.run_ctrl.stop.clicked.connect(self._on_stop_clicked)
+        self.run_ctrl.reset.clicked.connect(self._on_reset_clicked)
+        self.run_ctrl.export.clicked.connect(self._on_export_clicked)
         # Lay out all widgets.
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(env_label)
@@ -188,12 +239,7 @@ class NumOptTab(QtWidgets.QWidget):
         layout.addWidget(self.algo_combo)
         layout.addWidget(self.algo_config_button)
         layout.addWidget(separator)
-        run_control = QtWidgets.QHBoxLayout()
-        run_control.setContentsMargins(0, 0, 0, 0)
-        run_control.addWidget(self.start_button)
-        run_control.addWidget(self.stop_button)
-        run_control.addWidget(self.reset_button)
-        layout.addLayout(run_control)
+        layout.addWidget(self.run_ctrl)
         # Fill all GUI elements, fire any events based on that.
         self.algo_combo.addItems(optimizers.registry.keys())
         self.setMachine(self._machine)
@@ -346,9 +392,7 @@ class NumOptTab(QtWidgets.QWidget):
             ).show()
             return
         assert self._current_opt_job is not None
-        self.start_button.setEnabled(False)
-        self.stop_button.setEnabled(True)
-        self.reset_button.setEnabled(False)
+        self.run_ctrl.transition(RunControlButtons.State.RUNNING)
         self._add_render_output(problem)
         threadpool = QtCore.QThreadPool.globalInstance()
         threadpool.start(self._current_opt_job)
@@ -406,7 +450,7 @@ class NumOptTab(QtWidgets.QWidget):
             LOG.error("there is nothing to stop")
             return
         LOG.debug("stopping ...")
-        self.stop_button.setEnabled(False)
+        self.run_ctrl.transition(RunControlButtons.State.STOPPING)
         self._current_opt_job.cancel()
 
     def _on_opt_finished(self, success: bool) -> None:
@@ -420,9 +464,7 @@ class NumOptTab(QtWidgets.QWidget):
         self._lsa_hooks.update_problem_state(
             None, problem=self._opt_job_builder.problem_id
         )
-        self.start_button.setEnabled(True)
-        self.stop_button.setEnabled(False)
-        self.reset_button.setEnabled(True)
+        self.run_ctrl.transition(RunControlButtons.State.FINISHED)
 
     def _on_opt_failed(self, exception: TracebackException) -> None:
         exception_dialog(
@@ -445,9 +487,7 @@ class NumOptTab(QtWidgets.QWidget):
 
     def _on_reset_confirmed(self, job: OptJob) -> None:
         LOG.debug("resetting ...")
-        self.start_button.setEnabled(False)
-        self.stop_button.setEnabled(True)
-        self.reset_button.setEnabled(False)
+        self.run_ctrl.transition(RunControlButtons.State.RUNNING)
         threadpool = QtCore.QThreadPool.globalInstance()
         # Note that the cycle time is set by
         # `_on_optimization_new_skeleton_point_selected()`.
@@ -460,9 +500,7 @@ class NumOptTab(QtWidgets.QWidget):
 
     def _clear_job(self) -> None:
         self._current_opt_job = None
-        self.start_button.setEnabled(True)
-        self.stop_button.setEnabled(False)
-        self.reset_button.setEnabled(False)
+        self.run_ctrl.transition(RunControlButtons.State.READY)
 
     def _add_render_output(self, problem: coi.Problem) -> None:
         if "matplotlib_figures" in envs.Metadata(problem).render_modes:
@@ -470,6 +508,56 @@ class NumOptTab(QtWidgets.QWidget):
             self._plot_manager.replace_mpl_figures(figures)
         else:
             self._plot_manager.clear_mpl_figures()
+
+    def _on_export_clicked(self) -> None:
+        dialog = QtWidgets.QFileDialog(self.window())
+        dialog.setAcceptMode(dialog.AcceptSave)
+        dialog.setFileMode(dialog.AnyFile)
+        dialog.setModal(True)
+        dialog.setDefaultSuffix(".csv")
+        dialog.setNameFilters(
+            [
+                "CSV document (*.csv)",
+                "Compressed CSV document (*.csv.gz)",
+                "All files (*)",
+            ]
+        )
+        # TODO: Auto-add suffix!
+        dialog.accepted.connect(lambda: self._on_export_accepted(dialog))
+        dialog.show()
+
+    def _on_export_accepted(self, dialog: QtWidgets.QFileDialog) -> None:
+        job = self._current_opt_job
+        if job is None:
+            LOG.error("there is nothing to save")
+            return
+        [path] = dialog.selectedFiles()
+        LOG.info("saving: %s", path)
+        headers = [
+            (f"norm_actor_{i}", name) for i, name in enumerate(job.get_param_names(), 1)
+        ]
+        if job.wrapped_constraints:
+            headers.extend(
+                (f"constraint_{i}", name)
+                for i, name in enumerate(job.get_constraint_names(), 1)
+            )
+        headers.append(("objective", job.get_objective_name()))
+        names, descs = zip(*headers)
+        header = f'# {", ".join(names)}\n# {", ".join(descs)}'
+        data_blocks = [
+            np.array(job.actions_log),
+            np.array(job.objectives_log)[:, np.newaxis],
+        ]
+        if job.wrapped_constraints:
+            data_blocks.insert(1, np.array(job.constraints_log))
+        np.savetxt(
+            path,
+            np.hstack(data_blocks),
+            header=header,
+            comments="",
+            delimiter=", ",
+            encoding="utf-8",
+        )
 
 
 def _advance_state(prev: t.Optional[_hooks.State], final_step: bool) -> _hooks.State:
