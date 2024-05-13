@@ -10,6 +10,10 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ## Unreleased
 
+No changes yet!
+
+## v0.16.0
+
 ### Visible changes
 
 - The tab for numerical optimization now has an **Export** button that lets you
