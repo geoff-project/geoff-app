@@ -28,6 +28,7 @@ from ..utils.typecheck import (
 from . import configuration
 from .excdialog import current_exception_dialog, exception_dialog
 from .plot_manager import PlotManager
+from .sectioned_combo_box import SectionedComboBox
 from .task import ThreadPoolTask
 
 if t.TYPE_CHECKING:
@@ -217,7 +218,7 @@ class NumOptTab(QtWidgets.QWidget):
         )
         algo_label = QtWidgets.QLabel("Algorithm")
         algo_label.setFont(large)
-        self.algo_combo = QtWidgets.QComboBox()
+        self.algo_combo = SectionedComboBox()
         self.algo_combo.currentTextChanged.connect(self._on_algo_changed)
         self.algo_config_button = QtWidgets.QPushButton("Configure")
         self.algo_config_button.setEnabled(False)
@@ -241,7 +242,7 @@ class NumOptTab(QtWidgets.QWidget):
         layout.addWidget(separator)
         layout.addWidget(self.run_ctrl)
         # Fill all GUI elements, fire any events based on that.
-        self.algo_combo.addItems(optimizers.registry.keys())
+        self.algo_combo.appendSection("Generic algorithms", optimizers.registry)
         self.setMachine(self._machine)
 
     @contextlib.contextmanager
@@ -294,13 +295,14 @@ class NumOptTab(QtWidgets.QWidget):
         )
 
     def _remove_custom_algos(self) -> None:
-        self.algo_combo.clear()
+        while self.algo_combo.sectionCount() > 1:
+            self.algo_combo.removeSection(0)
         self._custom_optimizers = {}
-        self.algo_combo.addItems(optimizers.registry.keys())
 
     def _add_custom_algos(self, env_spec: EnvSpec) -> None:
-        self._custom_optimizers = envs.get_custom_optimizers(env_spec)
-        self.algo_combo.insertItems(0, self._custom_optimizers.keys())
+        self._custom_optimizers = algos = envs.get_custom_optimizers(env_spec)
+        if algos:
+            self.algo_combo.insertSection(0, "Custom algorithms", algos.keys())
 
     def _on_env_changed(self, name: str) -> None:
         self._lsa_hooks.update_problem_state(
@@ -354,6 +356,10 @@ class NumOptTab(QtWidgets.QWidget):
         dialog.open()
 
     def _on_algo_changed(self, name: str) -> None:
+        # TODO: We get a lot of spurious signals on this function.
+        # Ideally , we'd only run the below code if the optimizer name
+        # has actually changed. In practice, all optimizers are cheap to
+        # create and this is not a big deal.
         opt = self._custom_optimizers.get(name, None)
         if opt is None:
             opt = optimizers.make(name)

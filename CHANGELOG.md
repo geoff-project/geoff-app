@@ -21,6 +21,9 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 - The timing bar no longer flashes for each cycle (its "heartbeat"). In
   addition, whenever an LSA context is selected, it is highlighted in the
   timing bar.
+- The drop-down box listing numerical optimization algorithms now has section
+  titles that clearly distinguish [custom
+  optimizers][coi-custom-optimizer-providers] and the ones provided by GeOFF.
 
 ## v0.15.3
 
