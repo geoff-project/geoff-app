@@ -10,6 +10,10 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ## Unreleased
 
+No changes yet!
+
+## v0.17.0
+
 ### Visible changes
 
 - Remove the tab for training RL algorithms due to lack of use.
