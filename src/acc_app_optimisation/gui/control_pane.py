@@ -22,7 +22,6 @@ from .. import translate
 from .delayed_combo_box import DelayedComboBox
 from .num_opt_tab import NumOptTab
 from .rl_exec_tab import RlExecTab
-from .rl_train_tab import RlTrainTab
 
 if t.TYPE_CHECKING:
     # pylint: disable = import-error, ungrouped-imports, unused-import
@@ -75,10 +74,8 @@ class ControlPane(QtWidgets.QWidget):
         self.lsa_selector.showCategoryFilter = True  # type: ignore # mypy bug #9911
         self.tabs = QtWidgets.QTabWidget()
         self.num_opt_tab = NumOptTab(lsa_hooks=lsa_hooks, plot_manager=plot_manager)
-        self.rl_train_tab = RlTrainTab(lsa_hooks=lsa_hooks, plot_manager=plot_manager)
         self.rl_exec_tab = RlExecTab(lsa_hooks=lsa_hooks, plot_manager=plot_manager)
         self.tabs.addTab(self.num_opt_tab, "Num. Optimization")
-        self.tabs.addTab(self.rl_train_tab, "Train RL Agent")
         self.tabs.addTab(self.rl_exec_tab, "Run RL Agent")
         self.tabs.setElideMode(QtCore.Qt.ElideRight)
         # Lay out all widgets.
@@ -149,7 +146,6 @@ class ControlPane(QtWidgets.QWidget):
         if last_selection:
             self.lsa_selector.select_user(last_selection)
         self.num_opt_tab.setMachine(machine)
-        self.rl_train_tab.setMachine(machine)
         self.rl_exec_tab.setMachine(machine)
 
     def _on_lsa_user_changed(self, user_name: str) -> None:
@@ -166,6 +162,5 @@ class ControlPane(QtWidgets.QWidget):
         self._japc.setSelector(user_name)
         self._finalizers.callback(self._japc.clearSubscriptions)
         self._finalizers.enter_context(self.num_opt_tab.create_lsa_context(self._japc))
-        self._finalizers.enter_context(self.rl_train_tab.create_lsa_context(self._japc))
         self._finalizers.enter_context(self.rl_exec_tab.create_lsa_context(self._japc))
         self._finalizers.callback(LOG.debug, "Invoking finalizers")
