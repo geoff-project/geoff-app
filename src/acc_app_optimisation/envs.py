@@ -141,7 +141,7 @@ def get_custom_optimizers(spec: EnvSpec) -> t.Mapping[str, "Optimizer"]:
     duplicate_names = set()
     for ep in entry_points:
         provider = ep.load()
-        if isinstance(provider, coi.CustomOptimizerProvider):
+        if issubclass(provider, coi.CustomOptimizerProvider):
             next_batch = provider.get_optimizers()
         elif callable(provider):
             next_batch = provider()
@@ -157,3 +157,64 @@ def get_custom_optimizers(spec: EnvSpec) -> t.Mapping[str, "Optimizer"]:
             duplicate_names,
         )
     return optimizers
+
+
+def get_custom_policies(
+    spec: EnvSpec,
+) -> t.Dict[str, t.Optional[coi.CustomPolicyProvider]]:
+    """Return all custom RL policies provided for the environment.
+
+    This takes all endpoints into account: both the interface on the
+    environment itself and entry-points.
+
+    The return value is a dict mapping from policy name to the provider
+    *instance* it originated from. Given a policy name, you *often* can
+    load the policy like this:
+
+        policies[name].load_policy(name)
+
+    However, the dict value may be None if the policy provider is the
+    env itself. This is because the env is not instantiated yet at the
+    time when this function runs.
+    """
+    policies = {}
+    env_class = spec.entry_point
+    if issubclass(env_class, coi.CustomPolicyProvider):
+        policies.update(dict.fromkeys(env_class.get_policy_names(), None))
+    all_entry_points = importlib_metadata.entry_points()
+    if hasattr(all_entry_points, "select"):
+        entry_points = all_entry_points.select(
+            group="cernml.custom_policies", name=spec.id
+        )
+    else:
+        # Deprecated API:
+        entry_points = tuple(
+            ep
+            for ep in all_entry_points.get("cernml.custom_policies", ())
+            if ep.name == spec.id
+        )
+    duplicate_names = set()
+    for ep in entry_points:
+        provider_class = ep.load()
+        if not callable(provider_class):
+            LOG.warning("cernml.custom_policies entry point must be callable: %s", ep)
+            continue
+        provider = provider_class()
+        if not isinstance(provider, coi.CustomPolicyProvider):
+            LOG.warning(
+                "cernml.custom_policies entry point must be a subclass "
+                "of CustomPolicyProvider: %s",
+                ep,
+            )
+            continue
+        next_batch = provider.get_policy_names()
+        duplicate_names.update(set(policies) & set(next_batch))
+        for name in next_batch:
+            policies[name] = provider
+    if duplicate_names:
+        LOG.warning(
+            "duplicate names of custom policies loaded for %s: %r",
+            spec.id,
+            duplicate_names,
+        )
+    return policies

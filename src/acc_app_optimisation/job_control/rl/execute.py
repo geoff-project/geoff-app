@@ -6,15 +6,15 @@
 
 import typing as t
 from logging import getLogger
-from pathlib import Path
 
 import gym
-from cernml.coi import cancellation
+from cernml import coi
+from cernml.coi.cancellation import TokenSource as CancellationTokenSource
 from gym.envs.registration import EnvSpec
 
 from ...envs import make_env_by_name
 from ..base import CannotBuildJob, Job, JobBuilder, catching_exceptions
-from . import agents
+from .agents import GenericAgentFactory
 from .wrapper import PreRunMetadata, RenderWrapper, Signals
 
 if t.TYPE_CHECKING:
@@ -25,21 +25,32 @@ LOG = getLogger(__name__)
 
 class ExecJobBuilder(JobBuilder):
     japc: t.Optional["PyJapc"]
+    """The PyJapc instance to pass to the environment. If None, nothing
+    is passed."""
     time_limit: int
+    """Envs always run in a time limit."""
     num_episodes: int
-    agent_factory: t.Optional[agents.AgentFactory]
-    agent_path: t.Optional[Path]
+    """The number of episodes to run."""
+    policy_provider: t.Optional[coi.CustomPolicyProvider]
+    """The policy provider. The default is a generic policy provider
+    that loads its algorithm weights from a user-specified ZIP file. If
+    None, the *actual* policy provider is the env itself."""
+    policy_name: str
+    """The name of the policy. To be passed to the policy provider. If
+    the empty string, no policy has been selected yet and we cannot
+    start a job."""
     signals: Signals
+    """Qt signals that the outside world can connect to."""
 
     def __init__(self) -> None:
         self._env: t.Optional[gym.Env] = None
         self._env_id = ""
-        self._token_source = cancellation.TokenSource()
+        self._token_source = CancellationTokenSource()
         self.japc = None
         self.time_limit = 0
         self.num_episodes = 0
-        self.agent_factory = None
-        self.agent_path = None
+        self.policy_provider = GenericAgentFactory()
+        self.policy_name = ""
         self.signals = Signals()
 
     @property
@@ -87,19 +98,17 @@ class ExecJobBuilder(JobBuilder):
             self._env = None
 
     def build_job(self) -> "ExecJob":
-        if self.agent_factory is None:
+        if not self.policy_name:
             raise CannotBuildJob("no algorithm selected")
-        if self.agent_path is None:
-            raise CannotBuildJob("no trained agent file selected")
         env = self._env if self._env is not None else self.make_env()
         if self.time_limit:
             env = gym.wrappers.TimeLimit(env, max_episode_steps=self.time_limit)
-        agent = self.agent_factory.make_agent(env)
-        agent = type(agent).load(self.agent_path)
+        provider = self.policy_provider or env
+        policy = provider.load_policy(self.policy_name)
         return ExecJob(
             token_source=self._token_source,
             env=env,
-            agent=agent,
+            policy=policy,
             num_episodes=self.num_episodes,
             signals=self.signals,
         )
@@ -109,9 +118,9 @@ class ExecJob(Job):
     def __init__(
         self,
         *,
-        token_source: cancellation.TokenSource,
+        token_source: CancellationTokenSource,
         env: gym.Env,
-        agent: agents.BaseAlgorithm,
+        policy: coi.Policy,
         num_episodes: int,
         signals: Signals,
     ) -> None:
@@ -119,7 +128,7 @@ class ExecJob(Job):
         self._signals = signals
         self._env = RenderWrapper(env, self._token_source.token, signals)
         self._num_episodes = num_episodes
-        self._agent = agent
+        self._policy = policy
 
     @property
     def env_id(self) -> str:
@@ -134,7 +143,7 @@ class ExecJob(Job):
     def run(self) -> None:
         # pylint: disable = bare-except
         LOG.info(
-            "start execution of %s in env %s", type(self._agent).__name__, self.env_id
+            "start execution of %s in env %s", type(self._policy).__name__, self.env_id
         )
         self._signals.new_run_started.emit(
             PreRunMetadata.from_env(self._env, self.env_id, total_timesteps=None)
@@ -153,5 +162,5 @@ class ExecJob(Job):
                 done = False
                 state = None
                 while not done:
-                    action, state = self._agent.predict(obs, state)
+                    action, state = self._policy.predict(obs, state, deterministic=True)
                     obs, _, done, _ = self._env.step(action)

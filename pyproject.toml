@@ -47,7 +47,7 @@ dependencies = [
     'cern-sps-tune-env ~= 0.4.0',
     'cern-sps-splitter-opt-env ~= 0.0.9',
     'cern-sps-zs-alignment-env ~= 0.4.0',
-    'cernml-coi ~= 0.8.15',
+    'cernml-coi ~= 0.8.16',
     'cernml-coi-optimizers[bobyqa,cernml-es,scipy,skopt] ~= 1.0',
     'cernml-coi-utils[matplotlib,pjlsa,pyjapc] ~= 0.2.10',
     'cernml-svd ~= 3.0',
@@ -109,6 +109,7 @@ disable = [
     'missing-class-docstring',
     'missing-function-docstring',
     'too-few-public-methods',
+    'bare-except',
 ]
 
 [tool.mypy]

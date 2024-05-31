@@ -4,18 +4,14 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
-from . import agents
-from .agents import ALL_AGENTS, AgentFactory, BaseAlgorithm
+from .agents import GenericAgentFactory
 from .execute import CannotBuildJob, ExecJob, ExecJobBuilder
 from .wrapper import PreRunMetadata
 
 __all__ = [
-    "ALL_AGENTS",
-    "AgentFactory",
-    "BaseAlgorithm",
+    "GenericAgentFactory",
     "CannotBuildJob",
     "ExecJob",
     "ExecJobBuilder",
     "PreRunMetadata",
-    "agents",
 ]

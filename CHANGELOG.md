@@ -13,6 +13,17 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 ### Visible changes
 
 - Remove the tab for training RL algorithms due to lack of use.
+- GeOFF now supports [custom policy providers][coi-custom-policy-providers].
+  These work similarly to the already existing [custom optimizer
+  providers][coi-custom-optimizer-providers] but for RL instead of numerical
+  optimization.
+- All [Stable Baselines 3][] algorithms that support box-like action and
+  observation spaces are now available for RL execution. Concretely, this adds
+  PPO, DDPG and A2C to the list.
+
+### Build changes
+
+- Update cernml-coi requirement to 0.8.16.
 
 ## v0.16.1
 
@@ -820,6 +831,7 @@ Consequently, all dependent packages are upgraded as well:
 - Initial release.
 
 [numpy-savetxt]: https://numpy.org/doc/stable/reference/generated/numpy.savetxt.html
+[coi-custom-policy-providers]: https://cernml-coi.docs.cern.ch/guide/otherenvs.html#custompolicyprovider
 [coi-custom-optimizer-providers]: https://cernml-coi.docs.cern.ch/guide/otherenvs.html#customoptimizerprovider
 [coi-utils-docs-hooks]: https://acc-py.web.cern.ch/gitlab/geoff/cernml-coi-utils/docs/stable/guide/lsa_utils.html#global-trim-request-hooks
 [cernml-coi-utils-issues]: https://gitlab.cern.ch/geoff/cernml-coi-utils/-/issues

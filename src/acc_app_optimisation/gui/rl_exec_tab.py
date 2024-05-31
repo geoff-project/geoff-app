@@ -23,11 +23,13 @@ from . import configuration
 from .excdialog import current_exception_dialog, exception_dialog
 from .file_selector import FileSelector
 from .plot_manager import PlotManager
+from .sectioned_combo_box import SectionedComboBox
 
 if t.TYPE_CHECKING:
     # pylint: disable=import-error, unused-import, ungrouped-imports
     from traceback import TracebackException
 
+    from gym.envs.registration import EnvSpec
     from pyjapc import PyJapc
 
 LOG = getLogger(__name__)
@@ -95,12 +97,13 @@ class RlExecTab(QtWidgets.QWidget):
         self.env_config_button.clicked.connect(self._on_env_config_clicked)
         algo_label = QtWidgets.QLabel("Algorithm")
         algo_label.setFont(large)
-        self.algo_combo = QtWidgets.QComboBox()
+        self.algo_combo = SectionedComboBox()
         self.algo_combo.currentTextChanged.connect(self._on_algo_changed)
         self.algo_file_selector = FileSelector()
         self.algo_file_selector.setMimeTypeFilters(
             ["application/zip", "application/octet-stream"]
         )
+        self._custom_algorithms: dict[str, t.Optional[coi.CustomPolicyProvider]] = {}
         self.algo_file_selector.fileChanged.connect(self._on_model_file_changed)
         separator = QtWidgets.QFrame()
         separator.setFrameStyle(QtWidgets.QFrame.HLine | QtWidgets.QFrame.Sunken)
@@ -133,7 +136,9 @@ class RlExecTab(QtWidgets.QWidget):
         run_control.addWidget(self.stop_button)
         layout.addLayout(run_control)
         # Fill all GUI elements, fire any events based on that.
-        self.algo_combo.addItems(rl.ALL_AGENTS.keys())
+        self.algo_combo.appendSection(
+            "Generic algorithms", rl.GenericAgentFactory.get_policy_names()
+        )
         self.setMachine(self._machine)
 
     @contextlib.contextmanager
@@ -160,7 +165,7 @@ class RlExecTab(QtWidgets.QWidget):
                 _hooks.Constructing(), problem=self._exec_builder.env_id
             )
             return self._exec_builder.make_env()
-        except:  # pylint: disable=bare-except
+        except:  # noqa: E722
             LOG.error("aborted initialization", exc_info=True)
             current_exception_dialog(
                 title="RL run",
@@ -182,6 +187,16 @@ class RlExecTab(QtWidgets.QWidget):
             envs.iter_env_names(machine=machine, superclass=gym.Env)
         )
 
+    def _remove_custom_algos(self) -> None:
+        while self.algo_combo.sectionCount() > 1:
+            self.algo_combo.removeSection(0)
+        self._custom_algorithms = {}
+
+    def _add_custom_algos(self, env_spec: EnvSpec) -> None:
+        self._custom_algorithms = algos = envs.get_custom_policies(env_spec)
+        if algos:
+            self.algo_combo.insertSection(0, "Custom algorithms", algos.keys())
+
     def _on_env_changed(self, name: str) -> None:
         self._lsa_hooks.update_problem_state(
             _hooks.Closing(), problem=self._exec_builder.env_id
@@ -190,11 +205,13 @@ class RlExecTab(QtWidgets.QWidget):
         self._lsa_hooks.update_problem(name)
         self._clear_job()
         enable_config_button = False
+        self._remove_custom_algos()
         if name:
             env_spec = coi.spec(name)
             # TODO: This does not work well with wrappers.
             env_class = env_spec.entry_point
             enable_config_button = issubclass(env_class, coi.Configurable)
+            self._add_custom_algos(env_spec)
         self.env_config_button.setEnabled(enable_config_button)
         LOG.debug("configurable: %s", enable_config_button)
 
@@ -217,18 +234,35 @@ class RlExecTab(QtWidgets.QWidget):
         self._exec_builder.time_limit = time_limit
 
     def _on_algo_changed(self, name: str) -> None:
-        factory = rl.ALL_AGENTS[name]
-        self._exec_builder.agent_factory = factory()
-        self._exec_builder.agent_path = None
+        # TODO: We get a lot of spurious signals on this function.
+        # Ideally , we'd only run the below code if the optimizer name
+        # has actually changed. In practice, all optimizers are cheap to
+        # create and this is not a big deal.
+        self._exec_builder.policy_name = name
+        try:
+            self._exec_builder.policy_provider = self._custom_algorithms[name]
+        except KeyError:
+            self._exec_builder.policy_provider = rl.GenericAgentFactory()
+            self.algo_file_selector.setEnabled(True)
+        else:
+            self.algo_file_selector.setEnabled(False)
         self.algo_file_selector.setFilePath("")
 
     def _on_model_file_changed(self, path: str) -> None:
+        provider = self._exec_builder.policy_provider
         if path:
             LOG.info("selected model file: %r", path)
-            self._exec_builder.agent_path = Path(path)
+            if isinstance(provider, rl.GenericAgentFactory):
+                provider.file_path = Path(path)
+            else:
+                LOG.warning("not a generic policy provider: %r", provider)
         else:
             LOG.info("no model file selected")
-            self._exec_builder.agent_path = None
+            if isinstance(provider, rl.GenericAgentFactory):
+                provider.file_path = None
+            else:
+                # No warning necessary because no harm has been done.
+                pass
 
     def _on_start_clicked(self) -> None:
         # Let `self.get_or_load_env()` create the Env object so that we
@@ -241,7 +275,7 @@ class RlExecTab(QtWidgets.QWidget):
             # No need for `self._lsa_hooks.update_problem_state()` here,
             # ExecJobBuilder does not run user code.
             self._current_exec_job = self._exec_builder.build_job()
-        except:  # pylint: disable=bare-except
+        except:  # noqa: E722
             LOG.error("aborted initialization", exc_info=True)
             current_exception_dialog(
                 title="RL run",
