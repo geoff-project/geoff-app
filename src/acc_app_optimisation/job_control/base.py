@@ -142,6 +142,8 @@ def catching_exceptions(
             )
             logger.warning(f"cancelled {name} incompletely!")
         on_cancel()
-    except:
+    except:  # noqa: E722
+        # Exiting a thread via exception terminates the entire
+        # application, so we must catch _everything_ here.
         logger.error(f"aborted {name}", exc_info=True)
         on_exception(traceback.TracebackException(*sys.exc_info()))
