@@ -4,9 +4,6 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
-# Acc-Py App artifacts.
-deployment/
-
 # Caches and build directories.
 __pycache__
 build/
