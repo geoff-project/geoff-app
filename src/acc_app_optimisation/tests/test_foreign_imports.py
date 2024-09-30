@@ -19,7 +19,6 @@ from types import ModuleType
 from unittest.mock import Mock
 
 import pytest
-from pytest_mock import MockerFixture
 
 from acc_app_optimisation import foreign_imports
 
@@ -32,8 +31,10 @@ class FakePackage:
 
 
 @pytest.fixture
-def sys_modules(mocker: MockerFixture) -> t.Iterator[t.Dict[str, str]]:
-    yield mocker.patch("sys.modules", {})
+def sys_modules(monkeypatch: pytest.MonkeyPatch) -> t.Iterator[t.Dict[str, ModuleType]]:
+    modules = {"sys": sys}
+    monkeypatch.setattr(sys, "modules", modules)
+    yield modules
 
 
 @pytest.fixture
@@ -131,7 +132,6 @@ def test_import_submodule(
 def test_import_in_namespace_package(
     sys_modules: t.Dict[str, ModuleType], fake_namespace_package: FakePackage
 ) -> None:
-    sys_modules["sys"] = sys
     module: t.Any = foreign_imports.import_from_path(
         str(fake_namespace_package.path) + "::second"
     )
@@ -151,20 +151,19 @@ def test_import_in_namespace_package(
 def test_import_bare_namespace_package(
     sys_modules: t.Dict[str, ModuleType], fake_namespace_package: FakePackage
 ) -> None:
-    sys_modules["sys"] = sys
     with pytest.raises(foreign_imports.UselessNamespacePackage):
         foreign_imports.import_from_path(str(fake_namespace_package.path))
 
 
 def test_backup_stack(sys_modules: t.Dict[str, ModuleType]) -> None:
-    outer = {"outer": Mock()}
+    outer = {"outer": t.cast(ModuleType, Mock(name="outer")), "sys": sys}
     sys_modules.update(outer)
     backup_stack = foreign_imports.BackupModules()
     # Stack: []
     with pytest.raises(IndexError):
         _ = backup_stack.modules
     with backup_stack:
-        inner = {"inner": Mock()}
+        inner = {"inner": t.cast(ModuleType, Mock(name="inner")), "sys": sys}
         sys_modules.clear()
         sys_modules.update(inner)
         # Stack: [outer]
@@ -182,7 +181,7 @@ def test_backup_stack(sys_modules: t.Dict[str, ModuleType]) -> None:
 def test_backup_keep_on_success(sys_modules: t.Dict[str, ModuleType]) -> None:
     backup_stack = foreign_imports.BackupModules(keep_on_success=True)
     # On failure, sys.modules is restored.
-    outer = {"outer": Mock()}
+    outer = {"outer": t.cast(ModuleType, Mock()), "sys": sys}
     sys_modules.update(outer)
     with pytest.raises(ValueError):
         with backup_stack:

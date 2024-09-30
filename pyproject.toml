@@ -64,7 +64,6 @@ dependencies = [
 [project.optional-dependencies]
 test = [
     'pytest >= 6.0',
-    'pytest-mock >= 3.3',
     'pytest-qt >= 4.2',
 ]
 

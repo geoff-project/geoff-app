@@ -19,7 +19,6 @@ import numpy as np
 import pytest
 from cernml.optimizers import make, registry
 from PyQt5 import QtCore
-from pytest_mock import MockerFixture
 from scipy.optimize import NonlinearConstraint
 
 from acc_app_optimisation.job_control.single_objective import OptJobBuilder
@@ -65,20 +64,17 @@ def optimizable() -> cernml.coi.SingleOptimizable:
 
 @pytest.mark.parametrize("opt_name", list(registry.keys()))
 def test_runner(
-    mocker: MockerFixture,
+    monkeypatch: pytest.MonkeyPatch,
     threadpool: QtCore.QThreadPool,
     optimizable: cernml.coi.SingleOptimizable,
     *,
     opt_name: str,
 ) -> None:
     # Given:
-    # TODO: It is no longer clear what the below line does. Uncomment it
-    # in case problems appear, otherwise remove it in v0.4.0.
-    # mocker.patch("numpy.clip", side_effect=lambda x, lower, upper: np.asanyarray(x))
-    coi_make = mocker.patch("cernml.coi.make", return_value=optimizable)
-    coi_spec = mocker.patch(
-        "cernml.coi.spec", return_value=optimizable.spec  # type:ignore
-    )
+    coi_make = Mock(name="cernml.coi.make", return_value=optimizable)
+    monkeypatch.setattr("cernml.coi.make", coi_make)
+    coi_spec = Mock("cernml.coi.spec", return_value=optimizable.spec)
+    monkeypatch.setattr("cernml.coi.spec", coi_spec)
     recv = Mock()
     job_builder = OptJobBuilder()
     job_builder.problem_id = optimizable.spec.id  # type:ignore
