@@ -126,18 +126,7 @@ def get_custom_optimizers(spec: EnvSpec) -> t.Mapping[str, "Optimizer"]:
     optimizers = {}
     if issubclass(spec.entry_point, coi.CustomOptimizerProvider):
         optimizers.update(spec.entry_point.get_optimizers())
-    all_entry_points = importlib_metadata.entry_points()
-    if hasattr(all_entry_points, "select"):
-        entry_points = all_entry_points.select(
-            group="cernml.custom_optimizers", name=spec.id
-        )
-    else:
-        # Deprecated API:
-        entry_points = tuple(
-            ep
-            for ep in all_entry_points.get("cernml.custom_optimizers", ())
-            if ep.name == spec.id
-        )
+    entry_points = _get_entry_points(group="cernml.custom_optimizers", name=spec.id)
     duplicate_names = set()
     for ep in entry_points:
         provider = ep.load()
@@ -181,18 +170,7 @@ def get_custom_policies(
     env_class = spec.entry_point
     if issubclass(env_class, coi.CustomPolicyProvider):
         policies.update(dict.fromkeys(env_class.get_policy_names(), None))
-    all_entry_points = importlib_metadata.entry_points()
-    if hasattr(all_entry_points, "select"):
-        entry_points = all_entry_points.select(
-            group="cernml.custom_policies", name=spec.id
-        )
-    else:
-        # Deprecated API:
-        entry_points = tuple(
-            ep
-            for ep in all_entry_points.get("cernml.custom_policies", ())
-            if ep.name == spec.id
-        )
+    entry_points = _get_entry_points(group="cernml.custom_policies", name=spec.id)
     duplicate_names = set()
     for ep in entry_points:
         provider_class = ep.load()
@@ -218,3 +196,14 @@ def get_custom_policies(
             duplicate_names,
         )
     return policies
+
+
+def _get_entry_points(
+    *, group: str, name: str
+) -> tuple[importlib_metadata.EntryPoint, ...]:
+    """Shim around old versions of `importlib.metadata.entry_points()`."""
+    all_entry_points = importlib_metadata.entry_points()
+    if hasattr(all_entry_points, "select"):
+        return tuple(all_entry_points.select(group=group, name=name))
+    # Deprecated API:
+    return tuple(ep for ep in all_entry_points.get(group, ()) if ep.name == name)

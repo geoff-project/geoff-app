@@ -91,7 +91,7 @@ def iter_path_config_paths(dist: metadata.Distribution) -> t.Iterator[os.PathLik
         if path.suffix == ".pth":
             try:
                 yield from filter(
-                    os.path.exists,
+                    os.path.exists,  # type: ignore[arg-type]
                     map(dist.locate_file, read_path_config_file(path.locate())),
                 )
             except OSError as exc:
@@ -128,7 +128,7 @@ def get_install_dir(dist: metadata.Distribution) -> Path:
     # is empty, we get just the first path.
     install_dir = dist.locate_file("")
     # If the distribution is compressed, `install_dir` may be a
-    # `zipp.Path`, e.g. `/path/do/dist.zip` instead of a `pathlib.Path`.
+    # `zipp.Path`, e.g. `/path/to/dist.zip` instead of a `pathlib.Path`.
     # In that case, we need to convert via `str()`.
     if not isinstance(install_dir, Path):
         return Path(str(install_dir))
