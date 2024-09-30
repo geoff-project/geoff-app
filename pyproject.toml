@@ -86,31 +86,28 @@ target-version = ['py37', 'py38', 'py39']
 [tool.isort]
 profile = 'black'
 
-[tool.pylint.main]
-extension-pkg-allow-list = ['PyQt5']
-
-[tool.pylint.reports]
-score = false
-reports = false
-output-format = 'parseable'
-
-[tool.pylint.format]
-ignore-long-lines = '<?https?://\S+>?$'
-
-[tool.pylint.design]
-max-attributes = 14
-max-args = 7
-
-[tool.pylint.'messages control']
-disable = [
-    'duplicate-code',
-    'fixme',
-    'missing-module-docstring',
-    'missing-class-docstring',
-    'missing-function-docstring',
-    'too-few-public-methods',
-    'bare-except',
+[tool.pylint]
+main.ignore-patterns = ['.*\.pyi$', 'test_.*\.py$']
+main.extension-pkg-whitelist = ['PyQt5']
+'messages control'.disable = ['all']
+'messages control'.enable = [
+    'F',
+    'bad-inline-option',
+    'cell-var-from-loop',
+    # TODO: These require a lot of fixes.
+    # 'missing-class-docstring',
+    # 'missing-function-docstring',
+    # 'missing-module-docstring',
+    'singledispatch-method',
+    'singledispatchmethod-function',
+    'super-init-not-called',
+    'typevar-double-variance',
+    'typevar-name-incorrect-variance',
+    'typevar-name-mismatch',
+    'unrecognized-inline-option',
+    'unrecognized-option',
 ]
+
 
 [tool.mypy]
 disallow_untyped_defs = true

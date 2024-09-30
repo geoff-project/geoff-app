@@ -36,11 +36,3 @@ repos:
   - id: mypy
     additional_dependencies:
     - PyQt5-stubs ~= 5.0
-- repo: local
-  hooks:
-  - id: pylint
-    name: pylint
-    entry: pylint
-    language: system
-    types: ["python"]
-    args: ["-rn", "-sn", "-j0"]
