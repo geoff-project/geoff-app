@@ -15,6 +15,7 @@ import sys
 import typing as t
 from dataclasses import dataclass
 from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
+from types import ModuleType
 from unittest.mock import Mock
 
 import pytest
@@ -48,7 +49,7 @@ def fake_module(tmp_path: Path) -> t.Iterator[FakePackage]:
 @pytest.fixture
 def fake_package(tmp_path: Path) -> t.Iterator[FakePackage]:
     name = "package"
-    needle = str(Mock)
+    needle = str(Mock(name="fake_package"))
     path = tmp_path / name
     path.mkdir()
     with (path / "__init__.py").open("w") as outfile:
@@ -59,7 +60,7 @@ def fake_package(tmp_path: Path) -> t.Iterator[FakePackage]:
 @pytest.fixture
 def fake_big_package(tmp_path: Path) -> t.Iterator[FakePackage]:
     name = "package"
-    needle = str(Mock)
+    needle = str(Mock(name="fake_big_package"))
     path = tmp_path / name
     path.mkdir()
     (path / "__init__.py").touch()
@@ -70,7 +71,22 @@ def fake_big_package(tmp_path: Path) -> t.Iterator[FakePackage]:
     yield FakePackage(name, needle, path)
 
 
-def test_import_module(sys_modules: t.Dict[str, str], fake_module: FakePackage) -> None:
+@pytest.fixture
+def fake_namespace_package(tmp_path: Path) -> t.Iterator[FakePackage]:
+    name = "package"
+    needle = str(Mock(name="fake_namespace_package"))
+    path = tmp_path / name
+    path.mkdir()
+    with (path / "first.py").open("w") as outfile:
+        outfile.write(f"needle = {repr(needle)}")
+    with (path / "second.py").open("w") as outfile:
+        outfile.write("from . import first")
+    yield FakePackage(name, needle, path)
+
+
+def test_import_module(
+    sys_modules: t.Dict[str, ModuleType], fake_module: FakePackage
+) -> None:
     module: t.Any = foreign_imports.import_from_path(str(fake_module.path))
     assert module.needle == fake_module.needle
     assert module.__name__ == fake_module.name
@@ -78,8 +94,16 @@ def test_import_module(sys_modules: t.Dict[str, str], fake_module: FakePackage) 
     assert fake_module.name in sys_modules
 
 
+def test_double_import(
+    sys_modules: t.Dict[str, ModuleType], fake_module: FakePackage
+) -> None:
+    first: t.Any = foreign_imports.import_from_path(str(fake_module.path))
+    second: t.Any = foreign_imports.import_from_path(str(fake_module.path))
+    assert first is second
+
+
 def test_import_package(
-    sys_modules: t.Dict[str, str], fake_package: FakePackage
+    sys_modules: t.Dict[str, ModuleType], fake_package: FakePackage
 ) -> None:
     module: t.Any = foreign_imports.import_from_path(str(fake_package.path))
     assert module.needle == fake_package.needle
@@ -89,7 +113,7 @@ def test_import_package(
 
 
 def test_import_submodule(
-    sys_modules: t.Dict[str, str], fake_big_package: FakePackage
+    sys_modules: t.Dict[str, ModuleType], fake_big_package: FakePackage
 ) -> None:
     module: t.Any = foreign_imports.import_from_path(
         str(fake_big_package.path) + "::second"
@@ -104,7 +128,35 @@ def test_import_submodule(
     assert f"{fake_big_package.name}.second" in sys_modules
 
 
-def test_backup_stack(sys_modules: t.Dict[str, str]) -> None:
+def test_import_in_namespace_package(
+    sys_modules: t.Dict[str, ModuleType], fake_namespace_package: FakePackage
+) -> None:
+    sys_modules["sys"] = sys
+    module: t.Any = foreign_imports.import_from_path(
+        str(fake_namespace_package.path) + "::second"
+    )
+    assert module.first.needle == fake_namespace_package.needle
+    assert module.first.__name__ == f"{fake_namespace_package.name}.first"
+    assert module.first.__package__ == fake_namespace_package.name
+    assert module.__name__ == f"{fake_namespace_package.name}.second"
+    assert module.__package__ == fake_namespace_package.name
+    assert fake_namespace_package.name in sys_modules
+    assert f"{fake_namespace_package.name}.first" in sys_modules
+    assert f"{fake_namespace_package.name}.second" in sys_modules
+    namespace = sys_modules[fake_namespace_package.name]
+    assert namespace.__spec__ is not None
+    assert not namespace.__spec__.has_location
+
+
+def test_import_bare_namespace_package(
+    sys_modules: t.Dict[str, ModuleType], fake_namespace_package: FakePackage
+) -> None:
+    sys_modules["sys"] = sys
+    with pytest.raises(foreign_imports.UselessNamespacePackage):
+        foreign_imports.import_from_path(str(fake_namespace_package.path))
+
+
+def test_backup_stack(sys_modules: t.Dict[str, ModuleType]) -> None:
     outer = {"outer": Mock()}
     sys_modules.update(outer)
     backup_stack = foreign_imports.BackupModules()
@@ -127,7 +179,7 @@ def test_backup_stack(sys_modules: t.Dict[str, str]) -> None:
         _ = backup_stack.modules
 
 
-def test_backup_keep_on_success(sys_modules: t.Dict[str, str]) -> None:
+def test_backup_keep_on_success(sys_modules: t.Dict[str, ModuleType]) -> None:
     backup_stack = foreign_imports.BackupModules(keep_on_success=True)
     # On failure, sys.modules is restored.
     outer = {"outer": Mock()}
@@ -147,7 +199,7 @@ def test_backup_keep_on_success(sys_modules: t.Dict[str, str]) -> None:
         _ = backup_stack.modules
 
 
-def test_report_modification(sys_modules: t.Dict[str, str]) -> None:
+def test_report_modification(sys_modules: t.Dict[str, ModuleType]) -> None:
     with foreign_imports.BackupModules() as backup:
         sys_modules.update(first=Mock(), second=Mock(), third=Mock())
         with backup:
@@ -160,6 +212,20 @@ def test_report_modification(sys_modules: t.Dict[str, str]) -> None:
         (foreign_imports.ChangeKind.REMOVAL, "second"),
         (foreign_imports.ChangeKind.ADDITION, "fourth"),
     ]
+
+
+def test_root_module_not_found(
+    sys_modules: t.Dict[str, ModuleType], fake_module: FakePackage
+) -> None:
+    with pytest.raises(ModuleNotFoundError, match="none\\.py$"):
+        foreign_imports.import_from_path(str(fake_module.path / "none.py"))
+
+
+def test_child_module_not_found(
+    sys_modules: t.Dict[str, ModuleType], fake_module: FakePackage
+) -> None:
+    with pytest.raises(ModuleNotFoundError, match="^module.child$"):
+        foreign_imports.import_from_path(str(fake_module.path) + "::child")
 
 
 @pytest.mark.parametrize(

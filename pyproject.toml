@@ -80,6 +80,28 @@ platforms = [
 
 [tool.setuptools_scm]
 
+[tool.pytest.ini_options]
+addopts = '--doctest-modules'
+testpaths = ['src']
+doctest_optionflags = ['IGNORE_EXCEPTION_DETAIL']
+
+[tool.coverage.run]
+source = ['src']
+branch = true
+
+[tool.coverage.report]
+exclude_also = [
+    '^\s*@.*\.overload$',
+    '^\s*def __del__',
+    '^\s*except ImportError:$',
+    '^\s*from .* import',
+    '^\s*if .*\.TYPE_CHECKING:$',
+    '^\s*if sys\.version_info ..? \(\d, \d+\):$',
+    '^if __name__ == "__main__":$',
+    '^\s*import ',
+    '^\s*raise NotImplementedError',
+]
+
 [tool.black]
 target-version = ['py37', 'py38', 'py39']
 
