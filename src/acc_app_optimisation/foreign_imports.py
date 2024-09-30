@@ -76,7 +76,10 @@ class BackupModules:
         return self
 
     def __exit__(
-        self, exc_type: type, exc_value: Exception, exc_tb: TracebackType
+        self,
+        exc_type: t.Optional[t.Type[BaseException]],
+        exc_value: t.Optional[BaseException],
+        exc_tb: t.Optional[TracebackType],
     ) -> None:
         modules = self._modules_stack.pop()
         if exc_type or not self._keep_on_success:
@@ -139,8 +142,8 @@ def import_from_path(to_be_imported: str) -> ModuleType:
         import.
 
     Args:
-        path: The file or directory to import. Attach child packages and
-            modules with `::`as a delimiter.
+        to_be_imported: The file or directory to import. Attach child
+            packages and modules with `::`as a delimiter.
 
     Returns:
         The module that has been imported.
@@ -293,7 +296,6 @@ def _is_namespace_package(module: ModuleType) -> bool:
     """Return True if the given module represents a namespace package.
 
     Examples:
-
         >>> from importlib.util import module_from_spec
         >>> from importlib.machinery import ModuleSpec
         >>> _is_namespace_package(__import__("cernml"))
@@ -315,7 +317,6 @@ def _assert_only_additions(backup: BackupModules) -> None:
     This should be called at the end of the context managed by *backup*.
 
     Example:
-
         >>> modules = sys.modules.copy()
         >>> patch = getfixture("monkeypatch")
         >>> patch.setattr(sys, 'modules', modules)
@@ -352,7 +353,10 @@ class _MockImporter(
 
     @classmethod
     def find_spec(
-        cls, name: str, path: t.Sequence[str] | None, target: ModuleType | None = None
+        cls,
+        name: str,
+        path: t.Optional[t.Sequence[str]],
+        target: t.Optional[ModuleType] = None,
     ) -> importlib.machinery.ModuleSpec:
         LOG.debug("mocking import of %r from %r", name, target)
         assert path is not None
@@ -376,7 +380,10 @@ class _MockImporter(
         return spec
 
     @classmethod
-    def create_module(cls, spec: importlib.machinery.ModuleSpec) -> None:
+    def create_module(
+        cls,
+        spec: importlib.machinery.ModuleSpec,  # noqa: ARG003
+    ) -> None:
         return None
 
     @classmethod

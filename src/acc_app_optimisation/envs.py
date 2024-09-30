@@ -200,7 +200,7 @@ def get_custom_policies(
 
 def _get_entry_points(
     *, group: str, name: str
-) -> tuple[importlib_metadata.EntryPoint, ...]:
+) -> t.Tuple[importlib_metadata.EntryPoint, ...]:
     """Shim around old versions of `importlib.metadata.entry_points()`."""
     all_entry_points = importlib_metadata.entry_points()
     if hasattr(all_entry_points, "select"):
