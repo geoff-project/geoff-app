@@ -63,5 +63,6 @@ def convert_linear_constraint(cons: LinearConstraint) -> NonlinearConstraint:
         lambda x: np.dot(cons.A, x),
         cons.lb,
         cons.ub,
-        cons.keep_feasible,
+        jac=lambda x: cons.A,
+        keep_feasible=cons.keep_feasible,
     )
