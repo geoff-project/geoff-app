@@ -14,7 +14,7 @@ import typing as t
 from unittest.mock import Mock
 
 import cernml.coi
-import gym.envs.registration
+import gymnasium.envs.registration
 import numpy as np
 import pytest
 from cernml.optimizers import make, registry
@@ -47,7 +47,7 @@ def optimizable() -> cernml.coi.SingleOptimizable:
         make_mock_constraint(shape=(3,)),
     ]
     result.compute_single_objective.side_effect = np.linalg.norm
-    result.optimization_space = gym.spaces.Box(-1.0, 1.0, shape=(3,))
+    result.optimization_space = gymnasium.spaces.Box(-1.0, 1.0, shape=(3,))
     result.get_initial_params.return_value = result.optimization_space.sample()
     result.return_value = result
     result.objective_name = ""
@@ -56,7 +56,7 @@ def optimizable() -> cernml.coi.SingleOptimizable:
     result.spec = Mock(
         id=f"MockEnv-{id(result)}-v0",
         entry_point=result,
-        spec=gym.envs.registration.EnvSpec,
+        spec=gymnasium.envs.registration.EnvSpec,
     )
     result.spec.make.return_value = result
     return result

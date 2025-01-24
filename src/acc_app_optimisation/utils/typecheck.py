@@ -14,7 +14,7 @@ from __future__ import annotations
 import typing as t
 
 from cernml.coi import Configurable, FunctionOptimizable, Problem, SingleOptimizable
-from gym import Env
+from gymnasium import Env
 
 if t.TYPE_CHECKING:  # pragma: no cover
     import sys
