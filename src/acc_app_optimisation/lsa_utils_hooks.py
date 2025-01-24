@@ -13,8 +13,7 @@ import functools
 import sys
 import typing as t
 from pathlib import Path
-
-import gym.error
+import gymnasium as gym
 from cernml import coi, lsa_utils
 
 from .distlocate import DistInfo, find_distribution, get_file_path

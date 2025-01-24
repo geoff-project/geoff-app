@@ -10,7 +10,7 @@ import typing as t
 from logging import getLogger
 
 from cernml import coi
-from gym.envs.registration import EnvSpec
+from gymnasium.envs.registration import EnvSpec
 
 try:
     import importlib.metadata as importlib_metadata
@@ -27,16 +27,16 @@ if t.TYPE_CHECKING:
 LOG = getLogger(__name__)
 
 BUILTIN_ENVS = [
-    "cern_awake_env.machine",
-    "cern_awake_env.simulation",
-    "cern_isolde_offline_env",
-    "cern_leir_transfer_line_env",
+    # "cern_awake_env.machine",
+    # "cern_awake_env.simulation",
+    # "cern_isolde_offline_env",
+    # "cern_leir_transfer_line_env",
     "cern_sps_splitter_opt_env",
-    "cern_sps_tune_env",
-    "cern_sps_zs_alignment_env",
-    "linac3_lebt_tuning",
-    "psb_extr_and_recomb_optim.optimizer",
-    "sps_blowup",
+    # "cern_sps_tune_env",
+    # "cern_sps_zs_alignment_env",
+    # "linac3_lebt_tuning",
+    # "psb_extr_and_recomb_optim.optimizer",
+    # "sps_blowup",
 ]
 
 
@@ -50,10 +50,10 @@ class Metadata:
         self, metadata_holder: t.Union[coi.Problem, t.Type[coi.Problem], EnvSpec]
     ) -> None:
         self._metadata = dict(coi.Problem.metadata)
-        if isinstance(metadata_holder, EnvSpec):
-            self._metadata.update(metadata_holder.entry_point.metadata)
-        else:
-            self._metadata.update(metadata_holder.metadata)
+        # if isinstance(metadata_holder, EnvSpec):
+        #     self._metadata.update(metadata_holder.entry_point.metadata)
+        # else:
+        self._metadata.update(metadata_holder.entry_point.metadata)
 
     @property
     def cancellable(self) -> bool:

@@ -12,7 +12,7 @@ import typing as t
 from logging import getLogger
 from pathlib import Path
 
-import gym
+import gymnasium as gym
 from cernml import coi
 from PyQt5 import QtCore, QtGui, QtWidgets
 

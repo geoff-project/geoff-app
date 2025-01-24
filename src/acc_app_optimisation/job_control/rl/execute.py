@@ -7,10 +7,10 @@
 import typing as t
 from logging import getLogger
 
-import gym
+import gymnasium as gym
 from cernml import coi
 from cernml.coi.cancellation import TokenSource as CancellationTokenSource
-from gym.envs.registration import EnvSpec
+from gymnasium.envs.registration import EnvSpec
 
 from ...envs import make_env_by_name
 from ..base import CannotBuildJob, Job, JobBuilder, catching_exceptions

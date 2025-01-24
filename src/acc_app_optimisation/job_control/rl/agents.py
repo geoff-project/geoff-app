@@ -9,10 +9,10 @@ from pathlib import Path
 
 import stable_baselines3 as sb3
 from cernml import coi
-from cernml.svd import SvdOptimizer
+#from cernml.svd import SvdOptimizer
 from stable_baselines3.common.base_class import BaseAlgorithm
 
-BaseAlgorithm.register(SvdOptimizer)
+#BaseAlgorithm.register(SvdOptimizer)
 
 
 class GenericAgentFactory(coi.CustomPolicyProvider):
@@ -21,7 +21,7 @@ class GenericAgentFactory(coi.CustomPolicyProvider):
         "DDPG": sb3.SAC,
         "PPO": sb3.PPO,
         "SAC": sb3.SAC,
-        "SVD": t.cast(t.Type["BaseAlgorithm"], SvdOptimizer),
+        #"SVD": t.cast(t.Type["BaseAlgorithm"], SvdOptimizer),
         "TD3": sb3.TD3,
     }
 

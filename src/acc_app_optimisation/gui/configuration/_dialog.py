@@ -11,7 +11,7 @@ from __future__ import annotations
 import typing as t
 from logging import getLogger
 
-import gym
+import gymnasium as gym
 import numpy as np
 from cernml import coi
 from PyQt5.QtCore import pyqtSignal

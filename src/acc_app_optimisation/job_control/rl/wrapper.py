@@ -9,7 +9,7 @@ import traceback
 import typing as t
 from dataclasses import dataclass
 
-import gym
+import gymnasium as gym
 import numpy as np
 from cernml.coi import cancellation
 from cernml.mpl_utils import iter_matplotlib_figures

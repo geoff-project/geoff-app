@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from logging import getLogger
 
 import cernml.optimizers as opt
-import gym
+import gymnasium as gym
 import numpy as np
 from cernml.coi import FunctionOptimizable, SingleOptimizable, cancellation
 from cernml.mpl_utils import iter_matplotlib_figures

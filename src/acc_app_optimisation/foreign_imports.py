@@ -329,6 +329,7 @@ def _assert_only_additions(backup: BackupModules) -> None:
     """
     changes: t.Dict[ChangeKind, t.List[str]] = collections.defaultdict(list)
     for kind, name in backup.iter_changes():
+        print("module ",name)
         changes[kind].append(name)
     # First remove additions, then check if there are any other changes.
     additions = changes.pop(ChangeKind.ADDITION, [])
