@@ -50,10 +50,10 @@ class Metadata:
         self, metadata_holder: t.Union[coi.Problem, t.Type[coi.Problem], EnvSpec]
     ) -> None:
         self._metadata = dict(coi.Problem.metadata)
-        # if isinstance(metadata_holder, EnvSpec):
-        #     self._metadata.update(metadata_holder.entry_point.metadata)
-        # else:
-        self._metadata.update(metadata_holder.entry_point.metadata)
+        if isinstance(metadata_holder, EnvSpec):
+            self._metadata.update(metadata_holder.entry_point.metadata)
+        else:
+            self._metadata.update(metadata_holder.metadata)
 
     @property
     def cancellable(self) -> bool:
