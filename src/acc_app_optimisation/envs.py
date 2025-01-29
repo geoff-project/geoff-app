@@ -31,7 +31,7 @@ BUILTIN_ENVS = [
     # "cern_awake_env.simulation",
     # "cern_isolde_offline_env",
     # "cern_leir_transfer_line_env",
-    #"cern_sps_splitter_opt_env",
+    # "cern_sps_splitter_opt_env",
     # "cern_sps_tune_env",
     # "cern_sps_zs_alignment_env",
     # "linac3_lebt_tuning",
