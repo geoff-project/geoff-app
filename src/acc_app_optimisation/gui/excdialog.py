@@ -77,7 +77,7 @@ def exception_dialog(
         text,
         parent=parent,
         buttons=QtWidgets.QMessageBox.Close,
-        keywords=tuple(exc.exc_type.__name__ for exc in _iter_exc_chain(exception)),
+        keywords=_gather_keywords(exception),
     )
     dialog.setInformativeText("".join(exception.format_exception_only()))
     dialog.setDetailedText("".join(exception.format()))
@@ -188,6 +188,18 @@ class _TracebackHighlighter(QtGui.QSyntaxHighlighter):
             while matches.hasNext():
                 match = matches.next()
                 self.setFormat(match.capturedStart(0), match.capturedLength(0), Qt.red)
+
+
+def _gather_keywords(exception: t.Optional[TracebackException]) -> tuple[str, ...]:
+    res = []
+    for exc in _iter_exc_chain(exception):
+        name = getattr(exc, "exc_type_str", None)
+        if name is None:
+            name = getattr(exc.exc_type, "__name__", None)
+            if name is None:
+                continue
+        res.append(name)
+    return tuple(res)
 
 
 def _iter_exc_chain(

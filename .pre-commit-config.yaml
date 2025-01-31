@@ -17,11 +17,6 @@ repos:
     args: ["--unsafe"]
   - id: end-of-file-fixer
   - id: trailing-whitespace
-- repo: https://gitlab.cern.ch/pre-commit-hook-mirrors/astral-sh/ruff-pre-commit
-  rev: v0.6.3
-  hooks:
-    - id: ruff
-      args: ["--fix", "--exit-non-zero-on-fix"]
 - repo: https://gitlab.cern.ch/pre-commit-hook-mirrors/psf/black-pre-commit-mirror
   rev: 24.8.0
   hooks:
