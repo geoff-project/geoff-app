@@ -477,13 +477,13 @@ def _iter_colored_layers(count: int) -> t.Iterator[t.Tuple[ColorSpec, t.Optional
 def _assert_same_length(first: np.ndarray, *others: np.ndarray) -> None:
     """Assert that the first dimension of all given arrays has the same length."""
     expected = len(first)
-    assert set(len(other) for other in others) == {
-        expected
-    }, f"arrays have inequal first dimension: {list(map(len, [first, *others]))}"
+    assert set(len(other) for other in others) == {expected}, (
+        f"arrays have inequal first dimension: {list(map(len, [first, *others]))}"
+    )
 
 
 def _assert_ndim(ndim: int, *arrays: np.ndarray) -> None:
     """Assert that the given arrays have a given number of dimensions."""
-    assert all(
-        np.ndim(arr) == ndim for arr in arrays
-    ), f"arrays don't all have {ndim} dimension(s): {list(map(np.ndim, arrays))}"
+    assert all(np.ndim(arr) == ndim for arr in arrays), (
+        f"arrays don't all have {ndim} dimension(s): {list(map(np.ndim, arrays))}"
+    )

@@ -549,7 +549,7 @@ class NumOptTab(QtWidgets.QWidget):
             )
         headers.append(("objective", job.get_objective_name()))
         names, descs = zip(*headers)
-        header = f'# {", ".join(names)}\n# {", ".join(descs)}'
+        header = f"# {', '.join(names)}\n# {', '.join(descs)}"
         data_blocks = [
             np.array(job.actions_log),
             np.array(job.objectives_log)[:, np.newaxis],

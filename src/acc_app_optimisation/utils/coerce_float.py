@@ -48,5 +48,5 @@ def coerce_float(number: t.SupportsFloat) -> float:
         return type_.__float__(number)  # pylint: disable=unnecessary-dunder-call
     except TypeError:
         raise AttributeError(
-            f'type object {type.__name__!r} has no attribute {"__float__"!r}'
+            f"type object {type.__name__!r} has no attribute {'__float__'!r}"
         ) from None

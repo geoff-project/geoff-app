@@ -149,9 +149,9 @@ class ControlPane(QtWidgets.QWidget):
         self.rl_exec_tab.setMachine(machine)
 
     def _on_lsa_user_changed(self, user_name: str) -> None:
-        assert (
-            self.lsa_selector.selected_context is not None
-        ), "This should never happen"
+        assert self.lsa_selector.selected_context is not None, (
+            "This should never happen"
+        )
         context_name = self.lsa_selector.selected_context.name
         LOG.debug("cycle changed: %s, %s", context_name, user_name)
         self._last_lsa_selection[self.machine_combo.currentText()] = user_name

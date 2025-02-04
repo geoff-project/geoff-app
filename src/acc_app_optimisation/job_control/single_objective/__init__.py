@@ -4,7 +4,7 @@
 #
 # SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
-"""Single-objective optimization. """
+"""Single-objective optimization."""
 
 from .builder import CannotBuildJob, OptJobBuilder
 from .jobs import OptJob
