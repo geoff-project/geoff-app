@@ -5,8 +5,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 # See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
+# See https://pre-commit.com/hooks.html and
+# https://acc-py.docs.cern.ch/howto/use-pre-commit-with-acc-py/#available-pre-commit-hooks
+# for more hooks
+
 repos:
+
 - repo: ssh://git@gitlab.cern.ch:7999/acc-co/devops/python/devtools/acc-py-deploy-pre-commit.git
   rev: v2.8.1
   hooks:
@@ -22,14 +26,21 @@ repos:
     args: ["--unsafe"]
   - id: end-of-file-fixer
   - id: trailing-whitespace
-- repo: https://gitlab.cern.ch/pre-commit-hook-mirrors/psf/black-pre-commit-mirror
-  rev: 24.8.0
+
+- repo: https://gitlab.cern.ch/pre-commit-hook-mirrors/astral-sh/ruff-pre-commit
+  rev: v0.9.4
   hooks:
-  - id: black
+    # Run the linter.
+    - id: ruff
+      args: [ --fix ]
+    # Run the formatter.
+    - id: ruff-format
+
 - repo: https://gitlab.cern.ch/pre-commit-hook-mirrors/fsfe/reuse-tool
   rev: v4.0.3
   hooks:
     - id: reuse
+
 - repo: https://gitlab.cern.ch/pre-commit-hook-mirrors/pre-commit/mirrors-mypy
   rev: v1.11.2
   hooks:

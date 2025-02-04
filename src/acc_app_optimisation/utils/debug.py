@@ -23,7 +23,7 @@ def print_parent_chain(widget: QObject, printer: Printer = print) -> None:
     """
     depth = 0
     while widget is not None:
-        printer(f"{depth*' '}{widget!s}")
+        printer(f"{depth * ' '}{widget!s}")
         widget = widget.parent()
         depth += 1
 
