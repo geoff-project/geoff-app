@@ -149,11 +149,11 @@ class RenderWrapper(gym.Wrapper):
 
     def step(
         self, action: np.ndarray
-    ) -> t.Tuple[np.ndarray, float, bool, t.Dict[str, t.Any]]:
+    ) -> t.Tuple[np.ndarray, float, bool, bool, t.Dict[str, t.Any]]:
         if self.cancellation_token.cancellation_requested:
             raise BenignCancelledError()
         self.signals.step_started.emit()
-        obs, reward, done, info = super().step(action)
+        obs, reward, terminated, truncated, info = super().step(action)
         episode_rewards = self.reward_lists[-1]
         episode_rewards.append(reward)
         self.episode_actions.append(np.array(action))
@@ -163,7 +163,7 @@ class RenderWrapper(gym.Wrapper):
         self.signals.objective_updated.emit(xlist, np.array(episode_rewards))
         self.signals.actors_updated.emit(xlist, np.array(self.episode_actions))
         self._render_env()
-        return obs, reward, done, info
+        return obs, reward, terminated, truncated, info
 
     def _render_env(self) -> None:
         if "matplotlib_figures" not in self.metadata.get("render.modes", []):

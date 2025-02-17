@@ -158,9 +158,9 @@ class ExecJob(Job):
         ):
             for i in range(1, 1 + self._num_episodes):
                 LOG.info("episode %d/%d", i, self._num_episodes)
-                obs = self._env.reset()
-                done = False
+                obs, _ = self._env.reset()
+                terminated = truncated = False
                 state = None
-                while not done:
+                while not terminated and not truncated:
                     action, state = self._policy.predict(obs, state, deterministic=True)
-                    obs, _, done, _ = self._env.step(action)
+                    obs, _, terminated, truncated, _ = self._env.step(action)
