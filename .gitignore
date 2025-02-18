@@ -10,6 +10,8 @@ build/
 dist/
 *.egg-info/
 docs/html/
+venv*/
+env*/
 
 # Vim-Gutentags temp files.
 tags
