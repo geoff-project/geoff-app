@@ -1,10 +1,11 @@
 ### generated_by: acc-py app lock
 ### base_python: 2023.06
-### reqs: eJx1kM1OwzAQhO95iihnO8oPrUDFeQBO5VyhyHGX1K1jb+1twRzy7DjQAwhx8ME7628887SNCPUs6rLKtvGZVrNYlXWTSaXe9H4ECjuJ2L96OQEbvcQDM27slbPBGWAmyD6AAUXOMz9IxYLyADYcHL3Mok1UBd5OhiunO1GVDz/u3CHpSX+AD7vBDfEs2U2EkDgaIwuntPMN+oXiF9Im7CZJaBwZPTA8pr8wjEeJKj2oysVbT+j8IvMJSO4lyS6h1pscIx2c7a/JWjubP+ZFW94Xmb1MGJcymirDmIIOzp0W9zYLJAcDfJAprrYQ2lk0aUwRtR05vFMKnVChE3f/GdR18RWBBwzpGE0EfimBg70u5VRpJfkSBOrEuqw2eeJ6mQuRF8uwuIn8TItN80f/BHuinwM=
+### reqs: eJx1UE1P3DAQvedXRDnbUbJhURF4fwAnel5Vq4kZsgbHNp5ZWnPY384YkAqqevBh5j2/j7m9KwnHsxn7obkrP3l7Ntt+3DRg7W93vyDTHlI6PGRYUS0Z0lH5uBxsDBQ9Kk9wIPRoOWaVZ7CKbEYMdIz862wmUbWYw+q1jW5nhv7qy6xjYre6V8y0n+NcnkF9gkii41JR9CScD6FvUvrEztN+BU4+snezSo+SRaXyCMnKh6Gv3m5NMVdYr8hwDww7kbq8blPhYwyHF7F2MbQ3bTf1P7omnNZU6jE2Q5OKFJ1jfKruU0MMs0c9g9R1AWk6m42suSQXFo1/WEqLFO3Mxf8MxrF7r6ApkTzvmDHXI2gML/U4g1D+Ml5Jg3dLWDG8M2qpbX/RiD3YSXucWfMpiH1NPEpgRuKdueyH61YCZWiNabu67D5B/cw13+Yf/A2OxLKJ
 acc-app-optimisation
-accwidgets==3.0.10
+accwidgets==3.0.13
 cern-sps-splitter-opt-env==0.0.11
-cernml-coi==0.9.3
+cern-sps-zs-alignment-env==0.5.4
+cernml-coi==0.9.4
 cernml-coi-optimizers==3.0.0
 cernml-coi-utils==0.3.0
 cernml-extremum-seeking==4.0.0
@@ -15,17 +16,18 @@ contourpy==1.3.1
 cycler==0.12.1
 Deprecated==1.2.18
 Farama-Notifications==0.0.4
-filelock==3.17.0
-fonttools==4.55.8
-fsspec==2024.12.0
+filelock==3.18.0
+fonttools==4.56.0
+fsspec==2025.3.0
 gymnasium==0.29.1
 idna==3.10
-Jinja2==3.1.5
+Jinja2==3.1.6
 joblib==1.4.2
 jpype1==1.5.2
 kiwisolver==1.4.8
+linac3-lebt-tuning==1.1.0
 MarkupSafe==3.0.2
-matplotlib==3.10.0
+matplotlib==3.10.1
 mpmath==1.3.0
 networkx==3.4.2
 nvidia-cublas-cu12==12.4.5.8
@@ -45,7 +47,7 @@ packaging==23.2
 pandas==2.2.3
 pillow==11.1.0
 pjlsa==0.2.18
-psutil==6.1.1
+psutil==7.0.0
 Py-BOBYQA==1.5.0
 pyaml==25.1.0
 pyjapc==2.8.0
@@ -53,23 +55,23 @@ pylogbook==3.6.1
 pyparsing==3.2.1
 PyQt5==5.15.11
 PyQt5-Qt5==5.15.16
-PyQt5_sip==12.16.1
+PyQt5_sip==12.17.0
 pyqtgraph==0.13.7
 pyrbac==1.3.0
 python-dateutil==2.9.0.post0
 pytz==2025.1
 PyYAML==6.0.2
 qasync==0.24.0
-QtAwesome==1.3.1
-QtPy==2.4.2
+QtAwesome==1.4.0
+QtPy==2.4.3
 requests==2.32.3
 scikit-learn==1.6.1
 scikit-optimize==0.9.0
-setuptools==75.8.0
+setuptools==76.0.0
 six==1.17.0
 stable_baselines3==2.5.0
 sympy==1.13.1
-threadpoolctl==3.5.0
+threadpoolctl==3.6.0
 torch==2.6.0
 triton==3.2.0
 typing_extensions==4.12.2
