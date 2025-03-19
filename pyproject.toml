@@ -43,7 +43,6 @@ dependencies = [
     'cernml-coi >= 0.9',
     'cernml-coi-optimizers[bobyqa,cernml-es,scipy,skopt] ~= 3.0.0',
     'cernml-coi-utils[matplotlib,pjlsa,pyjapc] ~= 0.3.0',
-    #'cernml-svd ~= 4.0',
     'importlib-metadata >=3.6; python_version<"3.8"',
     'numpy ~= 1.20',
     'pylogbook ~= 3.3',
