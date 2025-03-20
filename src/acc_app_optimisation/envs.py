@@ -35,7 +35,8 @@ BUILTIN_ENVS: t.List[str] = [
     # "cern_sps_tune_env",
     "cern_sps_zs_alignment_env",
     "linac3_lebt_tuning",
-    # "psb_extr_and_recomb_optim.optimizer",
+    "psb_extr_and_recomb_optim.optimizer",
+    "geoff-optimizer-of-extraction-by-ring.optimizer",
     # "sps_blowup",
 ]
 
