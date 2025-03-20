@@ -1,8 +1,8 @@
 ### generated_by: acc-py app lock
 ### base_python: 2023.06
-### reqs: eJx1UE1P3DAQvedXRDnbUbJhURF4fwAnel5Vq4kZsgbHNp5ZWnPY384YkAqqevBh5j2/j7m9KwnHsxn7obkrP3l7Ntt+3DRg7W93vyDTHlI6PGRYUS0Z0lH5uBxsDBQ9Kk9wIPRoOWaVZ7CKbEYMdIz862wmUbWYw+q1jW5nhv7qy6xjYre6V8y0n+NcnkF9gkii41JR9CScD6FvUvrEztN+BU4+snezSo+SRaXyCMnKh6Gv3m5NMVdYr8hwDww7kbq8blPhYwyHF7F2MbQ3bTf1P7omnNZU6jE2Q5OKFJ1jfKruU0MMs0c9g9R1AWk6m42suSQXFo1/WEqLFO3Mxf8MxrF7r6ApkTzvmDHXI2gML/U4g1D+Ml5Jg3dLWDG8M2qpbX/RiD3YSXucWfMpiH1NPEpgRuKdueyH61YCZWiNabu67D5B/cw13+Yf/A2OxLKJ
+### reqs: eJx1UMtu2zAQvOsrBJ1FQbLioEVCf0BP6dkojCW9lpnwFXKdhDn427tUAqRF0QMP5Azn9eOhRJyuchrG5qH8pO1Vbodp04DWr+a4IOU9xHg4JXDYLwniubdhOejgc7DY2wyHjBY1hdQnBbrPOiH6fA706ypnVtWYvLNCB7OT4/D9j7sIkYwz75jyXgVVnqH/BDGzjomlz0/M+RD6S0pcyNi8d0DRBrJG9fGRs/SxPELU/GEcqrdxMaQKC4cERyDYsdTtXRsLnYM/vLC1Cb69b7t5+NY1/uJiqWNsxiYWLqpCeKruc5MJlEWhgOsaj3m+yg0/U4nGLwLfiEuzVN7Jm/8ZTFO3VhA5Zj7WEGGqIwj0L3WckSlfjPcswJrFO/Qro5baDjcN24OehUVFgi6e7WviqYlZ1RxJgD+KhDo49bHwCjNhwXA6fY0uwmnlgyaOKFQRadVac3B9wkw7eTuMd+1Ka6Vsu/rYfYLimWrbzT/4b/MZzes=
 acc-app-optimisation
-accwidgets==3.0.13
+accwidgets==3.0.14
 cern-sps-splitter-opt-env==0.0.11
 cern-sps-zs-alignment-env==0.5.4
 cernml-coi==0.9.4
@@ -19,6 +19,7 @@ Farama-Notifications==0.0.4
 filelock==3.18.0
 fonttools==4.56.0
 fsspec==2025.3.0
+geoff-optimizer-of-extraction-by-ring==0.0.1
 gymnasium==0.29.1
 idna==3.10
 Jinja2==3.1.6
@@ -47,6 +48,7 @@ packaging==23.2
 pandas==2.2.3
 pillow==11.1.0
 pjlsa==0.2.18
+psb-extr-and-recomb-optim==1.1.1
 psutil==7.0.0
 Py-BOBYQA==1.5.0
 pyaml==25.1.0
@@ -67,7 +69,7 @@ QtPy==2.4.3
 requests==2.32.3
 scikit-learn==1.6.1
 scikit-optimize==0.9.0
-setuptools==76.0.0
+setuptools==76.1.0
 six==1.17.0
 stable_baselines3==2.5.0
 sympy==1.13.1
