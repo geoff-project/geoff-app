@@ -30,7 +30,7 @@ BUILTIN_ENVS: t.List[str] = [
     # "cern_awake_env.machine",
     # "cern_awake_env.simulation",
     # "cern_isolde_offline_env",
-    # "cern_leir_transfer_line_env",
+    "cern_leir_transfer_line_env",
     "cern_sps_splitter_opt_env",
     # "cern_sps_tune_env",
     "cern_sps_zs_alignment_env",
