@@ -1,9 +1,9 @@
 ### generated_by: acc-py app lock
 ### base_python: 2023.06
-### reqs: eJx1UMtu2zAQvOsrBJ1JQbLiIEUqf0BP6dkIDJJeyUwokuGu0zIHf3uWcoK0KHoQQHGG8/rxkCP0l7Fvu+oh/6TtZdy2/aZSxvyyxxkI9yrGw5TUAmJOKp6EC/PBBI/BgXCoDggODIUkklZGoEkAHk+BHi/jwKoGkl+cNMHuxq799se/DJHsYt8g4V4HnV+U+AABWcfGLPCZOVehv6TkmazD/aIoukDOahGfOIuI+UlFww+6tnjbJYZUYLkAqaMitWOp2/s6ZjoFf3hlaxt8/b1uhvauqfx5ibmMsemqmLmoDuG5uA8VktIOpFZc13rA4TJu+JpytH6W8Ju4NEvhbrz5n0HfN2sFiRH5c5YIUhlBgn8t43RM+WK8oVTOzn4BvzJKqW17U7G9MoN0oEnS2bN9SdxXEXXJkaTyR5nAhEVfF15hJswQpulrdBmmla8McUSps0yr1prjGsOBTZIZHifml96fQW7bshAB0m7k8329KtXjWDflsvkA5QuVQTb/4O9Ej9oA
+### reqs: eJx1UMtu2zAQvOsrBJ1JQbJio0Uqf0BOydkoDJJeyUwokuGu0zIHf3uXcoq0KHrggZzhvB4ec4T+OvZtVz3mJ9pex23bbyplzA97moHwoGI8TkktIOak4lm4MB9N8BgcCIfqiODAUEgiaWUEmgTg8Rzo+3UcWNVA8ouTJtj92LVf/7jLEMku9h0SHnTQ+VWJDxCQdWzMAl+YcxP6S0peyDo8LIqiC+SsFvGZs4iYn1U0/KFri7ddYkgFlguQOilSe5ba3dcx0zn44xtb2+Drb3UztF+ayl+WmMsYm66KmYvqEF6K+1AhKe1AasV1rQccruOGnylH62cJP4lLsxTux7v/GfR9s1aQGJGPs0SQyggS/FsZp2PKJ+MdpXJ29gv4lVFKbdu7iu2VGaQDTZIunu1L4r6KqEuOJJU/yQQmLPq28AozYYYwTZ+jyzCtfGWII0qdZVq11hy3GA5skszwODG/9P4dZFcMMwHSfty13X29KtXjWDflsfkA5SuVQTb/4L8ARM3aAQ==
 acc-app-optimisation
 accwidgets==3.0.15
-cern-leir-transfer-line-env==0.6.0
+cern-leir-transfer-line-env==0.6.1
 cern-sps-splitter-opt-env==0.0.11
 cern-sps-zs-alignment-env==0.5.4
 cernml-coi==0.9.4
@@ -18,7 +18,7 @@ cycler==0.12.1
 Deprecated==1.2.18
 Farama-Notifications==0.0.4
 filelock==3.18.0
-fonttools==4.57.0
+fonttools==4.58.0
 fsspec==2025.3.2
 geoff-optimizer-of-extraction-by-ring==0.0.1
 gymnasium==0.29.1

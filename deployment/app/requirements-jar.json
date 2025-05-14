@@ -79,8 +79,8 @@
     {
       "artifact_id": "japc-ext-inca",
       "group_id": "cern.japc",
-      "version": "16.8.8",
-      "uri": "http://artifactory.cern.ch/development/cern/japc/japc-ext-inca/16.8.8/japc-ext-inca-16.8.8.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/japc/japc-ext-inca/16.8.10/japc-ext-inca-16.8.10.jar"
     },
     {
       "artifact_id": "japc-svc-timing",
@@ -115,26 +115,26 @@
     {
       "artifact_id": "lsa-client",
       "group_id": "cern.lsa",
-      "version": "16.8.9",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client/16.8.9/lsa-client-16.8.9.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client/16.8.10/lsa-client-16.8.10.jar"
     },
     {
       "artifact_id": "lsa-client-rest-cern",
       "group_id": "cern.lsa",
-      "version": "16.8.9",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest-cern/16.8.9/lsa-client-rest-cern-16.8.9.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest-cern/16.8.10/lsa-client-rest-cern-16.8.10.jar"
     },
     {
       "artifact_id": "lsa-client-common",
       "group_id": "cern.lsa",
-      "version": "16.8.9",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-common/16.8.9/lsa-client-common-16.8.9.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-common/16.8.10/lsa-client-common-16.8.10.jar"
     },
     {
       "artifact_id": "lsa-client-rest",
       "group_id": "cern.lsa",
-      "version": "16.8.9",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest/16.8.9/lsa-client-rest-16.8.9.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest/16.8.10/lsa-client-rest-16.8.10.jar"
     },
     {
       "artifact_id": "accsoft-commons-value-json",
@@ -149,34 +149,34 @@
       "uri": "http://artifactory.cern.ch/development/cern/japc/japc-json/1.4.1/japc-json-1.4.1.jar"
     },
     {
-      "artifact_id": "accsoft-commons-ccs",
-      "group_id": "cern.accsoft.commons",
-      "version": "2.5.1",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-ccs/2.5.1/accsoft-commons-ccs-2.5.1.jar"
-    },
-    {
       "artifact_id": "lsa-client-api-cern",
       "group_id": "cern.lsa",
-      "version": "16.8.9",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api-cern/16.8.9/lsa-client-api-cern-16.8.9.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api-cern/16.8.10/lsa-client-api-cern-16.8.10.jar"
     },
     {
       "artifact_id": "lsa-domain-cern",
       "group_id": "cern.lsa",
-      "version": "16.8.9",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain-cern/16.8.9/lsa-domain-cern-16.8.9.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain-cern/16.8.10/lsa-domain-cern-16.8.10.jar"
     },
     {
       "artifact_id": "lsa-client-api",
       "group_id": "cern.lsa",
-      "version": "16.8.9",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api/16.8.9/lsa-client-api-16.8.9.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api/16.8.10/lsa-client-api-16.8.10.jar"
     },
     {
       "artifact_id": "lsa-domain",
       "group_id": "cern.lsa",
-      "version": "16.8.9",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain/16.8.9/lsa-domain-16.8.9.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain/16.8.10/lsa-domain-16.8.10.jar"
+    },
+    {
+      "artifact_id": "accsoft-commons-ccs",
+      "group_id": "cern.accsoft.commons",
+      "version": "2.5.1",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-ccs/2.5.1/accsoft-commons-ccs-2.5.1.jar"
     },
     {
       "artifact_id": "japc",
@@ -371,18 +371,6 @@
       "uri": "http://artifactory.cern.ch/development/io/github/openfeign/feign-slf4j/11.10/feign-slf4j-11.10.jar"
     },
     {
-      "artifact_id": "ribbon-loadbalancer",
-      "group_id": "com.netflix.ribbon",
-      "version": "2.7.18",
-      "uri": "http://artifactory.cern.ch/development/com/netflix/ribbon/ribbon-loadbalancer/2.7.18/ribbon-loadbalancer-2.7.18.jar"
-    },
-    {
-      "artifact_id": "ribbon-core",
-      "group_id": "com.netflix.ribbon",
-      "version": "2.7.18",
-      "uri": "http://artifactory.cern.ch/development/com/netflix/ribbon/ribbon-core/2.7.18/ribbon-core-2.7.18.jar"
-    },
-    {
       "artifact_id": "accsoft-commons-diag",
       "group_id": "cern.accsoft.commons",
       "version": "1.8.2",
@@ -405,6 +393,18 @@
       "group_id": "cern.accsoft.commons",
       "version": "4.7.2",
       "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-util/4.7.2/accsoft-commons-util-4.7.2.jar"
+    },
+    {
+      "artifact_id": "ribbon-loadbalancer",
+      "group_id": "com.netflix.ribbon",
+      "version": "2.7.18",
+      "uri": "http://artifactory.cern.ch/development/com/netflix/ribbon/ribbon-loadbalancer/2.7.18/ribbon-loadbalancer-2.7.18.jar"
+    },
+    {
+      "artifact_id": "ribbon-core",
+      "group_id": "com.netflix.ribbon",
+      "version": "2.7.18",
+      "uri": "http://artifactory.cern.ch/development/com/netflix/ribbon/ribbon-core/2.7.18/ribbon-core-2.7.18.jar"
     },
     {
       "artifact_id": "netflix-statistics",
