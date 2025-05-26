@@ -77,13 +77,13 @@ class Metadata:
 
     @property
     def render_modes(self) -> t.Collection[str]:
-        try:
-            render_modes = self._metadata["render.modes"]
-        except KeyError:
+        if "render.modes" in self._metadata:
             LOG.warning(
                 "metadata['render.modes'] is deprecated. "
                 "Please use metadata['render_modes'] instead"
             )
+            render_modes = self._metadata["render.modes"]
+        else:
             render_modes = self._metadata["render_modes"]
         return frozenset(render_modes)
 
