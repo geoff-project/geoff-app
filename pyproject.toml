@@ -19,7 +19,7 @@ description = 'GUI for generic numerical optimisation'
 readme = 'README.md'
 authors = [
     {name = 'Verena Kain', email = 'verena.kain@cern.ch'},
-    {name = 'Nico Madysa', email = 'nico.madysa@cern.ch'},
+    {name = 'Penny Madysa', email = 'penny.madysa@cern.ch'},
 ]
 requires-python = '>=3.7'
 classifiers = [
