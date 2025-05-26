@@ -169,8 +169,7 @@ class RenderWrapper(gym.Wrapper):
         render_modes = []
         if "render.modes" in self.metadata:
             print(
-                "WARNING: render.modes is deprecated. Please use "
-                "render_modes instead."
+                "WARNING: render.modes is deprecated. Please use render_modes instead."
             )
             render_modes = self.metadata["render.modes"]
         elif "render_modes" in self.metadata:
