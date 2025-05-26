@@ -19,9 +19,9 @@ description = 'GUI for generic numerical optimisation'
 readme = 'README.md'
 authors = [
     {name = 'Verena Kain', email = 'verena.kain@cern.ch'},
-    {name = 'Nico Madysa', email = 'nico.madysa@cern.ch'},
+    {name = 'Penny Madysa', email = 'penny.madysa@cern.ch'},
 ]
-requires-python = '>=3.7'
+requires-python = '>=3.11'
 classifiers = [
     'Development Status :: 3 - Alpha',
     'Environment :: X11 Applications :: Qt',
@@ -30,9 +30,9 @@ classifiers = [
     'Natural Language :: English',
     'Operating System :: POSIX :: Linux',
     'Programming Language :: Python :: 3 :: Only',
-    'Programming Language :: Python :: 3.7',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
     'Topic :: Scientific/Engineering :: Artificial Intelligence',
     'Topic :: Scientific/Engineering :: Physics',
 ]
@@ -97,7 +97,7 @@ exclude_also = [
 ]
 
 [tool.black]
-target-version = ['py37', 'py38', 'py39']
+target-version = ['py311']
 
 [tool.isort]
 profile = 'black'
