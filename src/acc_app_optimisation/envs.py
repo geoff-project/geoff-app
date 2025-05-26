@@ -77,7 +77,15 @@ class Metadata:
 
     @property
     def render_modes(self) -> t.Collection[str]:
-        return frozenset(self._metadata["render.modes"])
+        try:
+            render_modes = self._metadata["render.modes"]
+        except KeyError:
+            LOG.warning(
+                "metadata['render.modes'] is deprecated. "
+                "Please use metadata['render_modes'] instead"
+            )
+            render_modes = self._metadata["render_modes"]
+        return frozenset(render_modes)
 
 
 def iter_env_names(

@@ -166,7 +166,17 @@ class RenderWrapper(gym.Wrapper):
         return obs, reward, terminated, truncated, info
 
     def _render_env(self) -> None:
-        if "matplotlib_figures" not in self.metadata.get("render.modes", []):
+        render_modes = []
+        if "render.modes" in self.metadata:
+            print(
+                "WARNING: render.modes is deprecated. Please use "
+                "render_modes instead."
+            )
+            render_modes = self.metadata["render.modes"]
+        elif "render_modes" in self.metadata:
+            render_modes = self.metadata["render_modes"]
+
+        if "matplotlib_figures" not in render_modes:
             return
         figures = self.render("matplotlib_figures")
         # `draw()` refreshes the figures immediately on this thread. Do
