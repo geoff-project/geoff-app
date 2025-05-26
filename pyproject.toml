@@ -53,6 +53,7 @@ dependencies = [
     'linac3-lebt-tuning ~= 1.1',
     'psb-extr-and-recomb-optim ~= 1.1.1',
     'geoff-optimizer-of-extraction-by-ring ~= 0.0.1',
+    'cern-leir-transfer-line-env ~= 0.6.1',
 ]
 
 [project.optional-dependencies]

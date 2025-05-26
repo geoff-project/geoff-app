@@ -79,8 +79,8 @@
     {
       "artifact_id": "japc-ext-inca",
       "group_id": "cern.japc",
-      "version": "16.7.29",
-      "uri": "http://artifactory.cern.ch/development/cern/japc/japc-ext-inca/16.7.29/japc-ext-inca-16.7.29.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/japc/japc-ext-inca/16.8.10/japc-ext-inca-16.8.10.jar"
     },
     {
       "artifact_id": "japc-svc-timing",
@@ -103,8 +103,8 @@
     {
       "artifact_id": "japc-svc-ccs",
       "group_id": "cern.japc",
-      "version": "7.18.2",
-      "uri": "http://artifactory.cern.ch/development/cern/japc/japc-svc-ccs/7.18.2/japc-svc-ccs-7.18.2.jar"
+      "version": "7.18.3",
+      "uri": "http://artifactory.cern.ch/development/cern/japc/japc-svc-ccs/7.18.3/japc-svc-ccs-7.18.3.jar"
     },
     {
       "artifact_id": "japc-ext-remote",
@@ -115,26 +115,26 @@
     {
       "artifact_id": "lsa-client",
       "group_id": "cern.lsa",
-      "version": "16.7.29",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client/16.7.29/lsa-client-16.7.29.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client/16.8.10/lsa-client-16.8.10.jar"
     },
     {
       "artifact_id": "lsa-client-rest-cern",
       "group_id": "cern.lsa",
-      "version": "16.7.29",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest-cern/16.7.29/lsa-client-rest-cern-16.7.29.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest-cern/16.8.10/lsa-client-rest-cern-16.8.10.jar"
     },
     {
       "artifact_id": "lsa-client-common",
       "group_id": "cern.lsa",
-      "version": "16.7.29",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-common/16.7.29/lsa-client-common-16.7.29.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-common/16.8.10/lsa-client-common-16.8.10.jar"
     },
     {
       "artifact_id": "lsa-client-rest",
       "group_id": "cern.lsa",
-      "version": "16.7.29",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest/16.7.29/lsa-client-rest-16.7.29.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest/16.8.10/lsa-client-rest-16.8.10.jar"
     },
     {
       "artifact_id": "accsoft-commons-value-json",
@@ -151,32 +151,32 @@
     {
       "artifact_id": "lsa-client-api-cern",
       "group_id": "cern.lsa",
-      "version": "16.7.29",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api-cern/16.7.29/lsa-client-api-cern-16.7.29.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api-cern/16.8.10/lsa-client-api-cern-16.8.10.jar"
     },
     {
       "artifact_id": "lsa-domain-cern",
       "group_id": "cern.lsa",
-      "version": "16.7.29",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain-cern/16.7.29/lsa-domain-cern-16.7.29.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain-cern/16.8.10/lsa-domain-cern-16.8.10.jar"
     },
     {
       "artifact_id": "lsa-client-api",
       "group_id": "cern.lsa",
-      "version": "16.7.29",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api/16.7.29/lsa-client-api-16.7.29.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api/16.8.10/lsa-client-api-16.8.10.jar"
     },
     {
       "artifact_id": "lsa-domain",
       "group_id": "cern.lsa",
-      "version": "16.7.29",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain/16.7.29/lsa-domain-16.7.29.jar"
+      "version": "16.8.10",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain/16.8.10/lsa-domain-16.8.10.jar"
     },
     {
       "artifact_id": "accsoft-commons-ccs",
       "group_id": "cern.accsoft.commons",
-      "version": "2.4.4",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-ccs/2.4.4/accsoft-commons-ccs-2.4.4.jar"
+      "version": "2.5.1",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-ccs/2.5.1/accsoft-commons-ccs-2.5.1.jar"
     },
     {
       "artifact_id": "japc",
@@ -199,14 +199,14 @@
     {
       "artifact_id": "accsoft-commons-rest-client",
       "group_id": "cern.accsoft.commons",
-      "version": "2.3.9",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-rest-client/2.3.9/accsoft-commons-rest-client-2.3.9.jar"
+      "version": "2.3.12",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-rest-client/2.3.12/accsoft-commons-rest-client-2.3.12.jar"
     },
     {
       "artifact_id": "timing-client",
       "group_id": "cern.timing",
-      "version": "0.3.2",
-      "uri": "http://artifactory.cern.ch/development/cern/timing/timing-client/0.3.2/timing-client-0.3.2.jar"
+      "version": "0.4.0",
+      "uri": "http://artifactory.cern.ch/development/cern/timing/timing-client/0.4.0/timing-client-0.4.0.jar"
     },
     {
       "artifact_id": "rbac-gui-swing",
@@ -217,68 +217,68 @@
     {
       "artifact_id": "accsoft-ccs-ccda-client-fesa",
       "group_id": "cern.accsoft.ccda",
-      "version": "1.31.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-fesa/1.31.0/accsoft-ccs-ccda-client-fesa-1.31.0.jar"
+      "version": "1.33.12",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-fesa/1.33.12/accsoft-ccs-ccda-client-fesa-1.33.12.jar"
     },
     {
       "artifact_id": "accsoft-ccs-ccda-client-hardware",
       "group_id": "cern.accsoft.ccda",
-      "version": "1.31.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-hardware/1.31.0/accsoft-ccs-ccda-client-hardware-1.31.0.jar"
+      "version": "1.33.12",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-hardware/1.33.12/accsoft-ccs-ccda-client-hardware-1.33.12.jar"
     },
     {
       "artifact_id": "accsoft-ccs-ccda-client-account-egroup",
       "group_id": "cern.accsoft.ccda",
-      "version": "1.31.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-account-egroup/1.31.0/accsoft-ccs-ccda-client-account-egroup-1.31.0.jar"
+      "version": "1.33.12",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-account-egroup/1.33.12/accsoft-ccs-ccda-client-account-egroup-1.33.12.jar"
     },
     {
       "artifact_id": "accsoft-ccs-ccda-client-ccm",
       "group_id": "cern.accsoft.ccda",
-      "version": "1.31.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-ccm/1.31.0/accsoft-ccs-ccda-client-ccm-1.31.0.jar"
+      "version": "1.33.12",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-ccm/1.33.12/accsoft-ccs-ccda-client-ccm-1.33.12.jar"
     },
     {
       "artifact_id": "accsoft-ccs-ccda-client-ccm-domain",
       "group_id": "cern.accsoft.ccda",
-      "version": "1.31.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-ccm-domain/1.31.0/accsoft-ccs-ccda-client-ccm-domain-1.31.0.jar"
+      "version": "1.33.12",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-ccm-domain/1.33.12/accsoft-ccs-ccda-client-ccm-domain-1.33.12.jar"
     },
     {
       "artifact_id": "accsoft-ccs-ccda-client",
       "group_id": "cern.accsoft.ccda",
-      "version": "1.31.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client/1.31.0/accsoft-ccs-ccda-client-1.31.0.jar"
+      "version": "1.34.6",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client/1.34.6/accsoft-ccs-ccda-client-1.34.6.jar"
     },
     {
       "artifact_id": "accsoft-ccs-ccda-client-core",
       "group_id": "cern.accsoft.ccda",
-      "version": "1.31.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-core/1.31.0/accsoft-ccs-ccda-client-core-1.31.0.jar"
+      "version": "1.34.6",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-core/1.34.6/accsoft-ccs-ccda-client-core-1.34.6.jar"
     },
     {
       "artifact_id": "rbac-util",
       "group_id": "cern.accsoft.security",
-      "version": "10.7.4",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/security/rbac-util/10.7.4/rbac-util-10.7.4.jar"
+      "version": "10.7.5",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/security/rbac-util/10.7.5/rbac-util-10.7.5.jar"
     },
     {
       "artifact_id": "rbac-client",
       "group_id": "cern.accsoft.security",
-      "version": "10.7.4",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/security/rbac-client/10.7.4/rbac-client-10.7.4.jar"
+      "version": "10.7.5",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/security/rbac-client/10.7.5/rbac-client-10.7.5.jar"
     },
     {
       "artifact_id": "accsoft-commons-domain-json",
       "group_id": "cern.accsoft.commons",
-      "version": "2.19.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-domain-json/2.19.0/accsoft-commons-domain-json-2.19.0.jar"
+      "version": "2.19.1",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-domain-json/2.19.1/accsoft-commons-domain-json-2.19.1.jar"
     },
     {
       "artifact_id": "accsoft-commons-domain",
       "group_id": "cern.accsoft.commons",
-      "version": "2.19.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-domain/2.19.0/accsoft-commons-domain-2.19.0.jar"
+      "version": "2.19.1",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-domain/2.19.1/accsoft-commons-domain-2.19.1.jar"
     },
     {
       "artifact_id": "slf4j-reload4j",
@@ -289,8 +289,8 @@
     {
       "artifact_id": "rbac-common",
       "group_id": "cern.accsoft.security",
-      "version": "10.7.4",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/security/rbac-common/10.7.4/rbac-common-10.7.4.jar"
+      "version": "10.7.5",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/security/rbac-common/10.7.5/rbac-common-10.7.5.jar"
     },
     {
       "artifact_id": "cmw-directory-client",
@@ -305,40 +305,16 @@
       "uri": "http://artifactory.cern.ch/development/cern/cmw/cmw-rda3/10.8.5/cmw-rda3-10.8.5.jar"
     },
     {
-      "artifact_id": "accsoft-commons-rest-core",
-      "group_id": "cern.accsoft.commons",
-      "version": "2.3.9",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-rest-core/2.3.9/accsoft-commons-rest-core-2.3.9.jar"
-    },
-    {
       "artifact_id": "cmw-directory-http-client",
       "group_id": "cern.cmw",
       "version": "10.8.5",
       "uri": "http://artifactory.cern.ch/development/cern/cmw/cmw-directory-http-client/10.8.5/cmw-directory-http-client-10.8.5.jar"
     },
     {
-      "artifact_id": "accsoft-commons-diag",
-      "group_id": "cern.accsoft.commons",
-      "version": "1.8.2",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-diag/1.8.2/accsoft-commons-diag-1.8.2.jar"
-    },
-    {
-      "artifact_id": "accsoft-gui-frame",
-      "group_id": "cern.accsoft.gui",
-      "version": "5.13.1",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/gui/accsoft-gui-frame/5.13.1/accsoft-gui-frame-5.13.1.jar"
-    },
-    {
-      "artifact_id": "accsoft-commons-core",
-      "group_id": "cern.accsoft.commons",
-      "version": "4.6.1",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-core/4.6.1/accsoft-commons-core-4.6.1.jar"
-    },
-    {
-      "artifact_id": "accsoft-commons-util",
-      "group_id": "cern.accsoft.commons",
-      "version": "4.7.1",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-util/4.7.1/accsoft-commons-util-4.7.1.jar"
+      "artifact_id": "cmw-util",
+      "group_id": "cern.cmw",
+      "version": "10.8.5",
+      "uri": "http://artifactory.cern.ch/development/cern/cmw/cmw-util/10.8.5/cmw-util-10.8.5.jar"
     },
     {
       "artifact_id": "feign-form",
@@ -383,10 +359,40 @@
       "uri": "http://artifactory.cern.ch/development/io/dropwizard/metrics/metrics-core/4.2.22/metrics-core-4.2.22.jar"
     },
     {
+      "artifact_id": "accsoft-commons-rest-core",
+      "group_id": "cern.accsoft.commons",
+      "version": "2.3.12",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-rest-core/2.3.12/accsoft-commons-rest-core-2.3.12.jar"
+    },
+    {
       "artifact_id": "feign-slf4j",
       "group_id": "io.github.openfeign",
       "version": "11.10",
       "uri": "http://artifactory.cern.ch/development/io/github/openfeign/feign-slf4j/11.10/feign-slf4j-11.10.jar"
+    },
+    {
+      "artifact_id": "accsoft-commons-diag",
+      "group_id": "cern.accsoft.commons",
+      "version": "1.8.2",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-diag/1.8.2/accsoft-commons-diag-1.8.2.jar"
+    },
+    {
+      "artifact_id": "accsoft-gui-frame",
+      "group_id": "cern.accsoft.gui",
+      "version": "5.13.1",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/gui/accsoft-gui-frame/5.13.1/accsoft-gui-frame-5.13.1.jar"
+    },
+    {
+      "artifact_id": "accsoft-commons-core",
+      "group_id": "cern.accsoft.commons",
+      "version": "4.6.1",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-core/4.6.1/accsoft-commons-core-4.6.1.jar"
+    },
+    {
+      "artifact_id": "accsoft-commons-util",
+      "group_id": "cern.accsoft.commons",
+      "version": "4.7.2",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-util/4.7.2/accsoft-commons-util-4.7.2.jar"
     },
     {
       "artifact_id": "ribbon-loadbalancer",
@@ -399,12 +405,6 @@
       "group_id": "com.netflix.ribbon",
       "version": "2.7.18",
       "uri": "http://artifactory.cern.ch/development/com/netflix/ribbon/ribbon-core/2.7.18/ribbon-core-2.7.18.jar"
-    },
-    {
-      "artifact_id": "cmw-util",
-      "group_id": "cern.cmw",
-      "version": "10.8.5",
-      "uri": "http://artifactory.cern.ch/development/cern/cmw/cmw-util/10.8.5/cmw-util-10.8.5.jar"
     },
     {
       "artifact_id": "netflix-statistics",
@@ -481,32 +481,32 @@
     {
       "artifact_id": "accsoft-ccs-ccda-client-hardware-domain",
       "group_id": "cern.accsoft.ccda",
-      "version": "1.31.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-hardware-domain/1.31.0/accsoft-ccs-ccda-client-hardware-domain-1.31.0.jar"
+      "version": "1.33.12",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-hardware-domain/1.33.12/accsoft-ccs-ccda-client-hardware-domain-1.33.12.jar"
     },
     {
       "artifact_id": "accsoft-ccs-ccda-client-fesa-domain",
       "group_id": "cern.accsoft.ccda",
-      "version": "1.31.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-fesa-domain/1.31.0/accsoft-ccs-ccda-client-fesa-domain-1.31.0.jar"
+      "version": "1.33.12",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-fesa-domain/1.33.12/accsoft-ccs-ccda-client-fesa-domain-1.33.12.jar"
     },
     {
       "artifact_id": "accsoft-ccs-ccda-client-domain",
       "group_id": "cern.accsoft.ccda",
-      "version": "1.31.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-domain/1.31.0/accsoft-ccs-ccda-client-domain-1.31.0.jar"
+      "version": "1.34.6",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-domain/1.34.6/accsoft-ccs-ccda-client-domain-1.34.6.jar"
     },
     {
       "artifact_id": "accsoft-ccs-ccda-client-account-egroup-domain",
       "group_id": "cern.accsoft.ccda",
-      "version": "1.31.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-account-egroup-domain/1.31.0/accsoft-ccs-ccda-client-account-egroup-domain-1.31.0.jar"
+      "version": "1.33.12",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-account-egroup-domain/1.33.12/accsoft-ccs-ccda-client-account-egroup-domain-1.33.12.jar"
     },
     {
       "artifact_id": "accsoft-ccs-ccda-client-domain-core",
       "group_id": "cern.accsoft.ccda",
-      "version": "1.31.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-domain-core/1.31.0/accsoft-ccs-ccda-client-domain-core-1.31.0.jar"
+      "version": "1.34.6",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-domain-core/1.34.6/accsoft-ccs-ccda-client-domain-core-1.34.6.jar"
     },
     {
       "artifact_id": "commons-lang3",
@@ -595,8 +595,8 @@
     {
       "artifact_id": "accsoft-ccs-ccda-core",
       "group_id": "cern.accsoft.ccda",
-      "version": "1.31.0",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-core/1.31.0/accsoft-ccs-ccda-core-1.31.0.jar"
+      "version": "1.34.6",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-core/1.34.6/accsoft-ccs-ccda-core-1.34.6.jar"
     },
     {
       "artifact_id": "guava",
