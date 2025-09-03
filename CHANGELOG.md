@@ -12,7 +12,15 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ### Build changes
 
+
+## v0.17.13
+
+### Visible changes
+
+### Build changes
 - The app now requires Acc-Py 2023.06 or Python 3.11.
+- Remove 'linac3-lebt-tuning' dependency and replace with 'linac3-beamline-tuning'
+which now includes both LN3 LEBT and MEBT optimization.
 
 ## v0.17.0
 
