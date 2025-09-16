@@ -12,6 +12,12 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ### Build changes
 
+## v0.17.14
+
+### Visible changes
+
+### Build changes
+- Bump cern-leir-transfer-line-env to v0.6.2.
 
 ## v0.17.13
 
