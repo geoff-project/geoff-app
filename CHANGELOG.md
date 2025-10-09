@@ -12,6 +12,13 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ### Build changes
 
+## v0.17.15
+
+### Visible changes
+
+### Build changes
+- Bump linac3-beamline-tuning to v1.0.2.
+
 ## v0.17.14
 
 ### Visible changes
