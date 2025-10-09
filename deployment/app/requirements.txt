@@ -1,8 +1,8 @@
 ### generated_by: acc-py app lock
 ### base_python: 2023.06
-### reqs: eJx1Uclu2zAQvesrBJ9FQUtstEjkD+gpPRuFMaRHMhNuIcdpmYO/vUPZQFoUBcEDOY9v47fnHLC/Tn3bVc/5O22v07bthwqU+qlPC1I6QAjHOYLFZokQzo3xy1F5l7zBxiQ4JjSoyMcmSlBNUhHRpbOnH9dpZFaF0VkjlNf7qWu//nEWPpC2+gNjOkgv8xs09yEm5tEhN+mVMTeiv6jEhbRJBwsUjCejZRNe2EsT8gsExQ+6tmhrG3wsY2GR4AQEe6baPdYh09m74ztLa+/qp3oztl82lbvYkEsZQ1eFzEGl969FfawSgTQoJHBc7TCN12nga8pBu0XgL+LQTJX208P/BPp+s0YQKSTeRhNhLCUIdO+lnI4hn4iPJMDoxVl0K6KE2rYPFcuDGoVEsMWJoItjC+sXtn0VkixuogB3EhGVt/LWcwHwqhb08/xZvfDzigdFbFTILOLKtrq5mTGoo2CESzPjV827nV07cE+EifbTru0e65WpnqZ6Uy4396F4o1LL8M/8N2BB2/Y=
+### reqs: eJx1Uclu2zAQvesrBJ9FQUtstEjkD+gpPRuFQdIjmQm3cMZpmYO/vUPZQFoUBcEDOY9v47fnHKG/Tn3bVc/5O22v07bth0pq/dOcFiA8yBiPc5IOmiXJeG5sWI46eAwWGovyiGBBU0hNUlI3qBOAx3OgH9dpZFYNyTsrdDD7qWu//nEWIZJx5gMSHlRQ+U029yEg85iYG3xlzI3oLypxIWPx4CRFG8ga1cQX9tLE/CKj5gddW7SNiyGVsXBA8iRJ7plq91jHTOfgj+8sbYKvn+rN2H7ZVP7iYi5lDF0VMwdVIbwW9bFCksqCUJLjGg84XqeBrylH4xcBv4hDMxXup4f/CfT9Zo0gMCJva4gglRIE+PdSTseQT8QHCmnN4h34FVFCbduHiuWlHoUC6YoTQRfPFtYvbIcqoipukpD+JBLo4NSt5wLgVS0Q5vmzehHmFS81sVGhskgr2+rmZsaCSYIRHmfGr5p3O7simAmQ9tOu7R7rlamepnpTLjf3oXijUsvwz/w3YPDb9w==
 acc-app-optimisation
-accwidgets==3.0.19
+accwidgets==3.0.20
 cern-leir-transfer-line-env==0.6.2
 cern-sps-splitter-opt-env==0.0.11
 cern-sps-zs-alignment-env==0.5.4
@@ -17,7 +17,7 @@ contourpy==1.3.3
 cycler==0.12.1
 Farama-Notifications==0.0.4
 filelock==3.19.1
-fonttools==4.59.2
+fonttools==4.60.1
 fsspec==2025.9.0
 geoff-optimizer-of-extraction-by-ring==0.0.1
 gymnasium==0.29.1
@@ -26,8 +26,8 @@ Jinja2==3.1.6
 joblib==1.5.2
 jpype1==1.6.0
 kiwisolver==1.4.9
-linac3-beamline-tuning==1.0.1
-MarkupSafe==3.0.2
+linac3-beamline-tuning==1.0.2
+MarkupSafe==3.0.3
 matplotlib==3.10.6
 mpmath==1.3.0
 networkx==3.5
@@ -46,16 +46,16 @@ nvidia-nccl-cu12==2.27.3
 nvidia-nvjitlink-cu12==12.8.93
 nvidia-nvtx-cu12==12.8.90
 packaging==25.0
-pandas==2.3.2
+pandas==2.3.3
 pillow==11.3.0
 pjlsa==0.2.18
 psb-extr-and-recomb-optim==1.1.1
-psutil==7.0.0
+psutil==7.1.0
 Py-BOBYQA==1.5.0
 pyaml==25.7.0
 pyjapc==2.8.0
 pylogbook==3.8.0
-pyparsing==3.2.4
+pyparsing==3.2.5
 PyQt5==5.15.11
 PyQt5-Qt5==5.15.17
 PyQt5_sip==12.17.0
@@ -63,7 +63,7 @@ pyqtgraph==0.13.7
 pyrbac==1.4.0
 python-dateutil==2.9.0.post0
 pytz==2025.2
-PyYAML==6.0.2
+PyYAML==6.0.3
 qasync==0.24.0
 QtAwesome==1.4.0
 QtPy==2.4.3

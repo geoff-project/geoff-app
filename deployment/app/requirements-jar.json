@@ -79,14 +79,14 @@
     {
       "artifact_id": "japc-ext-inca",
       "group_id": "cern.japc",
-      "version": "16.8.42",
-      "uri": "http://artifactory.cern.ch/development/cern/japc/japc-ext-inca/16.8.42/japc-ext-inca-16.8.42.jar"
+      "version": "16.8.51",
+      "uri": "http://artifactory.cern.ch/development/cern/japc/japc-ext-inca/16.8.51/japc-ext-inca-16.8.51.jar"
     },
     {
       "artifact_id": "japc-svc-timing",
       "group_id": "cern.japc",
-      "version": "1.0.0",
-      "uri": "http://artifactory.cern.ch/development/cern/japc/japc-svc-timing/1.0.0/japc-svc-timing-1.0.0.jar"
+      "version": "1.0.1",
+      "uri": "http://artifactory.cern.ch/development/cern/japc/japc-svc-timing/1.0.1/japc-svc-timing-1.0.1.jar"
     },
     {
       "artifact_id": "japc-ext-cmwrda3",
@@ -115,26 +115,26 @@
     {
       "artifact_id": "lsa-client",
       "group_id": "cern.lsa",
-      "version": "16.8.42",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client/16.8.42/lsa-client-16.8.42.jar"
+      "version": "16.8.51",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client/16.8.51/lsa-client-16.8.51.jar"
     },
     {
       "artifact_id": "lsa-client-rest-cern",
       "group_id": "cern.lsa",
-      "version": "16.8.42",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest-cern/16.8.42/lsa-client-rest-cern-16.8.42.jar"
+      "version": "16.8.51",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest-cern/16.8.51/lsa-client-rest-cern-16.8.51.jar"
     },
     {
       "artifact_id": "lsa-client-common",
       "group_id": "cern.lsa",
-      "version": "16.8.42",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-common/16.8.42/lsa-client-common-16.8.42.jar"
+      "version": "16.8.51",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-common/16.8.51/lsa-client-common-16.8.51.jar"
     },
     {
       "artifact_id": "lsa-client-rest",
       "group_id": "cern.lsa",
-      "version": "16.8.42",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest/16.8.42/lsa-client-rest-16.8.42.jar"
+      "version": "16.8.51",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest/16.8.51/lsa-client-rest-16.8.51.jar"
     },
     {
       "artifact_id": "accsoft-commons-value-json",
@@ -151,26 +151,26 @@
     {
       "artifact_id": "lsa-client-api-cern",
       "group_id": "cern.lsa",
-      "version": "16.8.42",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api-cern/16.8.42/lsa-client-api-cern-16.8.42.jar"
+      "version": "16.8.51",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api-cern/16.8.51/lsa-client-api-cern-16.8.51.jar"
     },
     {
       "artifact_id": "lsa-domain-cern",
       "group_id": "cern.lsa",
-      "version": "16.8.42",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain-cern/16.8.42/lsa-domain-cern-16.8.42.jar"
+      "version": "16.8.51",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain-cern/16.8.51/lsa-domain-cern-16.8.51.jar"
     },
     {
       "artifact_id": "lsa-client-api",
       "group_id": "cern.lsa",
-      "version": "16.8.42",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api/16.8.42/lsa-client-api-16.8.42.jar"
+      "version": "16.8.51",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api/16.8.51/lsa-client-api-16.8.51.jar"
     },
     {
       "artifact_id": "lsa-domain",
       "group_id": "cern.lsa",
-      "version": "16.8.42",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain/16.8.42/lsa-domain-16.8.42.jar"
+      "version": "16.8.51",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain/16.8.51/lsa-domain-16.8.51.jar"
     },
     {
       "artifact_id": "accsoft-commons-ccs",
@@ -343,8 +343,8 @@
     {
       "artifact_id": "accsoft-commons-diag",
       "group_id": "cern.accsoft.commons",
-      "version": "1.8.2",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-diag/1.8.2/accsoft-commons-diag-1.8.2.jar"
+      "version": "1.9.0",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-diag/1.9.0/accsoft-commons-diag-1.9.0.jar"
     },
     {
       "artifact_id": "accsoft-gui-frame",
