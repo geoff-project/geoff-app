@@ -131,9 +131,6 @@ class MainMdiArea(PopoutMdiArea):
         rl_window: QtWidgets.QMdiSubWindow,
     ) -> None:
         """Arrange the default windows: tile actors and obj/cons vertically, minimize RL."""
-        # Minimize the RL Training window since it's rarely used
-        rl_window.showMinimized()
-
         # Get the available area for arranging windows
         mdi_rect = self.viewport().rect()
         width = mdi_rect.width()
@@ -142,13 +139,17 @@ class MainMdiArea(PopoutMdiArea):
         # Split the height in half for the two visible windows
         half_height = height // 2
 
-        # Actors on top
-        actors_window.setGeometry(0, 0, width, half_height)
+        # Actors on top - ensure it's shown normally first
         actors_window.showNormal()
+        actors_window.setGeometry(0, 0, width, half_height)
 
-        # Objective and Constraints on bottom
-        obj_cons_window.setGeometry(0, half_height, width, half_height)
+        # Objective and Constraints on bottom - ensure it's shown normally first
         obj_cons_window.showNormal()
+        obj_cons_window.setGeometry(0, half_height, width, half_height)
+
+        # Minimize the RL Training window since it's rarely used
+        # showMinimized will show it as an icon in the MDI area
+        rl_window.showMinimized()
 
         # Activate the actors window
         self.setActiveSubWindow(actors_window)
@@ -184,14 +185,11 @@ class MainWindow(ApplicationFrame):
         super().__init__(use_timing_bar=True, use_rbac=True, use_screenshot=True)
         self.appVersion = version  # type: ignore # mypy bug #9911
 
-        mdi = MainMdiArea()
-        self.setCentralWidget(mdi)
-        self._plot_manager = PlotManager(mdi)
+        self._mdi = MainMdiArea()
+        self.setCentralWidget(self._mdi)
+        self._plot_manager = PlotManager(self._mdi)
         self.runner = None
-
-        # Arrange the default plot windows on startup
-        obj_cons, actors, rl_training = self._plot_manager.get_default_subwindows()
-        mdi.arrange_windows_on_startup(obj_cons, actors, rl_training)
+        self._windows_arranged = False
 
         toolbar = self.main_toolbar()
         toolbar.setAllowedAreas(Qt.TopToolBarArea)
@@ -267,6 +265,14 @@ class MainWindow(ApplicationFrame):
     def make_initial_selection(self, selection: translate.InitialSelection) -> None:
         """Pre-select machine and user according to command-line arguments."""
         self._control_pane.make_initial_selection(selection)
+
+    def showEvent(self, event: QtGui.QShowEvent) -> None:
+        """Arrange windows on first show."""
+        super().showEvent(event)
+        if not event.spontaneous() and not self._windows_arranged:
+            self._windows_arranged = True
+            obj_cons, actors, rl_training = self._plot_manager.get_default_subwindows()
+            self._mdi.arrange_windows_on_startup(obj_cons, actors, rl_training)
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         # Close events are only sent to the top-level window that gets
