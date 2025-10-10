@@ -160,11 +160,17 @@ class MainMdiArea(PopoutMdiArea):
         half_height = height // 2
 
         # Only rearrange windows that are in normal state (not minimized/maximized)
-        if not self._actors_window.isMinimized() and not self._actors_window.isMaximized():
+        if (
+            not self._actors_window.isMinimized()
+            and not self._actors_window.isMaximized()
+        ):
             self._actors_window.showNormal()
             self._actors_window.setGeometry(0, 0, width, half_height)
 
-        if not self._obj_cons_window.isMinimized() and not self._obj_cons_window.isMaximized():
+        if (
+            not self._obj_cons_window.isMinimized()
+            and not self._obj_cons_window.isMaximized()
+        ):
             self._obj_cons_window.showNormal()
             self._obj_cons_window.setGeometry(0, half_height, width, half_height)
 
