@@ -131,6 +131,26 @@ class MainMdiArea(PopoutMdiArea):
         rl_window: QtWidgets.QMdiSubWindow,
     ) -> None:
         """Arrange the default windows: tile actors and obj/cons vertically, minimize RL."""
+        # Store references for resize handling
+        self._obj_cons_window = obj_cons_window
+        self._actors_window = actors_window
+        self._rl_window = rl_window
+
+        # Perform initial arrangement
+        self._arrange_tiled_windows()
+
+        # Minimize the RL Training window since it's rarely used
+        # showMinimized will show it as an icon in the MDI area
+        rl_window.showMinimized()
+
+        # Activate the actors window
+        self.setActiveSubWindow(actors_window)
+
+    def _arrange_tiled_windows(self) -> None:
+        """Arrange the actors and objective/constraints windows to fill the viewport."""
+        if not hasattr(self, "_actors_window") or not hasattr(self, "_obj_cons_window"):
+            return
+
         # Get the available area for arranging windows
         mdi_rect = self.viewport().rect()
         width = mdi_rect.width()
@@ -139,20 +159,19 @@ class MainMdiArea(PopoutMdiArea):
         # Split the height in half for the two visible windows
         half_height = height // 2
 
-        # Actors on top - ensure it's shown normally first
-        actors_window.showNormal()
-        actors_window.setGeometry(0, 0, width, half_height)
+        # Only rearrange windows that are in normal state (not minimized/maximized)
+        if not self._actors_window.isMinimized() and not self._actors_window.isMaximized():
+            self._actors_window.showNormal()
+            self._actors_window.setGeometry(0, 0, width, half_height)
 
-        # Objective and Constraints on bottom - ensure it's shown normally first
-        obj_cons_window.showNormal()
-        obj_cons_window.setGeometry(0, half_height, width, half_height)
+        if not self._obj_cons_window.isMinimized() and not self._obj_cons_window.isMaximized():
+            self._obj_cons_window.showNormal()
+            self._obj_cons_window.setGeometry(0, half_height, width, half_height)
 
-        # Minimize the RL Training window since it's rarely used
-        # showMinimized will show it as an icon in the MDI area
-        rl_window.showMinimized()
-
-        # Activate the actors window
-        self.setActiveSubWindow(actors_window)
+    def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
+        """Handle resize events to maintain window arrangement."""
+        super().resizeEvent(event)
+        self._arrange_tiled_windows()
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         """Event handler to arrange windows on startup."""
