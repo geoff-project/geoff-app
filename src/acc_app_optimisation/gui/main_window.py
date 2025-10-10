@@ -247,7 +247,7 @@ class MainWindow(ApplicationFrame):
 
         # We must keep ownership of this QMenu to keep the GC from
         # reclaiming it.
-        self._view_menu = MdiViewMenu("&View", mdi)
+        self._view_menu = MdiViewMenu("&View", self._mdi)
         self._view_menu.addSeparator()
         self._fullscreen_action = self._view_menu.addAction("&Fullscreen")
         self._fullscreen_action.setCheckable(True)
