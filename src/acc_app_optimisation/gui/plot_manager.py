@@ -93,7 +93,9 @@ class PlotManager:
         layout.setSpacing(0)
         layout.addWidget(self._objective_plot, stretch=1)
         layout.addWidget(self._constraints_plot, stretch=1)
-        self._objective_constraints_subwindow = self._mdi.addSubWindow(reward_episode_length_widget)
+        self._objective_constraints_subwindow = self._mdi.addSubWindow(
+            reward_episode_length_widget
+        )
 
         self._actor_names: t.Tuple[str, ...] = ()
         self._actors_plot = _make_plot_widget_with_margins()
@@ -118,14 +120,20 @@ class PlotManager:
         layout.setSpacing(0)
         layout.addWidget(self._episode_length_plot, stretch=1)
         layout.addWidget(self._reward_plot, stretch=1)
-        self._rl_training_subwindow = self._mdi.addSubWindow(reward_episode_length_widget)
+        self._rl_training_subwindow = self._mdi.addSubWindow(
+            reward_episode_length_widget
+        )
 
         self._mpl_canvases: t.List[FigureCanvas] = []
         # Running ID to prevent giving out the same title to two
         # different unnamed figures.
         self._canvas_id = 0
 
-    def get_default_subwindows(self) -> t.Tuple[QtWidgets.QMdiSubWindow, QtWidgets.QMdiSubWindow, QtWidgets.QMdiSubWindow]:
+    def get_default_subwindows(
+        self,
+    ) -> t.Tuple[
+        QtWidgets.QMdiSubWindow, QtWidgets.QMdiSubWindow, QtWidgets.QMdiSubWindow
+    ]:
         """Return the three default subwindows: objective/constraints, actors, and RL training.
 
         Returns:
