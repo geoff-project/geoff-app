@@ -93,14 +93,14 @@ class PlotManager:
         layout.setSpacing(0)
         layout.addWidget(self._objective_plot, stretch=1)
         layout.addWidget(self._constraints_plot, stretch=1)
-        self._mdi.addSubWindow(reward_episode_length_widget)
+        self._objective_constraints_subwindow = self._mdi.addSubWindow(reward_episode_length_widget)
 
         self._actor_names: t.Tuple[str, ...] = ()
         self._actors_plot = _make_plot_widget_with_margins()
         self._actors_plot.setWindowTitle("Actors")
         self._actors_plot.setLabels(bottom="Step", left="Actor values (norm. u.)")
         self._actors_plot.showGrid(x=True, y=True)
-        self._mdi.addSubWindow(self._actors_plot)
+        self._actors_subwindow = self._mdi.addSubWindow(self._actors_plot)
         _add_well_colored_legend(self._actors_plot)
 
         self._episode_length_plot = _make_plot_widget_with_margins()
@@ -118,12 +118,24 @@ class PlotManager:
         layout.setSpacing(0)
         layout.addWidget(self._episode_length_plot, stretch=1)
         layout.addWidget(self._reward_plot, stretch=1)
-        self._mdi.addSubWindow(reward_episode_length_widget)
+        self._rl_training_subwindow = self._mdi.addSubWindow(reward_episode_length_widget)
 
         self._mpl_canvases: t.List[FigureCanvas] = []
         # Running ID to prevent giving out the same title to two
         # different unnamed figures.
         self._canvas_id = 0
+
+    def get_default_subwindows(self) -> t.Tuple[QtWidgets.QMdiSubWindow, QtWidgets.QMdiSubWindow, QtWidgets.QMdiSubWindow]:
+        """Return the three default subwindows: objective/constraints, actors, and RL training.
+
+        Returns:
+            A tuple of (objective_constraints_subwindow, actors_subwindow, rl_training_subwindow).
+        """
+        return (
+            self._objective_constraints_subwindow,
+            self._actors_subwindow,
+            self._rl_training_subwindow,
+        )
 
     def redraw_mpl_figures(self, *, immediate: bool = False) -> None:
         """Issue a redraw command to all Matplotlib figures.

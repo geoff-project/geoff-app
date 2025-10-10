@@ -92,7 +92,7 @@ class MdiViewMenu(QtWidgets.QMenu):
         )
 
         self._arrange_group = QtWidgets.QActionGroup(self)
-        self._arrange_group.setEnabled(view_mode == QtWidgets.QMdiArea.SubWindowView)
+        self._arrange_group.setEnabled(True)
         QtWidgets.QAction(  # type: ignore
             "&Cascade windows",
             parent=self._arrange_group,
@@ -119,13 +119,42 @@ class MainMdiArea(PopoutMdiArea):
 
     def __init__(self, parent: t.Optional[QtWidgets.QWidget] = None) -> None:
         super().__init__(parent)
-        self.setViewMode(QtWidgets.QMdiArea.TabbedView)
+        self.setViewMode(QtWidgets.QMdiArea.SubWindowView)
         self.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.setFrameShadow(QtWidgets.QFrame.Plain)
         self.setTabsMovable(True)
 
+    def arrange_windows_on_startup(
+        self,
+        obj_cons_window: QtWidgets.QMdiSubWindow,
+        actors_window: QtWidgets.QMdiSubWindow,
+        rl_window: QtWidgets.QMdiSubWindow,
+    ) -> None:
+        """Arrange the default windows: tile actors and obj/cons vertically, minimize RL."""
+        # Minimize the RL Training window since it's rarely used
+        rl_window.showMinimized()
+
+        # Get the available area for arranging windows
+        mdi_rect = self.viewport().rect()
+        width = mdi_rect.width()
+        height = mdi_rect.height()
+
+        # Split the height in half for the two visible windows
+        half_height = height // 2
+
+        # Actors on top
+        actors_window.setGeometry(0, 0, width, half_height)
+        actors_window.showNormal()
+
+        # Objective and Constraints on bottom
+        obj_cons_window.setGeometry(0, half_height, width, half_height)
+        obj_cons_window.showNormal()
+
+        # Activate the actors window
+        self.setActiveSubWindow(actors_window)
+
     def showEvent(self, event: QtGui.QShowEvent) -> None:
-        """Event handler to ensure that the first tab is selected upon startup."""
+        """Event handler to arrange windows on startup."""
         # pylint: disable = invalid-name
         # "Spontaneous" means that the main window is currently
         # minimized and about to be restored. "Not spontaneous" means
@@ -134,11 +163,8 @@ class MainMdiArea(PopoutMdiArea):
         # when `main_window.show()` is called.
         if event.spontaneous():
             return
-        # Show the first subwindow instead of the one most recently
-        # created.
-        windows = self.subWindowList(self.CreationOrder)
-        first_window = windows[0] if windows else None
-        self.setActiveSubWindow(first_window)  # type: ignore
+        # The arrangement will be done by MainWindow after PlotManager is created
+        pass
 
 
 class MainWindow(ApplicationFrame):
@@ -162,6 +188,10 @@ class MainWindow(ApplicationFrame):
         self.setCentralWidget(mdi)
         self._plot_manager = PlotManager(mdi)
         self.runner = None
+
+        # Arrange the default plot windows on startup
+        obj_cons, actors, rl_training = self._plot_manager.get_default_subwindows()
+        mdi.arrange_windows_on_startup(obj_cons, actors, rl_training)
 
         toolbar = self.main_toolbar()
         toolbar.setAllowedAreas(Qt.TopToolBarArea)
