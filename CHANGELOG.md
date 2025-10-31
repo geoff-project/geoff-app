@@ -12,6 +12,15 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ### Build changes
 
+## v0.17.16
+
+### Visible changes
+- GUI should by default open with the actor and objective windows tiled
+  (aligned in x-axis), rather than in tab mode.
+- RL window is minimized by default.
+
+### Build changes
+
 ## v0.17.15
 
 ### Visible changes
