@@ -30,6 +30,10 @@ class BadInitialPoint(Exception):
     """The initial point has not the correct shape or type."""
 
 
+class BadResetPoint(Exception):
+    """The reset point has not the correct shape or type."""
+
+
 @dataclass(frozen=True)
 class PreOptimizationMetadata:
     """Message object that provides information just before optimization.
@@ -185,7 +189,7 @@ class OptJob(Job):
         raise NotImplementedError()
 
     def reset(self) -> None:
-        """Evaluate the problem at x_0."""
+        """Evaluate the problem at x_i for single optimizable and x_0 for function optimizable."""
         raise NotImplementedError()
 
     def get_param_names(self) -> t.Tuple[str, ...]:
@@ -195,10 +199,6 @@ class OptJob(Job):
         raise NotImplementedError()
 
     def get_objective_name(self) -> str:
-        raise NotImplementedError()
-
-    def format_reset_point(self) -> str:
-        """Format the point to which reset() will go as a string."""
         raise NotImplementedError()
 
     @QtCore.pyqtSlot()
@@ -303,12 +303,11 @@ class SingleOptimizableJob(OptJob):
             problem=problem,
             optimizer=optimizer,
         )
-        unvalidated_x0 = self.problem.get_initial_params()
+        unvalidated_xi = self.problem.get_initial_params()
         try:
-            self.x_0 = validate_x0(unvalidated_x0)
-        except BadInitialPoint:
-            LOG.warning("x0=%r", unvalidated_x0)
-            raise
+            self.x_i = validate_xi(unvalidated_xi)
+        except BadResetPoint:
+            LOG.warning("xi=%r", unvalidated_xi)
 
     def reset(self) -> None:
         with catching_exceptions(
@@ -320,10 +319,32 @@ class SingleOptimizableJob(OptJob):
             on_exception=self._signals.optimisation_failed.emit,
         ):
             LOG.info("start reset of %s using %s", self.problem_id, self.optimizer_id)
-            self._env_callback(self.x_0)
+            self._env_callback(self.x_i)
 
-    def format_reset_point(self) -> str:
-        return "\n".join(map("{}:\t{}".format, self.get_param_names(), self.x_0))
+    def format_reset_point(self, choice: int) -> str:
+        values = self.actions_log[choice]
+        return "\n".join(map("{}:\t{}".format, self.get_param_names(), values))
+
+    def set_reset_point(self, choice: int) -> None:
+        try:
+            self.unvalidated_xi = self.actions_log[choice]
+        except IndexError:
+            LOG.warning("choice=%r", choice)
+            raise
+        try:
+            self.x_i = validate_xi(self.unvalidated_xi)
+            self.reset_points = self.format_reset_point(choice)
+            print(
+                f"Paramter x_i changed to {self.reset_points} with choice integer {choice}"
+            )
+            LOG.debug(
+                "reset point changed to iteration: %s, with actor parameters: %s",
+                choice,
+                self.reset_points,
+            )
+        except (BadResetPoint, IndexError):
+            LOG.warning("xi=%r", self.unvalidated_xi)
+            raise
 
     def get_optimization_space(self) -> gym.spaces.Box:
         return self.problem.optimization_space
@@ -348,7 +369,7 @@ class SingleOptimizableJob(OptJob):
         solve = self.optimizer.make_solve_func(
             (opt_space.low, opt_space.high), self.wrapped_constraints
         )
-        optimum = solve(self._env_callback, self.x_0.copy())
+        optimum = solve(self._env_callback, self.x_i.copy())
         self._env_callback(optimum.x, final_step=True)
 
     def get_param_names(self) -> t.Tuple[str, ...]:
@@ -358,7 +379,7 @@ class SingleOptimizableJob(OptJob):
         tuple returned by this function will always have as many
         elements as the first result of` `get_initial_params()``.
         """
-        indices = range(1, 1 + len(self.x_0))
+        indices = range(1, 1 + len(self.x_i))
         return tuple(self.problem.param_names) or tuple(f"Actor {i}" for i in indices)
 
     def get_constraint_names(self) -> t.Tuple[str, ...]:
@@ -460,7 +481,7 @@ class FunctionOptimizableJob(OptJob):
         )
         # TODO: Right now, we create one plot for all optimizations.
         # This is fundamentally incompatible with our promise to allow
-        # different numers of parameters for each skeleton point. We
+        # different numbers of parameters for each skeleton point. We
         # will have to change this eventually.
         self._signals.new_optimisation_started.emit(
             PreOptimizationMetadata(
@@ -529,6 +550,23 @@ def validate_x0(array: np.ndarray) -> np.ndarray:
     # something weird.
     if array.dtype.kind not in "uif":
         raise BadInitialPoint(
+            f"bad type: expected a float array, got dtype={array.dtype}"
+        )
+    return array
+
+
+def validate_xi(array: np.ndarray) -> np.ndarray:
+    """Raise BadResetPoint if array is not a flat floating-point array."""
+    array = np.asanyarray(array)
+    if array.ndim != 1:
+        raise BadResetPoint(f"bad shape: expected a 1-D array, got shape={array.shape}")
+    # We exceptionally also accept unsigned ("u") and signed ("i")
+    # integers, but only because most optimizers cast them to float
+    # without issues. The one thing this guards against is
+    # `dtype('object')`, which we can occasionally get if PyJapc returns
+    # something weird.
+    if array.dtype.kind not in "uif":
+        raise BadResetPoint(
             f"bad type: expected a float array, got dtype={array.dtype}"
         )
     return array
