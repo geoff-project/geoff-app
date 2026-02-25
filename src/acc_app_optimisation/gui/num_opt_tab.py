@@ -18,12 +18,18 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from .. import envs
 from .. import lsa_utils_hooks as _hooks
-from ..job_control.single_objective import OptJob, OptJobBuilder
+from ..job_control.single_objective import OptJobBuilder
+from ..job_control.single_objective.jobs import (
+    OptJob,
+    FunctionOptimizableJob,
+    SingleOptimizableJob,
+)
 from ..utils.typecheck import (
     AnyOptimizable,
     is_any_optimizable,
     is_configurable,
     is_function_optimizable,
+    is_single_optimizable,
 )
 from . import configuration
 from .excdialog import current_exception_dialog, exception_dialog
@@ -67,7 +73,7 @@ class ConfirmationDialog(QtWidgets.QDialog):
     """
 
     def __init__(
-        self, job: OptJob, parent: t.Optional[QtWidgets.QWidget] = None
+        self, job: FunctionOptimizableJob, parent: t.Optional[QtWidgets.QWidget] = None
     ) -> None:
         super().__init__(parent)
         self.setWindowTitle("Reset")
@@ -101,6 +107,62 @@ class ConfirmationDialog(QtWidgets.QDialog):
         no_button = buttons.button(QtWidgets.QDialogButtonBox.No)
         no_button.setDefault(True)
         no_button.setFocus()
+
+
+class ResetChoiceDialog(QtWidgets.QDialog):
+    """Dialog with a Q Spin Box to choose an iteration to reset to and a confirmation button.
+        Pressing yes will change the actors and hooks to the state at chosen iteration.
+
+    Args:
+        job: The job about to be reset.
+        parent: The parent widget to attach to.
+
+    Signal:
+        reset_accepted: Emits reset choice.
+    """
+
+    reset_accepted = QtCore.pyqtSignal(int)
+
+    def __init__(
+        self, job: SingleOptimizableJob, parent: t.Optional[QtWidgets.QWidget] = None
+    ) -> None:
+        super().__init__(parent)
+        self.setWindowTitle("Choose Reset point")
+        self.setModal(True)
+        layout = QtWidgets.QGridLayout(self)
+        icon = QtWidgets.QLabel()
+        icon.setPixmap(
+            QtWidgets.QMessageBox.standardIcon(QtWidgets.QMessageBox.Information)
+        )
+        layout.addWidget(icon, 0, 0, 1, 1, QtCore.Qt.AlignTop)
+        label = QtWidgets.QLabel("What iteration do you want to reset to?")
+        layout.addWidget(label, 0, 1, 1, 1)
+        spinBox = QtWidgets.QSpinBox()
+        spinBox.setMaximum(len(job.actions_log) - 1)
+        spinBox.setMinimum(0)
+        layout.addWidget(spinBox, 2, 0, 1, 2)
+        spinBox.setValue(0)
+        # Internal variable to display actor values corresponding to spinBox value:
+        actor_values = job.format_reset_point(spinBox.value())
+        spinBox.valueChanged.connect(lambda: changeActorValues(spinBox.value()))
+        values_label = QtWidgets.QLabel(actor_values)
+        layout.addWidget(values_label, 3, 1, 2, 1)
+        buttons = QtWidgets.QDialogButtonBox(
+            t.cast(
+                QtWidgets.QDialogButtonBox.StandardButtons,
+                QtWidgets.QDialogButtonBox.Yes | QtWidgets.QDialogButtonBox.No,
+            )
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.accepted.connect(lambda: self.reset_accepted.emit(spinBox.value()))
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons, 5, 1, 1, 1)
+        # Set this default _after_ `addWidget()`, lest Qt ignores it.
+        spinBox.setFocus()
+
+        def changeActorValues(value: int) -> None:
+            actor_values = job.format_reset_point(value)
+            values_label.setText(actor_values)
 
 
 class RunControlButtons(QtWidgets.QWidget):
@@ -486,12 +548,26 @@ class NumOptTab(QtWidgets.QWidget):
             LOG.error("cannot reset, no job has been run")
             return
         # This assignment convinces MyPy that `job` is never None.
-        job = self._current_opt_job
-        dialog = ConfirmationDialog(job, parent=self)
-        dialog.accepted.connect(lambda: self._on_reset_confirmed(job))
-        dialog.show()
+        optjob = self._current_opt_job
+        problem = self.get_or_load_problem()
+        if is_function_optimizable(problem):
+            funcjob = t.cast(FunctionOptimizableJob, optjob)
+            dialog_func = ConfirmationDialog(funcjob, parent=self)
+            dialog_func.accepted.connect(lambda: self._on_reset_confirmed_func(funcjob))
+            dialog_func.show()
+        elif is_single_optimizable(problem):
+            singjob = t.cast(SingleOptimizableJob, optjob)
+            dialog_single = ResetChoiceDialog(singjob, parent=self)
+            dialog_single.reset_accepted.connect(
+                lambda value: self._on_reset_confirmed_single(singjob, value)
+            )
+            dialog_single.show()
+        else:
+            raise ValueError(
+                f"expected job class SingleOptimizableJob or FunctionOptimizableJob, got {type(optjob).__name__}"
+            )
 
-    def _on_reset_confirmed(self, job: OptJob) -> None:
+    def _on_reset_confirmed_func(self, job: FunctionOptimizableJob) -> None:
         LOG.debug("resetting ...")
         self.run_ctrl.transition(RunControlButtons.State.RUNNING)
         threadpool = QtCore.QThreadPool.globalInstance()
@@ -500,6 +576,22 @@ class NumOptTab(QtWidgets.QWidget):
         self._lsa_hooks.update_problem_state(
             _hooks.Resetting(1), problem=self._opt_job_builder.problem_id
         )
+        # job.reset() does the logging for us and eventually emits
+        # another `optimisation_finished` signal.
+        threadpool.start(ThreadPoolTask(job.reset))
+
+    def _on_reset_confirmed_single(self, job: SingleOptimizableJob, value: int) -> None:
+        LOG.debug("resetting ...")
+        self.run_ctrl.transition(RunControlButtons.State.RUNNING)
+        threadpool = QtCore.QThreadPool.globalInstance()
+        # Note that the cycle time is set by
+        # `_on_optimization_new_skeleton_point_selected()`.
+        # Resetting hooks:
+        self._lsa_hooks.update_problem_state(
+            _hooks.Resetting(value), problem=self._opt_job_builder.problem_id
+        )
+        # Resetting actors:
+        job.set_reset_point(value)
         # job.reset() does the logging for us and eventually emits
         # another `optimisation_finished` signal.
         threadpool.start(ThreadPoolTask(job.reset))
