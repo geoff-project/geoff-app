@@ -12,6 +12,13 @@ SPDX-License-Identifier: GPL-3.0-or-later OR EUPL-1.2+
 
 ### Build changes
 
+## v0.17.17
+
+### Visible changes
+- Implement Reset button that allows jumping to any iteration
+
+### Build changes
+
 ## v0.17.16
 
 ### Visible changes
