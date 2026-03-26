@@ -79,8 +79,8 @@
     {
       "artifact_id": "japc-ext-inca",
       "group_id": "cern.japc",
-      "version": "16.12.27",
-      "uri": "http://artifactory.cern.ch/development/cern/japc/japc-ext-inca/16.12.27/japc-ext-inca-16.12.27.jar"
+      "version": "16.12.59",
+      "uri": "http://artifactory.cern.ch/development/cern/japc/japc-ext-inca/16.12.59/japc-ext-inca-16.12.59.jar"
     },
     {
       "artifact_id": "japc-svc-timing",
@@ -109,38 +109,62 @@
     {
       "artifact_id": "japc-ext-remote",
       "group_id": "cern.japc",
-      "version": "8.1.4",
-      "uri": "http://artifactory.cern.ch/development/cern/japc/japc-ext-remote/8.1.4/japc-ext-remote-8.1.4.jar"
+      "version": "8.1.6",
+      "uri": "http://artifactory.cern.ch/development/cern/japc/japc-ext-remote/8.1.6/japc-ext-remote-8.1.6.jar"
     },
     {
       "artifact_id": "lsa-client",
       "group_id": "cern.lsa",
-      "version": "16.12.28",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client/16.12.28/lsa-client-16.12.28.jar"
+      "version": "16.12.58",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client/16.12.58/lsa-client-16.12.58.jar"
     },
     {
       "artifact_id": "lsa-client-rest-cern",
       "group_id": "cern.lsa",
-      "version": "16.12.28",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest-cern/16.12.28/lsa-client-rest-cern-16.12.28.jar"
+      "version": "16.12.58",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest-cern/16.12.58/lsa-client-rest-cern-16.12.58.jar"
     },
     {
       "artifact_id": "lsa-client-common",
       "group_id": "cern.lsa",
-      "version": "16.12.28",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-common/16.12.28/lsa-client-common-16.12.28.jar"
+      "version": "16.12.58",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-common/16.12.58/lsa-client-common-16.12.58.jar"
     },
     {
       "artifact_id": "lsa-client-rest",
       "group_id": "cern.lsa",
-      "version": "16.12.28",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest/16.12.28/lsa-client-rest-16.12.28.jar"
+      "version": "16.12.58",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-rest/16.12.58/lsa-client-rest-16.12.58.jar"
+    },
+    {
+      "artifact_id": "lsa-client-api-cern",
+      "group_id": "cern.lsa",
+      "version": "16.12.58",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api-cern/16.12.58/lsa-client-api-cern-16.12.58.jar"
+    },
+    {
+      "artifact_id": "lsa-domain-cern",
+      "group_id": "cern.lsa",
+      "version": "16.12.58",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain-cern/16.12.58/lsa-domain-cern-16.12.58.jar"
+    },
+    {
+      "artifact_id": "lsa-client-api",
+      "group_id": "cern.lsa",
+      "version": "16.12.58",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api/16.12.58/lsa-client-api-16.12.58.jar"
+    },
+    {
+      "artifact_id": "lsa-domain",
+      "group_id": "cern.lsa",
+      "version": "16.12.58",
+      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain/16.12.58/lsa-domain-16.12.58.jar"
     },
     {
       "artifact_id": "accsoft-commons-value-json",
       "group_id": "cern.accsoft.commons",
-      "version": "7.11.7",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-value-json/7.11.7/accsoft-commons-value-json-7.11.7.jar"
+      "version": "7.11.8",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-value-json/7.11.8/accsoft-commons-value-json-7.11.8.jar"
     },
     {
       "artifact_id": "japc-json",
@@ -155,30 +179,6 @@
       "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-ccs/2.6.2/accsoft-commons-ccs-2.6.2.jar"
     },
     {
-      "artifact_id": "lsa-client-api-cern",
-      "group_id": "cern.lsa",
-      "version": "16.12.28",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api-cern/16.12.28/lsa-client-api-cern-16.12.28.jar"
-    },
-    {
-      "artifact_id": "lsa-domain-cern",
-      "group_id": "cern.lsa",
-      "version": "16.12.28",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain-cern/16.12.28/lsa-domain-cern-16.12.28.jar"
-    },
-    {
-      "artifact_id": "lsa-client-api",
-      "group_id": "cern.lsa",
-      "version": "16.12.28",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-client-api/16.12.28/lsa-client-api-16.12.28.jar"
-    },
-    {
-      "artifact_id": "lsa-domain",
-      "group_id": "cern.lsa",
-      "version": "16.12.28",
-      "uri": "http://artifactory.cern.ch/development/cern/lsa/lsa-domain/16.12.28/lsa-domain-16.12.28.jar"
-    },
-    {
       "artifact_id": "japc",
       "group_id": "cern.japc",
       "version": "8.1.4",
@@ -187,8 +187,8 @@
     {
       "artifact_id": "accsoft-commons-value",
       "group_id": "cern.accsoft.commons",
-      "version": "7.11.7",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-value/7.11.7/accsoft-commons-value-7.11.7.jar"
+      "version": "7.11.8",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-value/7.11.8/accsoft-commons-value-7.11.8.jar"
     },
     {
       "artifact_id": "japc-value",
@@ -271,14 +271,14 @@
     {
       "artifact_id": "accsoft-commons-domain-json",
       "group_id": "cern.accsoft.commons",
-      "version": "2.19.7",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-domain-json/2.19.7/accsoft-commons-domain-json-2.19.7.jar"
+      "version": "2.20.0",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-domain-json/2.20.0/accsoft-commons-domain-json-2.20.0.jar"
     },
     {
       "artifact_id": "accsoft-commons-domain",
       "group_id": "cern.accsoft.commons",
-      "version": "2.19.7",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-domain/2.19.7/accsoft-commons-domain-2.19.7.jar"
+      "version": "2.20.0",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-domain/2.20.0/accsoft-commons-domain-2.20.0.jar"
     },
     {
       "artifact_id": "slf4j-reload4j",
@@ -293,10 +293,10 @@
       "uri": "http://artifactory.cern.ch/development/cern/accsoft/security/rbac-common/10.11.1/rbac-common-10.11.1.jar"
     },
     {
-      "artifact_id": "cmw-directory-client",
-      "group_id": "cern.cmw",
-      "version": "10.9.0",
-      "uri": "http://artifactory.cern.ch/development/cern/cmw/cmw-directory-client/10.9.0/cmw-directory-client-10.9.0.jar"
+      "artifact_id": "feign-form",
+      "group_id": "io.github.openfeign.form",
+      "version": "3.8.0",
+      "uri": "http://artifactory.cern.ch/development/io/github/openfeign/form/feign-form/3.8.0/feign-form-3.8.0.jar"
     },
     {
       "artifact_id": "cmw-rda3",
@@ -305,16 +305,40 @@
       "uri": "http://artifactory.cern.ch/development/cern/cmw/cmw-rda3/10.9.0/cmw-rda3-10.9.0.jar"
     },
     {
-      "artifact_id": "accsoft-commons-rest-core",
-      "group_id": "cern.accsoft.commons",
-      "version": "2.3.18",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-rest-core/2.3.18/accsoft-commons-rest-core-2.3.18.jar"
-    },
-    {
       "artifact_id": "cmw-directory-http-client",
       "group_id": "cern.cmw",
       "version": "10.9.0",
       "uri": "http://artifactory.cern.ch/development/cern/cmw/cmw-directory-http-client/10.9.0/cmw-directory-http-client-10.9.0.jar"
+    },
+    {
+      "artifact_id": "feign-ribbon",
+      "group_id": "io.github.openfeign",
+      "version": "11.10",
+      "uri": "http://artifactory.cern.ch/development/io/github/openfeign/feign-ribbon/11.10/feign-ribbon-11.10.jar"
+    },
+    {
+      "artifact_id": "ribbon-archaius",
+      "group_id": "com.netflix.ribbon",
+      "version": "2.7.18",
+      "uri": "http://artifactory.cern.ch/development/com/netflix/ribbon/ribbon-archaius/2.7.18/ribbon-archaius-2.7.18.jar"
+    },
+    {
+      "artifact_id": "archaius-core",
+      "group_id": "com.netflix.archaius",
+      "version": "0.7.7",
+      "uri": "http://artifactory.cern.ch/development/com/netflix/archaius/archaius-core/0.7.7/archaius-core-0.7.7.jar"
+    },
+    {
+      "artifact_id": "cmw-directory-client",
+      "group_id": "cern.cmw",
+      "version": "10.9.0",
+      "uri": "http://artifactory.cern.ch/development/cern/cmw/cmw-directory-client/10.9.0/cmw-directory-client-10.9.0.jar"
+    },
+    {
+      "artifact_id": "accsoft-commons-rest-core",
+      "group_id": "cern.accsoft.commons",
+      "version": "2.3.18",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-rest-core/2.3.18/accsoft-commons-rest-core-2.3.18.jar"
     },
     {
       "artifact_id": "accsoft-commons-diag",
@@ -337,32 +361,8 @@
     {
       "artifact_id": "accsoft-commons-util",
       "group_id": "cern.accsoft.commons",
-      "version": "4.7.4",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-util/4.7.4/accsoft-commons-util-4.7.4.jar"
-    },
-    {
-      "artifact_id": "feign-form",
-      "group_id": "io.github.openfeign.form",
-      "version": "3.8.0",
-      "uri": "http://artifactory.cern.ch/development/io/github/openfeign/form/feign-form/3.8.0/feign-form-3.8.0.jar"
-    },
-    {
-      "artifact_id": "feign-ribbon",
-      "group_id": "io.github.openfeign",
-      "version": "11.10",
-      "uri": "http://artifactory.cern.ch/development/io/github/openfeign/feign-ribbon/11.10/feign-ribbon-11.10.jar"
-    },
-    {
-      "artifact_id": "ribbon-archaius",
-      "group_id": "com.netflix.ribbon",
-      "version": "2.7.18",
-      "uri": "http://artifactory.cern.ch/development/com/netflix/ribbon/ribbon-archaius/2.7.18/ribbon-archaius-2.7.18.jar"
-    },
-    {
-      "artifact_id": "archaius-core",
-      "group_id": "com.netflix.archaius",
-      "version": "0.7.7",
-      "uri": "http://artifactory.cern.ch/development/com/netflix/archaius/archaius-core/0.7.7/archaius-core-0.7.7.jar"
+      "version": "4.7.5",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/commons/accsoft-commons-util/4.7.5/accsoft-commons-util-4.7.5.jar"
     },
     {
       "artifact_id": "activemq-client",
@@ -437,40 +437,10 @@
       "uri": "http://artifactory.cern.ch/development/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar"
     },
     {
-      "artifact_id": "spring-context",
-      "group_id": "org.springframework",
-      "version": "5.3.39",
-      "uri": "http://artifactory.cern.ch/development/org/springframework/spring-context/5.3.39/spring-context-5.3.39.jar"
-    },
-    {
-      "artifact_id": "spring-aop",
-      "group_id": "org.springframework",
-      "version": "5.3.39",
-      "uri": "http://artifactory.cern.ch/development/org/springframework/spring-aop/5.3.39/spring-aop-5.3.39.jar"
-    },
-    {
-      "artifact_id": "spring-web",
-      "group_id": "org.springframework",
-      "version": "5.3.39",
-      "uri": "http://artifactory.cern.ch/development/org/springframework/spring-web/5.3.39/spring-web-5.3.39.jar"
-    },
-    {
-      "artifact_id": "spring-beans",
-      "group_id": "org.springframework",
-      "version": "5.3.39",
-      "uri": "http://artifactory.cern.ch/development/org/springframework/spring-beans/5.3.39/spring-beans-5.3.39.jar"
-    },
-    {
-      "artifact_id": "spring-expression",
-      "group_id": "org.springframework",
-      "version": "5.3.39",
-      "uri": "http://artifactory.cern.ch/development/org/springframework/spring-expression/5.3.39/spring-expression-5.3.39.jar"
-    },
-    {
-      "artifact_id": "spring-core",
-      "group_id": "org.springframework",
-      "version": "5.3.39",
-      "uri": "http://artifactory.cern.ch/development/org/springframework/spring-core/5.3.39/spring-core-5.3.39.jar"
+      "artifact_id": "feign-jackson",
+      "group_id": "io.github.openfeign",
+      "version": "11.10",
+      "uri": "http://artifactory.cern.ch/development/io/github/openfeign/feign-jackson/11.10/feign-jackson-11.10.jar"
     },
     {
       "artifact_id": "cmw-data",
@@ -501,24 +471,6 @@
       "group_id": "cern.accsoft.ccda",
       "version": "2.1.1",
       "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-account-egroup-domain/2.1.1/accsoft-ccs-ccda-client-account-egroup-domain-2.1.1.jar"
-    },
-    {
-      "artifact_id": "accsoft-ccs-ccda-client-domain-core",
-      "group_id": "cern.accsoft.ccda",
-      "version": "2.2.13",
-      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-domain-core/2.2.13/accsoft-ccs-ccda-client-domain-core-2.2.13.jar"
-    },
-    {
-      "artifact_id": "commons-lang3",
-      "group_id": "org.apache.commons",
-      "version": "3.17.0",
-      "uri": "http://artifactory.cern.ch/development/org/apache/commons/commons-lang3/3.17.0/commons-lang3-3.17.0.jar"
-    },
-    {
-      "artifact_id": "feign-jackson",
-      "group_id": "io.github.openfeign",
-      "version": "11.10",
-      "uri": "http://artifactory.cern.ch/development/io/github/openfeign/feign-jackson/11.10/feign-jackson-11.10.jar"
     },
     {
       "artifact_id": "jackson-datatype-jsr310",
@@ -569,6 +521,54 @@
       "uri": "http://artifactory.cern.ch/development/com/google/guava/guava/33.2.1-jre/guava-33.2.1-jre.jar"
     },
     {
+      "artifact_id": "spring-context",
+      "group_id": "org.springframework",
+      "version": "5.3.39",
+      "uri": "http://artifactory.cern.ch/development/org/springframework/spring-context/5.3.39/spring-context-5.3.39.jar"
+    },
+    {
+      "artifact_id": "spring-web",
+      "group_id": "org.springframework",
+      "version": "5.3.39",
+      "uri": "http://artifactory.cern.ch/development/org/springframework/spring-web/5.3.39/spring-web-5.3.39.jar"
+    },
+    {
+      "artifact_id": "spring-aop",
+      "group_id": "org.springframework",
+      "version": "5.3.39",
+      "uri": "http://artifactory.cern.ch/development/org/springframework/spring-aop/5.3.39/spring-aop-5.3.39.jar"
+    },
+    {
+      "artifact_id": "spring-beans",
+      "group_id": "org.springframework",
+      "version": "5.3.39",
+      "uri": "http://artifactory.cern.ch/development/org/springframework/spring-beans/5.3.39/spring-beans-5.3.39.jar"
+    },
+    {
+      "artifact_id": "spring-expression",
+      "group_id": "org.springframework",
+      "version": "5.3.39",
+      "uri": "http://artifactory.cern.ch/development/org/springframework/spring-expression/5.3.39/spring-expression-5.3.39.jar"
+    },
+    {
+      "artifact_id": "spring-core",
+      "group_id": "org.springframework",
+      "version": "5.3.39",
+      "uri": "http://artifactory.cern.ch/development/org/springframework/spring-core/5.3.39/spring-core-5.3.39.jar"
+    },
+    {
+      "artifact_id": "accsoft-ccs-ccda-client-domain-core",
+      "group_id": "cern.accsoft.ccda",
+      "version": "2.2.13",
+      "uri": "http://artifactory.cern.ch/development/cern/accsoft/ccda/accsoft-ccs-ccda-client-domain-core/2.2.13/accsoft-ccs-ccda-client-domain-core-2.2.13.jar"
+    },
+    {
+      "artifact_id": "commons-lang3",
+      "group_id": "org.apache.commons",
+      "version": "3.17.0",
+      "uri": "http://artifactory.cern.ch/development/org/apache/commons/commons-lang3/3.17.0/commons-lang3-3.17.0.jar"
+    },
+    {
       "artifact_id": "feign-okhttp",
       "group_id": "io.github.openfeign",
       "version": "11.10",
@@ -599,22 +599,10 @@
       "uri": "http://artifactory.cern.ch/development/ch/qos/reload4j/reload4j/1.2.19/reload4j-1.2.19.jar"
     },
     {
-      "artifact_id": "spring-jcl",
-      "group_id": "org.springframework",
-      "version": "5.3.39",
-      "uri": "http://artifactory.cern.ch/development/org/springframework/spring-jcl/5.3.39/spring-jcl-5.3.39.jar"
-    },
-    {
       "artifact_id": "feign-core",
       "group_id": "io.github.openfeign",
       "version": "11.10",
       "uri": "http://artifactory.cern.ch/development/io/github/openfeign/feign-core/11.10/feign-core-11.10.jar"
-    },
-    {
-      "artifact_id": "swagger-annotations",
-      "group_id": "io.swagger.core.v3",
-      "version": "2.2.39",
-      "uri": "http://artifactory.cern.ch/development/io/swagger/core/v3/swagger-annotations/2.2.39/swagger-annotations-2.2.39.jar"
     },
     {
       "artifact_id": "failureaccess",
@@ -639,6 +627,18 @@
       "group_id": "com.google.errorprone",
       "version": "2.26.1",
       "uri": "http://artifactory.cern.ch/development/com/google/errorprone/error_prone_annotations/2.26.1/error_prone_annotations-2.26.1.jar"
+    },
+    {
+      "artifact_id": "spring-jcl",
+      "group_id": "org.springframework",
+      "version": "5.3.39",
+      "uri": "http://artifactory.cern.ch/development/org/springframework/spring-jcl/5.3.39/spring-jcl-5.3.39.jar"
+    },
+    {
+      "artifact_id": "swagger-annotations",
+      "group_id": "io.swagger.core.v3",
+      "version": "2.2.39",
+      "uri": "http://artifactory.cern.ch/development/io/swagger/core/v3/swagger-annotations/2.2.39/swagger-annotations-2.2.39.jar"
     },
     {
       "artifact_id": "okhttp",
